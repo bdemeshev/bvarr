@@ -41,17 +41,16 @@ the list containing all results of bayesian VAR estimation
 }
 \description{
 bvar
-}
-\examples{
-bvar(Yraw)
-}
-\author{
-Gary Koop, Korobilis, Boris Demeshev
-Estimate six types of bayesian VAR models
 
 This function completes the subsetting, transforming and ordering triad
 with a function that works in a similar way to \code{\link{subset}} and
 \code{\link{transform}} but for reordering a data frame by its columns.
 This saves a lot of typing!
+}
+\examples{
+bvar(Yraw)
+}
+\author{
+Gary Koop, Dimitris Korobilis, Boris Demeshev
 }
 
