@@ -3,7 +3,7 @@
 #' @name bvar
 #' @docType package
 #' @author Gary Koop, Dimitris Korobilis, Boris Demeshev 
-#' @import MCMCpack, mvtnorm, reshape2, ggplot2
+#' @import MCMCpack mvtnorm reshape2 ggplot2
 NULL
 
 
