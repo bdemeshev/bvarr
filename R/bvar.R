@@ -2,8 +2,28 @@
 #'
 #' @name bvar
 #' @docType package
-#' @author Gary Koop, Korobilis, Boris Demeshev 
+#' @author Gary Koop, Dimitris Korobilis, Boris Demeshev 
+#' @import MCMCpack, mvtnorm, reshape2, ggplot2
+NULL
 
+
+
+#' US inflation, employement data.fram
+#'
+#' A dataset containing . The variables are as follows:
+#'
+#' \itemize{
+#' \item inflation. basdf sdjk
+#' \item employment. blablba
+#' \item .... sdfsd fsdlk flksdj f
+#' }
+#'
+#' @docType data
+#' @keywords datasets
+#' @name Yraw
+#' @usage data(Yraw)
+#' @format A data frame with ... rows and .. variables
+NULL
 
 
 
