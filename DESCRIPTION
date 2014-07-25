@@ -7,4 +7,4 @@ Author: Koop, Korobilis, Demeshev
 Maintainer: Boris Demeshev <boris.demeshev@gmail.com>
 Description: The bvarr package allows estimation of 6 different bayesian VAR
     models.
-License: LGPL
+License: MIT
