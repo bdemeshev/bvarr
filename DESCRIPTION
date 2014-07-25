@@ -1,0 +1,10 @@
+Package: bvarr
+Type: Package
+Title: Bayesian VAR package with 6 models.
+Version: 0.1
+Date: 2014-07-25
+Author: Koop, Korobilis, Demeshev
+Maintainer: Boris Demeshev <boris.demeshev@gmail.com>
+Description: The bvarr package allows estimation of 6 different bayesian VAR
+    models.
+License: LGPL
