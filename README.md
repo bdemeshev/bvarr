@@ -6,7 +6,14 @@ This is a translation to R of the matlab code by [Gary Koops and Dimitris Korobi
 
 You may install the package usinge the commands:
 ```R
-require("devtools")
+library("devtools")
 install_github("bdemeshev/bvarr")
 ```
 
+Very basic example of usage:
+```R
+library("bvarr")
+data(Yraw)
+model <- bvar(Yraw,prior = "independent")
+bvar.imp.plot(model)
+```
