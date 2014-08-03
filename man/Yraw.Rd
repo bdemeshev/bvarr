@@ -2,7 +2,7 @@
 \docType{data}
 \name{Yraw}
 \alias{Yraw}
-\title{US inflation, employement data.fram}
+\title{US inflation, employement data.frame}
 \format{A data frame with ... rows and .. variables}
 \usage{
 data(Yraw)
@@ -14,7 +14,7 @@ A dataset containing . The variables are as follows:
 \itemize{
 \item inflation. basdf sdjk
 \item employment. blablba
-\item .... sdfsd fsdlk flksdj f
+\item interest_rate sdfsd fsdlk flksdj f
 }
 }
 \keyword{datasets}

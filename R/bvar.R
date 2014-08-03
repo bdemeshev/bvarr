@@ -591,15 +591,16 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     # Parameters for Heta|omega ~ N_[j-1](0,D_[j]*R_[j]*D_[j]), see eq. (15)
     # Create and update h_[j] matrix
     # If omega_[ij] = 0 => h_[ij] = kappa0, else...
-    for (kk_4 in 1:(M-1)) {
-      omeg <- omega[[kk_4]]
-      het <- ifelse(omeg==0,kappa_0,kappa_1)
-      hh[[kk_4]] <- as.vector(het)
-    }
+
     # D_j = diag(hh_[1j],...,hh_[j-1,j])
     # D_j <- list() # cell(1,M-1); BB: we create DD_j without D_j
     
     for (kk_5 in 1:(M-1)) {
+      
+      het <- ifelse(omega[[kk_5]]==0,kappa_0,kappa_1)
+      hh[[kk_5]] <- as.vector(het)
+      
+      
       # BB: diag(6) gives 6*6 matrix in R but 1*1 matrix in matlab
       # D_j[[kk_5]] <- diag(hh[[kk_5]],nrow=length(hh[[kk_5]]))
       # Now create covariance matrix D_[j]*R_[j]*D_[j], see eq. (15)
@@ -656,7 +657,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     # Draw omega|eta,psi,phi,gamma,omega,DATA from BERNOULLI dist.
     omega_vec <- NULL # temporary vector to store draws of omega
     for (kk_9 in 1:(M-1)) {
-      omeg_g <- omega[[kk_9]]
+      # BB: time waste: omeg_g <- omega[[kk_9]]
       eta_g <- eta[[kk_9]]
 
       u_ij1 <- (1/kappa_0)*exp(-0.5*(eta_g^2)/(kappa_0^2))*q_ij
@@ -679,7 +680,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     PSI_ALL <- diag(sqrt(psi_ii_sq))
     
     for (nn_2 in 1:(M-1)) { # Now non-diagonal elements
-      PSI_ALL [1:nrow(eta_gg),nn_2+1] <- eta[[nn_2]]
+      PSI_ALL [1:nrow(eta[[nn_2]]),nn_2+1] <- eta[[nn_2]]
     }
     # Create SIGMA
     SIGMA <- solve(PSI_ALL %*% t(PSI_ALL))        
