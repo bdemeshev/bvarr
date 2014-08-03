@@ -2,13 +2,14 @@
 \docType{data}
 \name{Yraw}
 \alias{Yraw}
-\title{US inflation, employement data.frame}
+\title{US inflation, employement and interest rate data.frame}
 \format{A data frame with ... rows and .. variables}
 \usage{
 data(Yraw)
 }
 \description{
-A dataset containing . The variables are as follows:
+Quarterly US data on inflation, unemployment and interest rate,
+1953:Q1 - 2006:Q3 The variables are as follows:
 }
 \details{
 \itemize{

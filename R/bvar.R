@@ -8,9 +8,10 @@ NULL
 
 
 
-#' US inflation, employement data.frame
+#' US inflation, employement and interest rate data.frame
 #'
-#' A dataset containing . The variables are as follows:
+#' Quarterly US data on inflation, unemployment and interest rate, 
+#' 1953:Q1 - 2006:Q3 The variables are as follows:
 #'
 #' \itemize{
 #' \item inflation. basdf sdjk
@@ -47,15 +48,25 @@ NULL
 #' @param forecasting whether to calculate forecasts
 #' @param repfor number of times to obtain a draw from the predictive
 #' @param h number of forecast periods
+#' @param a_i SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)
+#' @param b_i SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)
+#' @param kappa_0 SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA
+#' @param kappa_1 SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA
+#' @param p_i SSVS-SSVS hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)
+#' @param q_ij SSVS-SSVS  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
 #' bvar(Yraw)
 bvar <-
 function(Yraw, prior = "SSVS-SSVS", W = NULL, p = 4, constant = TRUE,
-                 nsave = 10000, nburn = 2000, it_print = 2000,
-                 impulses = TRUE, ihor = 24,
-                 forecasting = TRUE, repfor = 50, h = 1  ) {
+                 nsave = 10000, nburn = 2000, it_print = 2000, # gibbs-related
+                 impulses = TRUE, ihor = 24,  # impulses-related
+                 forecasting = TRUE, repfor = 50, h = 1, # forecasting-related
+                 p_i = 0.5, q_ij = 0.5, # S-S hyperparameters 
+                 kappa_0 = 0.1, kappa_1 = 6,   # S-S hyperparameters         
+                 a_i = 0.01, b_i = 0.01  # S-S hyperparameters 
+         ) {
 
 
 
@@ -100,18 +111,10 @@ function(Yraw, prior = "SSVS-SSVS", W = NULL, p = 4, constant = TRUE,
 #--------------------------------------------------------------------------
   
 
-#------------------------------LOAD DATA-----------------------------------
-# Load Quarterly US data on inflation, unemployment and interest rate, 
-# 1953:Q1 - 2006:Q3
 
-
-
-# Yraw <- Yraw[29:189,]
-# or Simulate data from a simple VAR Data Generating process
 # [Yraw] = bvardgp(); # BB: translate to R!!!!
 
-# In any case, name the data you load 'Yraw', in order to avoid changing the
-# rest of the code. Note that 'Yraw' is a matrix with T rows by M columns,
+# Note that 'Yraw' is a matrix with T rows by M columns,
 # where T is the number of time series observations (usually months or
 # quarters), while M is the number of VAR dependent macro variables.
 
@@ -278,9 +281,6 @@ if (impulses) {   # BB: REDO? Cleaner separation of estimation/prediction/irf ca
   
   # print(dimnames(all_responses))
   
-  # imp_infl <- array(0,c(nsave,M,ihor)) # impulse responses to a shock in inflation
-  # imp_une <- array(0,c(nsave,M,ihor))  # impulse responses to a shock in unemployment
-  # imp_int <- array(0,c(nsave,M,ihor))  # impulse responses to a shock in interest rate
   bigj <- matrix(0,M,M*p)  
   bigj[1:M,1:M] <- diag(M)
   rownames(bigj) <- colnames(Yraw)
@@ -380,9 +380,6 @@ if (prior == "Minnesota") { # Minnesota-Whishart (2)
         if (j %in% ind[i,]) 
           V_i[j,i] <- a_bar[1]/(ceiling((j-1)/M)^2) # variance on own lags  
         if ((j>1)& (!(j %in% ind[i,]))) {         
-          #for (kj in 1:M) {
-          #  if (j %in% ind[kj,]) ll <- kj                               
-          #}
           ll <- (j-1) %% M # remainder of division by M
           if (ll==0) ll <- M # replace remainder==0 by M
           
@@ -447,16 +444,7 @@ if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart o
   tau_0 <- 0.1*sigma_alpha   # Set tau_[0i], tau_[1i]
   tau_1 <- 10*sigma_alpha
   
-  # Priors on SIGMA
-  if (prior == "SSVS-SSVS") { #SSVS on SIGMA
-    # SSVS variances for non-diagonal elements of SIGMA     
-    kappa_0 <- 0.1 # Set kappa_[0ij], kappa_[1ij]
-    kappa_1 <- 6
-    
-    # Hyperparameters for diagonal elements of SIGMA (Gamma density)
-    a_i <- 0.01
-    b_i <- 0.01
-  }
+
   if (prior == "SSVS-Wishart")  { # Wishart on SIGMA
     # Hyperparameters on inv(SIGMA) ~ W(v_prior,inv(S_prior))
     v_prior <- M+1             #<---- prior Degrees of Freedom (DoF) of SIGMA
@@ -464,11 +452,7 @@ if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart o
     inv_S_prior <- solve(S_prior) # BB: inverse of identity :)
   }
   
-  # Hyperparameters for Gamma ~ BERNOULLI(m,p_i), see eq. (14)
-  p_i <- 0.5
   
-  # Hyperparameters for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)
-  q_ij <- 0.5
   
   # Initialize Gamma and Omega vectors
   gammas <- rep(1,n)    # vector of Gamma
@@ -486,11 +470,8 @@ if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart o
 
 # BB: reserve space for vectors and matrices 
 # BB: better to use appropriate size
-# S <- as.list(rep(NA,M)) # cell(1,M); # S[[i]] = SSE_Gibbs[1:i,1:i]
-# s <- as.list(rep(NA,M-1)) # cell(1,M-1); # s[[i]] <- SSE_Gibbs[1:i,i+1]
 hh <- as.list(rep(NA,M-1)) # cell(1,M-1);
 DD_j <- as.list(rep(NA,M-1)) # cell(1,M-1);
-# B <- as.list(rep(NA,M)) #=cell(1,M);
 eta <- as.list(rep(NA,M-1)) # eta = cell(1,M-1);
 
 
@@ -577,23 +558,6 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     
   if (prior == "SSVS-SSVS") { # SSVS
     # Draw psi|alpha,gamma,omega,DATA from the GAMMA dist.
-    # Get S_[j] - upper-left [j x j] submatrices of SSE
-    # The following loop creates a cell array with elements S_1,
-    # S_2,...,S_j with respective dimensions 1x1, 2x2,...,jxj
-
-    # NoS for (kk_2 in 1:M) {
-    # NoS S[[kk_2]] <- SSE_Gibbs[1:kk_2,1:kk_2]
-    # NoS }
-    # Set also SSE =(s_[i,j]) & get vectors s_[j]=(s_[1,j] , ... , s_[j-1,j])
-    # Nos for (kk_3 in 2:M) {
-    # Nos  s[[kk_3 - 1]] <- SSE_Gibbs[1:(kk_3 - 1),kk_3]
-    # Nos }
-    # Parameters for Heta|omega ~ N_[j-1](0,D_[j]*R_[j]*D_[j]), see eq. (15)
-    # Create and update h_[j] matrix
-    # If omega_[ij] = 0 => h_[ij] = kappa0, else...
-
-    # D_j = diag(hh_[1j],...,hh_[j-1,j])
-    # D_j <- list() # cell(1,M-1); BB: we create DD_j without D_j
     
     for (kk_5 in 1:(M-1)) {
       
@@ -618,14 +582,9 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     # BB: rr=2..M
     for (rr in 2:M) {
       s_i <- SSE_Gibbs[1:(rr - 1),rr]
-      # NoS S_i <- S[[rr-1]]
       S_i <- SSE_Gibbs[1:(rr-1),1:(rr-1)]
       
       DiDi <- DD_j[[rr-1]]
-      
-      #cat("dim s_i = ",dim(s_i),"\n")
-      #cat("dim S_i = ",dim(S_i),"\n")
-      #cat("dim DiDi = ",dim(DiDi),"\n")
       
       Delta_j <- solve(S_i + solve(DiDi))
       
@@ -636,24 +595,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
       eta[[rr-1]] <- miu_j + t(chol(Delta_j)) %*% rnorm(rr-1)
       
     }
-    # Now get B_i from cell array B, and generate (psi_[ii])^2
-    # B_i <- unlist(B) # B_i = cell2mat(B); ## ???
-    # for (kk_7 in 1:M) {
-    #  psi_ii_sq[kk_7] <- rgamma(1,shape=a_i + 0.5*T,rate=B_i[kk_7])
-    #  # BB: matlab gamm_rnd(1,1,(a_i + 0.5*T),B_i(1,kk_7))
-    # }
-
-    # Draw eta|psi,phi,gamma,omega,DATA from the [j-1]-variate
-    # NORMAL dist.
-    # for (rr in 2:M) { # rr=kk_8 + 1
-    #  s_i <- SSE_Gibbs[1:(rr-1),rr]
-    #  # NoS S_i <- S[[kk_8]]
-    #  S_i <- SSE_Gibbs[1:(rr-1),1:(rr-1)]
-    #  
-    #  DiDi <- DD_j[[rr-1]]
-
-    #}
-
+ 
     # Draw omega|eta,psi,phi,gamma,omega,DATA from BERNOULLI dist.
     omega_vec <- NULL # temporary vector to store draws of omega
     for (kk_9 in 1:(M-1)) {
@@ -672,11 +614,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
 
     # Create PSI matrix from individual elements of "psi_ii_sq" and "eta"
-    # old version: PSI_ALL <- matrix(0, nrow=M, ncol=M) 
-    # old version: for (nn_1 in 1:M) { # first diagonal elements
-    # old version: PSI_ALL[nn_1,nn_1] <- sqrt(psi_ii_sq[nn_1])   
-    # old version: }
-    
+     
     PSI_ALL <- diag(sqrt(psi_ii_sq))
     
     for (nn_2 in 1:(M-1)) { # Now non-diagonal elements
