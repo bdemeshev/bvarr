@@ -486,11 +486,11 @@ if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart o
 
 # BB: reserve space for vectors and matrices 
 # BB: better to use appropriate size
-S <- as.list(rep(NA,M)) # cell(1,M);
-s <- as.list(rep(NA,M-1)) # cell(1,M-1);
+# S <- as.list(rep(NA,M)) # cell(1,M); # S[[i]] = SSE_Gibbs[1:i,1:i]
+# s <- as.list(rep(NA,M-1)) # cell(1,M-1); # s[[i]] <- SSE_Gibbs[1:i,i+1]
 hh <- as.list(rep(NA,M-1)) # cell(1,M-1);
 DD_j <- as.list(rep(NA,M-1)) # cell(1,M-1);
-B <- as.list(rep(NA,M)) #=cell(1,M);
+# B <- as.list(rep(NA,M)) #=cell(1,M);
 eta <- as.list(rep(NA,M-1)) # eta = cell(1,M-1);
 
 
@@ -581,13 +581,13 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     # The following loop creates a cell array with elements S_1,
     # S_2,...,S_j with respective dimensions 1x1, 2x2,...,jxj
 
-    for (kk_2 in 1:M) {
-      S[[kk_2]] <- SSE_Gibbs[1:kk_2,1:kk_2]
-    }
+    # NoS for (kk_2 in 1:M) {
+    # NoS S[[kk_2]] <- SSE_Gibbs[1:kk_2,1:kk_2]
+    # NoS }
     # Set also SSE =(s_[i,j]) & get vectors s_[j]=(s_[1,j] , ... , s_[j-1,j])
-    for (kk_3 in 2:M) {
-      s[[kk_3 - 1]] <- SSE_Gibbs[1:(kk_3 - 1),kk_3]
-    }
+    # Nos for (kk_3 in 2:M) {
+    # Nos  s[[kk_3 - 1]] <- SSE_Gibbs[1:(kk_3 - 1),kk_3]
+    # Nos }
     # Parameters for Heta|omega ~ N_[j-1](0,D_[j]*R_[j]*D_[j]), see eq. (15)
     # Create and update h_[j] matrix
     # If omega_[ij] = 0 => h_[ij] = kappa0, else...
@@ -608,37 +608,50 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
     
     # Create B_[i] matrix
-    B[[1]] <- b_i + 0.5*SSE[1,1]
+    B_i <- rep(0,M)
+    
+    # BB: rr=1 is a special case
+    B_i[1] <- b_i + 0.5*SSE[1,1]
+    psi_ii_sq[1] <- rgamma(1,shape=a_i + 0.5*T,rate=B_i[1])
+    
+    # BB: rr=2..M
     for (rr in 2:M) {
-      s_i <- s[[rr-1]]
-      S_i <- S[[rr-1]]
+      s_i <- SSE_Gibbs[1:(rr - 1),rr]
+      # NoS S_i <- S[[rr-1]]
+      S_i <- SSE_Gibbs[1:(rr-1),1:(rr-1)]
+      
       DiDi <- DD_j[[rr-1]]
       
       #cat("dim s_i = ",dim(s_i),"\n")
       #cat("dim S_i = ",dim(S_i),"\n")
       #cat("dim DiDi = ",dim(DiDi),"\n")
       
+      Delta_j <- solve(S_i + solve(DiDi))
       
-      B[[rr]] <- b_i + 0.5*(SSE_Gibbs[rr,rr] - t(s_i) %*% solve(S_i + solve(DiDi)) %*% s_i)
+      B_i[rr] <- b_i + 0.5*(SSE_Gibbs[rr,rr] - t(s_i) %*% Delta_j %*% s_i)
+      psi_ii_sq[rr] <- rgamma(1,shape=a_i + 0.5*T,rate=B_i[rr])
+      
+      miu_j = - sqrt(psi_ii_sq[rr])*(Delta_j %*% s_i)
+      eta[[rr-1]] <- miu_j + t(chol(Delta_j)) %*% rnorm(rr-1)
+      
     }
     # Now get B_i from cell array B, and generate (psi_[ii])^2
-    B_i <- unlist(B) # B_i = cell2mat(B); ## ???
-    for (kk_7 in 1:M) {
-      psi_ii_sq[kk_7] <- rgamma(1,shape=a_i + 0.5*T,rate=B_i[kk_7])
-      # BB: matlab gamm_rnd(1,1,(a_i + 0.5*T),B_i(1,kk_7))
-    }
+    # B_i <- unlist(B) # B_i = cell2mat(B); ## ???
+    # for (kk_7 in 1:M) {
+    #  psi_ii_sq[kk_7] <- rgamma(1,shape=a_i + 0.5*T,rate=B_i[kk_7])
+    #  # BB: matlab gamm_rnd(1,1,(a_i + 0.5*T),B_i(1,kk_7))
+    # }
 
     # Draw eta|psi,phi,gamma,omega,DATA from the [j-1]-variate
     # NORMAL dist.
-    for (kk_8 in 1:(M-1)) {
-      s_i <- s[[kk_8]]
-      S_i <- S[[kk_8]]
-      DiDi <- DD_j[[kk_8]]
-      
-      miu_j = - sqrt(psi_ii_sq[kk_8+1])*(solve(S_i + solve(DiDi)) %*% s_i)
-      Delta_j <- solve(S_i + solve(DiDi))
-      eta[[kk_8]] <- miu_j + t(chol(Delta_j)) %*% rnorm(kk_8)
-    }
+    # for (rr in 2:M) { # rr=kk_8 + 1
+    #  s_i <- SSE_Gibbs[1:(rr-1),rr]
+    #  # NoS S_i <- S[[kk_8]]
+    #  S_i <- SSE_Gibbs[1:(rr-1),1:(rr-1)]
+    #  
+    #  DiDi <- DD_j[[rr-1]]
+
+    #}
 
     # Draw omega|eta,psi,phi,gamma,omega,DATA from BERNOULLI dist.
     omega_vec <- NULL # temporary vector to store draws of omega
