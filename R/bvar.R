@@ -8,14 +8,14 @@ NULL
 
 
 
-#' US inflation, employement data.fram
+#' US inflation, employement data.frame
 #'
 #' A dataset containing . The variables are as follows:
 #'
 #' \itemize{
 #' \item inflation. basdf sdjk
 #' \item employment. blablba
-#' \item .... sdfsd fsdlk flksdj f
+#' \item interest_rate sdfsd fsdlk flksdj f
 #' }
 #'
 #' @docType data
@@ -671,15 +671,15 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
 
     # Create PSI matrix from individual elements of "psi_ii_sq" and "eta"
-    PSI_ALL <- matrix(0, nrow=M, ncol=M) 
-    for (nn_1 in 1:M) { # first diagonal elements
-      PSI_ALL[nn_1,nn_1] <- sqrt(psi_ii_sq[nn_1])   
-    }
+    # old version: PSI_ALL <- matrix(0, nrow=M, ncol=M) 
+    # old version: for (nn_1 in 1:M) { # first diagonal elements
+    # old version: PSI_ALL[nn_1,nn_1] <- sqrt(psi_ii_sq[nn_1])   
+    # old version: }
+    
+    PSI_ALL <- diag(sqrt(psi_ii_sq))
+    
     for (nn_2 in 1:(M-1)) { # Now non-diagonal elements
-      eta_gg <- eta[[nn_2]]
-      for (nnn in 1:nrow(eta_gg) ) {
-        PSI_ALL [nnn,nn_2+1] <- eta_gg[nnn]
-      }
+      PSI_ALL [1:nrow(eta_gg),nn_2+1] <- eta[[nn_2]]
     }
     # Create SIGMA
     SIGMA <- solve(PSI_ALL %*% t(PSI_ALL))        
