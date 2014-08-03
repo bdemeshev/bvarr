@@ -189,8 +189,9 @@ M <- ncol(Yraw)
 
 if (forecasting & h<=0) 
   stop("You have set forecasting, but the forecast horizon h<=0")
-possible.priors <- c("diffuse","Minnesota","conjugate",
-                     "independent","SSVS-Wishart","SSVS-SSVS")
+possible.priors <- c("diffuse","minnesota","conjugate",
+                     "independent","ssvs-wishart","ssvs-ssvs")
+prior <- tolower(prior)
 if (!prior %in% possible.priors) stop("Possible priors are: ", paste(possible.priors,collapse=", ")) 
 
 # The model specification is different when implementing direct forecasts,
@@ -313,14 +314,6 @@ SIGMA_draws <- array(0,c(nsave,M,M))   # save draws of SIGMA
 dimnames(SIGMA_draws)[[2]] <- colnames(Yraw)
 dimnames(SIGMA_draws)[[3]] <- colnames(Yraw)
 
-#-----------------Prior hyperparameters for bvar model
-# load file which sets hyperparameters for chosen prior
-# source("prior_hyper.R") # BB: How to do correctly?
-
-# translation to R by Boris Demeshev
-# error with constant = FALSE in the original script is probably corrected
-# based on the code by Gary Koop
-# http://personal.strath.ac.uk/gary.koop/bayes_matlab_code_by_koop_and_korobilis.html
 
 # input:
 # p ---  Number of lags on dependent variables
@@ -329,14 +322,12 @@ dimnames(SIGMA_draws)[[3]] <- colnames(Yraw)
 # priors :)
 
 
-# Define hyperparameters under different priors
-# I indicate the exact line in which the prior hyperparameters can be found
 
-
-if (prior == "diffuse") { # Diffuse (1)
+#if (prior == "diffuse") { # Diffuse (1)
   # I guess there is nothing to specify in this case!
   # Posteriors depend on OLS quantities
-}
+#}
+
 if (prior == "Minnesota") { # Minnesota-Whishart (2)
   # Prior mean on VAR regression coefficients
   A_prior <- rbind(rep(0,M),0.9*diag(M),matrix(0,(p-1)*M,M)) #<---- prior mean of ALPHA (parameter matrix) 
@@ -833,8 +824,8 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   
   p <- ggplot(data=imp_resp_melt,aes(x=lag,y=impulse)) +
     geom_line(aes(col=probability)) + facet_wrap(from~to,scales = "free")
-  print(p)
-  
+  # print(p)
+  return(p)
 }
 
 #' Estimate six types of bayesian VAR models
