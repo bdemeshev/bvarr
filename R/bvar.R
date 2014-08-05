@@ -177,7 +177,7 @@ mlag2 <- function(X,p) {
 
 # For models using analytical results, there are no convergence issues 
 # (You are not adviced to change the next 3 lines)
-if (prior %in% c("diffuse","Minnesota","conjugate") ) nburn <- 0
+if (prior %in% c("diffuse","minnesota","conjugate") ) nburn <- 0
 
 ntot <- nsave + nburn  # Total number of draws
  
@@ -328,7 +328,7 @@ dimnames(SIGMA_draws)[[3]] <- colnames(Yraw)
   # Posteriors depend on OLS quantities
 #}
 
-if (prior == "Minnesota") { # Minnesota-Whishart (2)
+if (prior == "minnesota") { # Minnesota-Whishart (2)
   # Prior mean on VAR regression coefficients
   A_prior <- rbind(rep(0,M),0.9*diag(M),matrix(0,(p-1)*M,M)) #<---- prior mean of ALPHA (parameter matrix) 
   a_prior <- as.vector(A_prior)               #<---- prior mean of alpha (parameter vector)
@@ -421,7 +421,7 @@ if (prior == "independent")  { # Independent Normal-Wishart
   S_prior <- diag(M)         #<---- prior scale of SIGMA
   inv_S_prior <- solve(S_prior) # BB: funny way to obtain identity matrix :)
 }    
-if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart or SSVS on SIGMA    
+if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") { # SSVS on alpha, Wishart or SSVS on SIGMA    
   n <- K*M # Total number of parameters (size of vector alpha)
   # mean of alpha
   a_prior <- rep(0,n) 
@@ -436,7 +436,7 @@ if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") { # SSVS on alpha, Wishart o
   tau_1 <- 10*sigma_alpha
   
 
-  if (prior == "SSVS-Wishart")  { # Wishart on SIGMA
+  if (prior == "ssvs-wishart")  { # Wishart on SIGMA
     # Hyperparameters on inv(SIGMA) ~ W(v_prior,inv(S_prior))
     v_prior <- M+1             #<---- prior Degrees of Freedom (DoF) of SIGMA
     S_prior <- diag(M)         #<---- prior scale of SIGMA  
@@ -488,7 +488,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
   } 
   
   #--------- Draw ALPHA and SIGMA with Minnesota Prior
-  if (prior == "Minnesota") {
+  if (prior == "minnesota") {
     # Draw ALPHA
     for (i in 1:M) {
       V_block_inv <- solve( V_prior[((i-1)*K+1):(i*K),((i-1)*K+1):(i*K)] )
@@ -537,9 +537,9 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
   }
   
   # --------- Draw ALPHA and SIGMA using SSVS prior 
-  if (prior == "SSVS-Wishart" | prior == "SSVS-SSVS") {
+  if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") {
     # Draw SIGMA
-    if (prior == "SSVS-Wishart") { # Wishart
+    if (prior == "ssvs-wishart") { # Wishart
       # Posterior of SIGMA|ALPHA,Data ~ iW(inv(S_post),v_post)
       v_post <- T + v_prior
       S_post <- inv_S_prior + t(Y - X %*% ALPHA) %*% (Y - X %*% ALPHA)
@@ -547,7 +547,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
     
     
-  if (prior == "SSVS-SSVS") { # SSVS
+  if (prior == "ssvs-ssvs") { # SSVS
     # Draw psi|alpha,gamma,omega,DATA from the GAMMA dist.
     
     for (kk_5 in 1:(M-1)) {
@@ -707,9 +707,9 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
   alpha_draws[irep-nburn,] <- alpha
   ALPHA_draws[irep-nburn,,] <- ALPHA
   SIGMA_draws[irep-nburn,,] <- SIGMA
-  if (prior %in% c("SSVS-Wishart","SSVS-SSVS")) { 
+  if (prior %in% c("ssvs-wishart","ssvs-ssvs")) { 
     gamma_draws[irep-nburn,] <- gammas #ok<AGROW>
-    if (prior == "SSVS-SSVS")
+    if (prior == "ssvs-ssvs")
       omega_draws[irep-nburn,] <- omega_vec #ok<AGROW>
   }
   
@@ -733,11 +733,11 @@ SIGMA_std <- apply(SIGMA_draws,c(2,3),sd) # squeeze(std(SIGMA_draws,1)) #posteri
 #or you can use 'ALPHA_COV = cov(alpha_draws,1);' to get the full
 #covariance matrix of the posterior of alpha (of dimensions [KM x KM] )
 
-if (prior %in% c("SSVS-Wishart","SSVS-SSVS") ) {   
+if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {   
   # Find average of restriction indices Gamma
   gammas <- apply(gamma_draws,2,mean) # BB: 2 is correct! matlab: mean(gamma_draws,1);
   gammas_mat <- matrix(gammas,nrow=K,ncol=M)
-  if (prior == "SSVS-SSVS") {
+  if (prior == "ssvs-ssvs") {
     # Find average of restriction indices Omega
     omega <- apply(omega_draws,2,mean) # BB: 2 is correct, matlab: mean(omega_draws,1)';
     omega_mat <- matrix(0,nrow=M,ncol=M)
