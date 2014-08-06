@@ -5,15 +5,16 @@
 \alias{bvar-package}
 \title{bvar}
 \usage{
-bvar(Yraw, prior = "SSVS-SSVS", W = NULL, p = 4, constant = TRUE,
+bvar(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
   nsave = 10000, nburn = 2000, it_print = 2000, impulses = TRUE,
   ihor = 24, forecasting = TRUE, repfor = 50, h = 1, p_i = 0.5,
-  q_ij = 0.5, kappa_0 = 0.1, kappa_1 = 6, a_i = 0.01, b_i = 0.01)
+  q_ij = 0.5, kappa_0 = 0.1, kappa_1 = 6, a_i = 0.01, b_i = 0.01,
+  a_bar = c(0.5, 0.5, 10^2))
 }
 \arguments{
 \item{Yraw}{the matrix or data.frame with endogeneous VAR variables}
 
-\item{prior}{the type of prior: "diffuse","Minnesota","conjugate", "independent","SSVS-Wishart","SSVS-SSVS"}
+\item{prior}{the type of prior: "diffuse","minnesota","conjugate", "independent","ssvs-Wishart","ssvs-ssvs"}
 
 \item{W}{the matrix of exogenous variables}
 
@@ -37,17 +38,19 @@ bvar(Yraw, prior = "SSVS-SSVS", W = NULL, p = 4, constant = TRUE,
 
 \item{h}{number of forecast periods}
 
-\item{a_i}{SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)}
+\item{a_i}{ssvs-ssvs hyperparameter, diagonal elements of SIGMA (Gamma density)}
 
-\item{b_i}{SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)}
+\item{b_i}{ssvs-ssvs hyperparameter, diagonal elements of SIGMA (Gamma density)}
 
-\item{kappa_0}{SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA}
+\item{kappa_0}{ssvs-ssvs hyperparameter, variances for non-diagonal elements of SIGMA}
 
-\item{kappa_1}{SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA}
+\item{kappa_1}{ssvs-ssvs hyperparameter, variances for non-diagonal elements of SIGMA}
 
-\item{p_i}{SSVS-SSVS hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)}
+\item{p_i}{ssvs-ssvs hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)}
 
-\item{q_ij}{SSVS-SSVS  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)}
+\item{q_ij}{ssvs-ssvs  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)}
+
+\item{a_bar}{minnesota hyperparameter vector (own lag, other lag, exogeneuos)}
 }
 \value{
 the list containing all results of bayesian VAR estimation

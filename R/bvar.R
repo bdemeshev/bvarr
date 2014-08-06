@@ -54,6 +54,7 @@ NULL
 #' @param kappa_1 ssvs-ssvs hyperparameter, variances for non-diagonal elements of SIGMA
 #' @param p_i ssvs-ssvs hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)
 #' @param q_ij ssvs-ssvs  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)
+#' @param a_bar minnesota hyperparameter vector (own lag, other lag, exogeneuos)
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
