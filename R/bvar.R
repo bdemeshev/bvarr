@@ -36,7 +36,7 @@ NULL
 #' This saves a lot of typing!
 #'
 #' @param Yraw the matrix or data.frame with endogeneous VAR variables
-#' @param prior the type of prior: "diffuse","Minnesota","conjugate", "independent","SSVS-Wishart","SSVS-SSVS"
+#' @param prior the type of prior: "diffuse","minnesota","conjugate", "independent","ssvs-Wishart","ssvs-ssvs"
 #' @param W the matrix of exogenous variables
 #' @param p the number of lags for endogeneous variables
 #' @param constant (TRUE/FALSE) indicator, whether the constant is included
@@ -48,24 +48,25 @@ NULL
 #' @param forecasting whether to calculate forecasts
 #' @param repfor number of times to obtain a draw from the predictive
 #' @param h number of forecast periods
-#' @param a_i SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)
-#' @param b_i SSVS-SSVS hyperparameter, diagonal elements of SIGMA (Gamma density)
-#' @param kappa_0 SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA
-#' @param kappa_1 SSVS-SSVS hyperparameter, variances for non-diagonal elements of SIGMA
-#' @param p_i SSVS-SSVS hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)
-#' @param q_ij SSVS-SSVS  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)
+#' @param a_i ssvs-ssvs hyperparameter, diagonal elements of SIGMA (Gamma density)
+#' @param b_i ssvs-ssvs hyperparameter, diagonal elements of SIGMA (Gamma density)
+#' @param kappa_0 ssvs-ssvs hyperparameter, variances for non-diagonal elements of SIGMA
+#' @param kappa_1 ssvs-ssvs hyperparameter, variances for non-diagonal elements of SIGMA
+#' @param p_i ssvs-ssvs hyperparameter, for Gamma ~ BERNOULLI(m,p_i), see eq. (14)
+#' @param q_ij ssvs-ssvs  hyperparameter, for Omega_[j] ~ BERNOULLI(j,q_ij), see eq. (17)
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
 #' bvar(Yraw)
 bvar <-
-function(Yraw, prior = "SSVS-SSVS", W = NULL, p = 4, constant = TRUE,
+function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
                  nsave = 10000, nburn = 2000, it_print = 2000, # gibbs-related
                  impulses = TRUE, ihor = 24,  # impulses-related
                  forecasting = TRUE, repfor = 50, h = 1, # forecasting-related
                  p_i = 0.5, q_ij = 0.5, # S-S hyperparameters 
                  kappa_0 = 0.1, kappa_1 = 6,   # S-S hyperparameters         
-                 a_i = 0.01, b_i = 0.01  # S-S hyperparameters 
+                 a_i = 0.01, b_i = 0.01,  # S-S hyperparameters 
+                 a_bar = c(0.5,0.5,10^2) # minnesota hyperparameters
          ) {
 
 
@@ -328,14 +329,15 @@ dimnames(SIGMA_draws)[[3]] <- colnames(Yraw)
   # Posteriors depend on OLS quantities
 #}
 
-if (prior == "minnesota") { # Minnesota-Whishart (2)
+if (prior == "minnesota") { # minnesota-Whishart (2)
   # Prior mean on VAR regression coefficients
+  # !!!!!!! АХТУНГ!!!!!! ПОХОЖЕ БЕЗ КОНСТАНТЫ НАДО УБРАТЬ rep(0,M) !!!!!!!!!!!!
   A_prior <- rbind(rep(0,M),0.9*diag(M),matrix(0,(p-1)*M,M)) #<---- prior mean of ALPHA (parameter matrix) 
   a_prior <- as.vector(A_prior)               #<---- prior mean of alpha (parameter vector)
   
-  # Minnesota Variance on VAR regression coefficients
+  # minnesota Variance on VAR regression coefficients
   # First define the hyperparameters 'a_bar_i'
-  a_bar <- c(0.5,0.5,10^2)
+  # BB: moved into function definition # a_bar <- c(0.5,0.5,10^2)
   
   # Now get residual variances of univariate p_MIN-lag autoregressions. Here
   # we just run the AR(p) model on each equation, ignoring the constant
@@ -421,7 +423,7 @@ if (prior == "independent")  { # Independent Normal-Wishart
   S_prior <- diag(M)         #<---- prior scale of SIGMA
   inv_S_prior <- solve(S_prior) # BB: funny way to obtain identity matrix :)
 }    
-if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") { # SSVS on alpha, Wishart or SSVS on SIGMA    
+if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") { # ssvs on alpha, Wishart or ssvs on SIGMA    
   n <- K*M # Total number of parameters (size of vector alpha)
   # mean of alpha
   a_prior <- rep(0,n) 
@@ -431,7 +433,7 @@ if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") { # SSVS on alpha, Wishart o
   sigma_alpha <- sqrt(diag(kronecker(SIGMA,inv_tXX)))
   # otherwise, set ' sigma_alpha <- rep(1,n) '
   
-  # SSVS variances for alpha
+  # ssvs variances for alpha
   tau_0 <- 0.1*sigma_alpha   # Set tau_[0i], tau_[1i]
   tau_1 <- 10*sigma_alpha
   
@@ -452,7 +454,7 @@ if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") { # SSVS on alpha, Wishart o
     omega[[kk_1]] <- rep(1,kk_1) # omega{kk_1} = ones(kk_1,1);  # Omega_j # ??????????? make a list?
   }
   
-  # Set space in memory for some vectors that we are using in SSVS
+  # Set space in memory for some vectors that we are using in ssvs
   gamma_draws <- matrix(0,nsave,n) # vector of gamma draws
   omega_draws <- matrix(0,nsave,0.5*M*(M-1)) # vector of omega draws    
 }
@@ -487,7 +489,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     SIGMA <- riwish(T-K,SSE_Gibbs) # matlab: inv(wish(inv(SSE_Gibbs),T-K)) # Draw SIGMA                        
   } 
   
-  #--------- Draw ALPHA and SIGMA with Minnesota Prior
+  #--------- Draw ALPHA and SIGMA with minnesota Prior
   if (prior == "minnesota") {
     # Draw ALPHA
     for (i in 1:M) {
@@ -536,7 +538,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     SIGMA <- riwish(v_post,S_post) # Draw SIGMA        
   }
   
-  # --------- Draw ALPHA and SIGMA using SSVS prior 
+  # --------- Draw ALPHA and SIGMA using ssvs prior 
   if (prior == "ssvs-wishart" | prior == "ssvs-ssvs") {
     # Draw SIGMA
     if (prior == "ssvs-wishart") { # Wishart
@@ -547,7 +549,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
     
     
-  if (prior == "ssvs-ssvs") { # SSVS
+  if (prior == "ssvs-ssvs") { # ssvs
     # Draw psi|alpha,gamma,omega,DATA from the GAMMA dist.
     
     for (kk_5 in 1:(M-1)) {
@@ -795,7 +797,7 @@ bvar.summary <- function(bvar.model) {
   message('of y(t+h) is given in the variable true_value. For example the mean squared')
   message('forecast error can be obtained using the command')
   message('                MSFE = (Y_pred_mean - true_value).^2')
-  message('If you are using the SSVS prior, you can get the averages of the restriction')
+  message('If you are using the ssvs prior, you can get the averages of the restriction')
   message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omegas_mat') 
   
   
