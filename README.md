@@ -8,6 +8,7 @@ with minor improvements.
 
 You may install the package usinge the commands:
 ```R
+install.packages("devtools")
 library("devtools")
 install_github("bdemeshev/bvarr")
 ```
@@ -30,6 +31,6 @@ unified fashion.
 Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc.
 6. Make lovely function for prediction. Two types of prediction? 
 7. Rewrite code using Rcpp.
-8. Add steady-state VAR, see old BMR package vignette
+
 
 
