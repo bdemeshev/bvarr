@@ -3,7 +3,7 @@
 \name{Yraw}
 \alias{Yraw}
 \title{US inflation, employement and interest rate data.frame}
-\format{A data frame with ... rows and .. variables}
+\format{A data frame with ... rows and 3 variables}
 \usage{
 data(Yraw)
 }
@@ -13,9 +13,9 @@ Quarterly US data on inflation, unemployment and interest rate,
 }
 \details{
 \itemize{
-\item inflation. basdf sdjk
-\item employment. blablba
-\item interest_rate sdfsd fsdlk flksdj f
+\item inflation inflation
+\item employment employment
+\item interest_rate interest rate
 }
 }
 \keyword{datasets}

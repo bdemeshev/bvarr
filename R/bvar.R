@@ -14,26 +14,23 @@ NULL
 #' 1953:Q1 - 2006:Q3 The variables are as follows:
 #'
 #' \itemize{
-#' \item inflation. basdf sdjk
-#' \item employment. blablba
-#' \item interest_rate sdfsd fsdlk flksdj f
+#' \item inflation inflation
+#' \item employment employment
+#' \item interest_rate interest rate
 #' }
 #'
 #' @docType data
 #' @keywords datasets
 #' @name Yraw
 #' @usage data(Yraw)
-#' @format A data frame with ... rows and .. variables
+#' @format A data frame with ... rows and 3 variables
 NULL
 
 
 
 #' Estimate six types of bayesian VAR models
 #'
-#' This function completes the subsetting, transforming and ordering triad
-#' with a function that works in a similar way to \code{\link{subset}} and 
-#' \code{\link{transform}} but for reordering a data frame by its columns.
-#' This saves a lot of typing!
+#' Estimate six types of bayesian VAR models
 #'
 #' @param Yraw the matrix or data.frame with endogeneous VAR variables
 #' @param prior the type of prior: "diffuse","minnesota","conjugate", "independent","ssvs-Wishart","ssvs-ssvs"
@@ -173,6 +170,13 @@ mlag2 <- function(X,p) {
   for (i in 1:p) Xlag <- cbind(Xlag,makeblock(X,i,p)) # bind blocks horizontally
   return(Xlag)  
 }
+
+
+# even if the prior is not ssvs we'll have these objects in output
+gammas_mat <- NULL
+omega_mat <- NULL
+gamma_draws <- NULL
+omega_draws <- NULL
 
 
 # -------- BB: GO-GO-GO
@@ -616,7 +620,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     }
     # Create SIGMA
     SIGMA <- solve(PSI_ALL %*% t(PSI_ALL))        
-  } # END DRAWING SIGMA 
+  } # END DRAWING SIGMA, if prior==ssvs
 
   # Draw alpha              
   # Hyperparameters for alpha|gamma ~ N_[m](0,D*D)
@@ -653,7 +657,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
   # Save new Sum of Squared Errors (SSE) based on draw of ALPHA  
   SSE_Gibbs <- t(Y - X %*% ALPHA) %*% (Y - X %*% ALPHA)
     
-  }
+  } # end of common part for ssvs and ssvs-w priors
   # =============Estimation ends here
 
   # ****************************|Predictions, Responses, etc|***************************
@@ -768,7 +772,24 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 
 
 
-  answer <- list(all_responses=all_responses,Y_pred_melt=Y_pred_melt)
+  answer <- list(all_responses = all_responses,
+                 Y_pred_melt = Y_pred_melt,
+                 Y_pred_std = Y_pred_std,
+                 Y_pred_mean = Y_pred_mean,
+                 log_PL = log_PL,
+                 true_value = true_value,
+                 gammas_mat = gammas_mat, # ssvs-specific
+                 omega_mat = omega_mat,   # ssvs-specific
+                 ALPHA_std = ALPHA_std,
+                 SIGMA_std = SIGMA_std,
+                 ALPHA_mean = ALPHA_mean,
+                 SIGMA_mean = SIGMA_mean,
+                 alpha_draws = alpha_draws,
+                 ALPHA_draws = ALPHA_draws,
+                 SIGMA_draws = SIGMA_draws,
+                 gamma_draws = gamma_draws, # ssvs-specific
+                 omega_draws = omega_draws  # ssvs-specific
+                 )
   return(answer)
 }
 
@@ -779,10 +800,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 
 #' Print summary for bayesian VAR model
 #'
-#' This function completes the subsetting, transforming and ordering triad
-#' with a function that works in a similar way to \code{\link{subset}} and 
-#' \code{\link{transform}} but for reordering a data frame by its columns.
-#' This saves a lot of typing!
+#' Print summary for bayesian VAR model
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
 #' @export
@@ -799,21 +817,18 @@ bvar.summary <- function(bvar.model) {
   message('forecast error can be obtained using the command')
   message('                MSFE = (Y_pred_mean - true_value).^2')
   message('If you are using the ssvs prior, you can get the averages of the restriction')
-  message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omegas_mat') 
+  message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omega_mat') 
   
   
 }
 
 #' Draw irfs of bayesian VAR model
 #'
-#' This function completes the subsetting, transforming and ordering triad
-#' with a function that works in a similar way to \code{\link{subset}} and 
-#' \code{\link{transform}} but for reordering a data frame by its columns.
-#' This saves a lot of typing!
+#' Draw irfs of bayesian VAR model
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
 #' @param qus the vector of quantiles for irfs
-#' @return the list containing all results of bayesian VAR estimation
+#' @return the ggplot2 graph of IRFs
 #' @export
 #' @examples
 #' bvar(Yraw)
@@ -831,22 +846,20 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   return(p)
 }
 
-#' Estimate six types of bayesian VAR models
+#' Histograms of forecasts
 #'
-#' This function completes the subsetting, transforming and ordering triad
-#' with a function that works in a similar way to \code{\link{subset}} and 
-#' \code{\link{transform}} but for reordering a data frame by its columns.
-#' This saves a lot of typing!
+#' This function draws histograms of forecasts
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
-#' @return the list containing all results of bayesian VAR estimation
+#' @return the ggplot graph of forecast histograms
 #' @export
 #' @examples
 #' bvar(Yraw)
 bvar.pred.plot <- function(bvar.model) {
   p <- ggplot(data=bvar.model$Y_pred_melt,aes(x=value)) + geom_histogram() + 
     facet_wrap(~Var2)
-  print(p)
+  # print(p)
+  return(p)
 }
 
 

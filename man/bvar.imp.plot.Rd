@@ -11,13 +11,10 @@ bvar.imp.plot(bvar.model, qus = c(0.1, 0.5, 0.9))
 \item{qus}{the vector of quantiles for irfs}
 }
 \value{
-the list containing all results of bayesian VAR estimation
+the ggplot2 graph of IRFs
 }
 \description{
-This function completes the subsetting, transforming and ordering triad
-with a function that works in a similar way to \code{\link{subset}} and
-\code{\link{transform}} but for reordering a data frame by its columns.
-This saves a lot of typing!
+Draw irfs of bayesian VAR model
 }
 \examples{
 bvar(Yraw)

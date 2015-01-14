@@ -9,10 +9,7 @@ bvar.summary(bvar.model)
 \item{bvar.model}{the list containing all results of bayesian VAR estimation}
 }
 \description{
-This function completes the subsetting, transforming and ordering triad
-with a function that works in a similar way to \code{\link{subset}} and
-\code{\link{transform}} but for reordering a data frame by its columns.
-This saves a lot of typing!
+Print summary for bayesian VAR model
 }
 \examples{
 bvar(Yraw)
