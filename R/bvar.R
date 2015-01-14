@@ -23,7 +23,7 @@ NULL
 #' @keywords datasets
 #' @name Yraw
 #' @usage data(Yraw)
-#' @format A data frame with ... rows and 3 variables
+#' @format A data.frame with 215 rows and 3 variables
 NULL
 
 
@@ -772,7 +772,16 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 
 
 
-  answer <- list(all_responses = all_responses,
+  answer <- list(prior = prior,
+                 p_i = p_i, 
+                 q_ij = q_ij, # S-S hyperparameters 
+                 kappa_0 = kappa_0, 
+                 kappa_1 = kappa_1,   # S-S hyperparameters         
+                 a_i = a_i, 
+                 b_i = b_i,  # S-S hyperparameters 
+                 a_bar = a_bar,
+                 
+                 all_responses = all_responses,
                  Y_pred_melt = Y_pred_melt,
                  Y_pred_std = Y_pred_std,
                  Y_pred_mean = Y_pred_mean,
@@ -809,7 +818,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 bvar.summary <- function(bvar.model) {
   # Print some directions to the user
   message('Please find the means and variances of the VAR parameters in the vectors')
-  message('ALPHA_mean and ALPHA_std for the VAR regression coefficients, and ')
+  message('ALPHA_mean and ALPHA_std for the VAR coefficients, and ')
   message('SIGMA_mean and SIGMA_std for the VAR covariance matrix. The predictive')
   message('mean and standard deviation are in Y_pred_mean and Y_pred_std, respectively.')
   message('The log Predictive Likelihood is given by variable log_PL. The true value')
@@ -819,6 +828,14 @@ bvar.summary <- function(bvar.model) {
   message('If you are using the ssvs prior, you can get the averages of the restriction')
   message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omega_mat') 
   
+  
+  cat("Prior: ", prior,"\n\n")
+  
+  cat("Sample mean of posterior VAR coefficients:\n")
+  print(ALPHA_mean)
+  
+  cat("Sample mean of posterior VAR covariance matrix:\n")
+  print(SIGMA_mean)
   
 }
 

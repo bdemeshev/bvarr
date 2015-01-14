@@ -3,7 +3,7 @@
 \name{Yraw}
 \alias{Yraw}
 \title{US inflation, employement and interest rate data.frame}
-\format{A data frame with ... rows and 3 variables}
+\format{A data.frame with 215 rows and 3 variables}
 \usage{
 data(Yraw)
 }
