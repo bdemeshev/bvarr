@@ -3,7 +3,7 @@
 \alias{bvar.summary}
 \title{Print summary for bayesian VAR model}
 \usage{
-bvar.summary(bvar.model)
+bvar.summary(model)
 }
 \arguments{
 \item{bvar.model}{the list containing all results of bayesian VAR estimation}

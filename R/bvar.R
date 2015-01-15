@@ -815,7 +815,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 #' @export
 #' @examples
 #' bvar(Yraw)
-bvar.summary <- function(bvar.model) {
+bvar.summary <- function(model) {
   # Print some directions to the user
   message('Please find the means and variances of the VAR parameters in the vectors')
   message('ALPHA_mean and ALPHA_std for the VAR coefficients, and ')
@@ -829,13 +829,13 @@ bvar.summary <- function(bvar.model) {
   message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omega_mat') 
   
   
-  cat("Prior: ", prior,"\n\n")
+  cat("Prior: ", model$prior,"\n\n")
   
   cat("Sample mean of posterior VAR coefficients:\n")
-  print(ALPHA_mean)
+  print(model$ALPHA_mean)
   
   cat("Sample mean of posterior VAR covariance matrix:\n")
-  print(SIGMA_mean)
+  print(model$SIGMA_mean)
   
 }
 
