@@ -744,7 +744,7 @@ var_names <- colnames(Yraw)
 ALPHA_rownames <- paste0(rep(lag_names,each = M),var_names)
 if (constant) ALPHA_rownames <- c("const", ALPHA_rownames)
 rownames(ALPHA_std) <- ALPHA_rownames
-rownames(ALPHA_std) <- ALPHA_rownames
+rownames(ALPHA_mean) <- ALPHA_rownames
 
 
 #or you can use 'ALPHA_COV = cov(alpha_draws,1);' to get the full
@@ -819,17 +819,6 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
   return(answer)
 }
 
-function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
-         nsave = 10000, nburn = 2000, it_print = 2000, # gibbs-related
-         impulses = TRUE, ihor = 24,  # impulses-related
-         forecasting = TRUE, repfor = 50, h = 1, # forecasting-related
-         p_i = 0.5, q_ij = 0.5, # S-S hyperparameters 
-         kappa_0 = 0.1, kappa_1 = 6,   # S-S hyperparameters         
-         a_i = 0.01, b_i = 0.01,  # S-S hyperparameters 
-         a_bar = c(0.5,0.5,10^2) # minnesota hyperparameters
-         
-
-
 
 
 #' Print summary for bayesian VAR model
@@ -839,7 +828,9 @@ function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
 #' @param bvar.model the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
-#' bvar(Yraw)
+#' data(Yraw)
+#' model <- bvar(Yraw,prior = "independent")
+#' bvar.summary(model)
 bvar.summary <- function(model) {
   # Print some directions to the user
   message('Please find the means and variances of the VAR parameters in the vectors')
