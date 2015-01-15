@@ -19,17 +19,26 @@ library("bvarr")
 data(Yraw)
 model <- bvar(Yraw,prior = "independent")
 bvar.imp.plot(model)
+bvar.summary(model)
 ```
 
 Todo:
-1. Describe!!! Good vignette is a first need.
+
+1. Describe!!! Good documentation is a first need.
+
 2. Check case with no constant!
+
 3. Check case with exogeneous variables!
+
 4. Check border case with M=1!
+
 5. Move hyperparameters in the definition of the function in the
 unified fashion.
+
 Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc.
+
 6. Make lovely function for prediction. Two types of prediction? 
+
 7. Rewrite code using Rcpp.
 
 
