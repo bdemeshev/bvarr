@@ -846,7 +846,7 @@ bvar.summary <- function(model) {
   
   
   cat("Prior: ", model$prior,"\n")
-  cat("Burnin: ", nburn, " obs. Chain length after burnin: ", nsave, " obs.\n\n")
+  cat("Burnin: ", model$nburn, " obs. Chain length after burnin: ", model$nsave, " obs.\n\n")
   
   cat("Sample mean of posterior VAR coefficients:\n")
   print(model$ALPHA_mean)
