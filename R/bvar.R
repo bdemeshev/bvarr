@@ -733,9 +733,19 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
 ALPHA_mean <- apply(ALPHA_draws,c(2,3),mean) # squeeze(mean(ALPHA_draws,1)) #posterior mean of ALPHA
 SIGMA_mean <- apply(SIGMA_draws,c(2,3),mean) # squeeze(mean(SIGMA_draws,1)) #posterior mean of SIGMA
 
+  
 #Posterior standard deviations of parameters:
 ALPHA_std <- apply(ALPHA_draws,c(2,3),sd) # squeeze(std(ALPHA_draws,1)) #posterior std of ALPHA
 SIGMA_std <- apply(SIGMA_draws,c(2,3),sd) # squeeze(std(SIGMA_draws,1)) #posterior std of SIGMA
+
+# add rownames to ALPHA
+lag_names <- paste0("Lag_", 1:p,"_")
+var_names <- colnames(Yraw)
+ALPHA_rownames <- paste0(rep(lag_names,each = M),var_names)
+if (constant) ALPHA_rownames <- c("const", ALPHA_rownames)
+rownames(ALPHA_std) <- ALPHA_rownames
+rownames(ALPHA_std) <- ALPHA_rownames
+
 
 #or you can use 'ALPHA_COV = cov(alpha_draws,1);' to get the full
 #covariance matrix of the posterior of alpha (of dimensions [KM x KM] )
@@ -773,6 +783,13 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 
 
   answer <- list(prior = prior,
+                 p = p,
+                 constant = constant,
+                 impulses = impulses,
+                 ihor = ihor,
+                 nsave = nsave,
+                 nburn = nburn,
+                 
                  p_i = p_i, 
                  q_ij = q_ij, # S-S hyperparameters 
                  kappa_0 = kappa_0, 
@@ -802,7 +819,15 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
   return(answer)
 }
 
-
+function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
+         nsave = 10000, nburn = 2000, it_print = 2000, # gibbs-related
+         impulses = TRUE, ihor = 24,  # impulses-related
+         forecasting = TRUE, repfor = 50, h = 1, # forecasting-related
+         p_i = 0.5, q_ij = 0.5, # S-S hyperparameters 
+         kappa_0 = 0.1, kappa_1 = 6,   # S-S hyperparameters         
+         a_i = 0.01, b_i = 0.01,  # S-S hyperparameters 
+         a_bar = c(0.5,0.5,10^2) # minnesota hyperparameters
+         
 
 
 
@@ -829,7 +854,8 @@ bvar.summary <- function(model) {
   message('indices $\\gamma$ and $\\omega$. These are in the variables gammas_mat and omega_mat') 
   
   
-  cat("Prior: ", model$prior,"\n\n")
+  cat("Prior: ", model$prior,"\n")
+  cat("Burnin: ", nburn, " obs. Chain length after burnin: ", nsave, " obs.\n\n")
   
   cat("Sample mean of posterior VAR coefficients:\n")
   print(model$ALPHA_mean)
