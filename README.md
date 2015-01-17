@@ -33,9 +33,7 @@ Todo:
 4. Check border case with M=1!
 
 5. Move hyperparameters in the definition of the function in the
-unified fashion.
-
-Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc.
+unified fashion. Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc.
 
 6. Make lovely function for prediction. Two types of prediction? 
 
