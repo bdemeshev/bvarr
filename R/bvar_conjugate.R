@@ -1,3 +1,69 @@
+#' Set conjugate N-IW priors from lambdas
+#' 
+#' Set conjugate N-IW priors from lambdas
+#' 
+#' Set conjugate N-IW priors from lambdas
+#' Based on Carriero p. 53
+#'
+#' @param p number of lags
+#' @param Y multivariate time series
+#' @param lambdas vector = (l0, l1, l2, l3, l4)
+#' @param d (default is 1) number of exogeneous variables
+#' @param VAR_in (either "levels" or "growth rates")
+#' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+#' where k = mp+d
+#' @export
+#' @examples 
+#' data(Yraw)
+#' priors <- lambda2priors(Yraw)
+lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1), 
+                          VAR_in=c("levels","growth rates")) {
+  l0 <- lambdas[1]
+  l1 <- lambdas[2]
+  l2 <- lambdas[3]
+  l3 <- lambdas[4]
+  l4 <- lambdas[5]
+  
+  m <- ncol(Y)
+  k <- m*p+d
+  
+  VAR_in <- match.arg(VAR_in)
+  
+  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
+  
+  # Litterman takes 6 lags in AR(p)
+  
+  # estimate sigma^2 from univariate AR(p) processes
+  sigmas_sq <- rep(NA, m)
+  for (j in 1:m) {
+    y_uni <- Y[,j] # univariate time series
+    AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
+    sigmas_sq[j] <- AR_p$sigma2
+  }
+  
+  # set Phi_prior
+  if (VAR_in=="levels") Phi_1 <- diag(m)
+  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
+  Phi_prior <- cbind(Phi_1, matrix(0, nrow=k-m, ncol=m))
+  
+  S_prior <- diag(sigmas_sq)
+  v_prior <- m+2
+  
+  # set Omega_prior
+  
+  Omega_prior <- diag(omega_diagonal)
+  
+  priors <- list(v_prior=v_prior, S_prior=S_prior, 
+                 Phi_prior=Phi_prior, Omega_prior=Omega_prior)
+  
+  return(priors)
+}
+
+
+
+
+
+
 #' Estimate Normal-Inverse-Wishart bayesian VAR model
 #'
 #' Estimate Normal-Inverse-Wishart bayesian VAR model
