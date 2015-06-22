@@ -17,7 +17,12 @@ the ggplot2 graph of IRFs
 \description{
 Draw irfs of bayesian VAR model
 }
+\details{
+Draw irfs of bayesian VAR model
+}
 \examples{
-bvar(Yraw)
+data(Yraw)
+model <- bvar(Yraw)
+bvar.imp.plot(model)
 }
 

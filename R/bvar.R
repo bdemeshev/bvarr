@@ -122,6 +122,8 @@ mlag2 <- function(X,p) {
 
 
 
+
+
 #' Estimate six types of bayesian VAR models
 #'
 #' Estimate six types of bayesian VAR models
@@ -866,6 +868,11 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 
 
 
+
+
+
+
+
 #' Print summary for bayesian VAR model
 #'
 #' Print summary for bayesian VAR model
@@ -904,13 +911,17 @@ bvar.summary <- function(model) {
 #' Draw irfs of bayesian VAR model
 #'
 #' Draw irfs of bayesian VAR model
+#' 
+#' Draw irfs of bayesian VAR model
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
 #' @param qus the vector of quantiles for irfs
 #' @return the ggplot2 graph of IRFs
 #' @export
 #' @examples
-#' bvar(Yraw)
+#' data(Yraw)
+#' model <- bvar(Yraw)
+#' bvar.imp.plot(model)
 bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   
   imp_responses <- apply(bvar.model$all_responses,c(2,3,4),quantile,probs=qus)
@@ -928,12 +939,16 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
 #' Histograms of forecasts
 #'
 #' This function draws histograms of forecasts
+#' 
+#' This function draws histograms of forecasts
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
 #' @return the ggplot graph of forecast histograms
 #' @export
 #' @examples
-#' bvar(Yraw)
+#' data(Yraw)
+#' model <- bvar(Yraw)
+#' bvar.pred.plot(Yraw)
 bvar.pred.plot <- function(bvar.model) {
   p <- ggplot(data=bvar.model$Y_pred_melt,aes(x=value)) + geom_histogram() + 
     facet_wrap(~Var2)

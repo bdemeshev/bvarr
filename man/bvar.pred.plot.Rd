@@ -15,7 +15,12 @@ the ggplot graph of forecast histograms
 \description{
 This function draws histograms of forecasts
 }
+\details{
+This function draws histograms of forecasts
+}
 \examples{
-bvar(Yraw)
+data(Yraw)
+model <- bvar(Yraw)
+bvar.pred.plot(Yraw)
 }
 
