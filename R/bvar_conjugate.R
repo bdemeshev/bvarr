@@ -73,7 +73,7 @@ bvar_conjugate0 <-
     Phi_prior <- priors$Phi_prior
     
     # set some bad priors for lazy guys if not supplied 
-    if (is.null(v_prior)) v_prior <- m + 2
+    if (is.null(v_prior)) v_prior <- m + 1
     if (is.null(S_prior)) S_prior <- diag(m)
     if (is.null(Omega_prior)) Omega_prior <- 10*diag(k) 
     if (is.null(Phi_prior)) Phi_prior <- matrix(0, nrow=k, ncol=m)
