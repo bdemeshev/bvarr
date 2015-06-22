@@ -27,9 +27,105 @@ NULL
 NULL
 
 
+#' Generate sample from Bernoulli random variables 
+#'
+#' Generate sample from independent Bernoulli random variables with different probabilities
+#' 
+#' Generate sample from independent Bernoulli random variables with different probabilities
+#'
+#' @param p vector of probabilities for zero
+#' @return the vector of 0/1 Bernoulli random variables
+#' @examples 
+#' bernoullirnd(c(0.5,0.8,0.1))
+bernoullirnd <- function(p) {
+  len <- length(p)
+  ans <- ifelse(runif(len)<p,0,1)
+  return(ans)
+}
+
+#' impulse
+#' 
+#' impulse
+#' 
+#' function response=impulse(By,smat,nstep), C. Sims' code.
+#' smat is a square matrix of initial shock vectors.  To produce "orthogonalized
+#' impulse responses" it should have the property that smat'*smat=sigma, where sigma
+#' is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
+#' is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
+#' use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.
+#' By is a neq x nvar x nlags matrix.  neq=nvar, of course, but the first index runs over 
+#' equations. In response, the first index runs over variables, the second over 
+#' shocks (in effect, equations).
+#' @param By neq x nvar x nlag array
+#' @param smat
+#' @param nstep
+#' @return nvar x neq x nstep array
+#' @examples 
+#' impulse(1,2,3)
+impulse <- function(By,smat,nstep) {
+  neq <- dim(By)[1]
+  nvar <- dim(By)[2]
+  nlag <- dim(By)[3]
+  
+  resp <- array(0, dim=c(nvar,neq,nstep)) 
+  resp[,,1] <- t(smat) # need lower triangular, last innovation untransformed
+  for (it in 2:nstep) {
+    for (ilag in 1:min(nlag,it-1)) {
+      resp[,,it] <- resp[,,it]+By[,,ilag] %*% resp[,,it-ilag]
+    }
+  }
+  return(resp)
+}
+
+
+
+#' makeblock
+#'
+#' makeblock
+#' 
+#' used only inside mlag2 function
+#' 
+#' @param X matrix
+#' @param p number of lags, is equal to total the number of blocks
+#' @param i the number of block to generate
+#' @return block
+#' @examples 
+#' X <- matrix(1:18, ncol=3)
+#' makeblock(X,1,2)
+makeblock <- function(X,i,p) {
+  Xblock <- X[(p+1-i):(nrow(X)-i),] # get useful lines of X
+  Xblock <- as.matrix(Xblock) # assure X is a matrix, not a vector
+  Xblock <- rbind(matrix(0,nrow=p,ncol=ncol(X)),Xblock)  # append p zero lines at top
+  return(Xblock)
+}
+
+#' mlag2
+#' 
+#' mlag2
+#' 
+#' Binds blocks provided by makeblock function
+#' 
+#' @param X matrix
+#' @param p number of lags, is equal to total the number of blocks
+#' @return ...
+#' @examples 
+#' X <- matrix(1:18, ncol=3)
+#' mlag2(X,2)
+mlag2 <- function(X,p) {
+  X <- as.matrix(X)
+  # we need to bind horizontally p blocks
+  Xlag <- matrix(nrow=nrow(X),ncol=0) # create empty matrix with correct number of raws
+  for (i in 1:p) Xlag <- cbind(Xlag,makeblock(X,i,p)) # bind blocks horizontally
+  return(Xlag)  
+}
+
+
+
 
 #' Estimate six types of bayesian VAR models
 #'
+#' Estimate six types of bayesian VAR models
+#' 
 #' Estimate six types of bayesian VAR models
 #'
 #' @param Yraw the matrix or data.frame with endogeneous VAR variables
@@ -57,7 +153,9 @@ NULL
 #' @examples
 #' bvar(Yraw)
 bvar <-
-function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
+function(Yraw, prior = c("diffuse","minnesota","conjugate",
+                         "independent","ssvs-wishart","ssvs-ssvs"), 
+                 W = NULL, p = 4, constant = TRUE,
                  nsave = 10000, nburn = 2000, it_print = 2000, # gibbs-related
                  impulses = TRUE, ihor = 24,  # impulses-related
                  forecasting = TRUE, repfor = 50, h = 1, # forecasting-related
@@ -118,58 +216,8 @@ function(Yraw, prior = "ssvs-ssvs", W = NULL, p = 4, constant = TRUE,
 # quarters), while M is the number of VAR dependent macro variables.
 
 
-# p - vector of probabilities for 0
-bernoullirnd <- function(p) {
-  len <- length(p)
-  ans <- ifelse(runif(len)<p,0,1)
-  return(ans)
-}
-
-
-impulse <- function(By,smat,nstep) {
-  # function response=impulse(By,smat,nstep), C. Sims' code.
-  # smat is a square matrix of initial shock vectors.  To produce "orthogonalized
-  # impulse responses" it should have the property that smat'*smat=sigma, where sigma
-  # is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
-  # is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
-  # use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.
-  # By is a neq x nvar x nlags matrix.  neq=nvar, of course, but the first index runs over 
-  # equations. In response, the first index runs over variables, the second over 
-  # shocks (in effect, equations).
-  
-  neq <- dim(By)[1]
-  nvar <- dim(By)[2]
-  nlag <- dim(By)[3]
-
-  resp <- array(0, dim=c(nvar,neq,nstep)) 
-  resp[,,1] <- t(smat) # need lower triangular, last innovation untransformed
-  for (it in 2:nstep) {
-    for (ilag in 1:min(nlag,it-1)) {
-      resp[,,it] <- resp[,,it]+By[,,ilag] %*% resp[,,it-ilag]
-    }
-  }
-  return(resp)
-}
-
-
-
-
-# used for mlag2 function
-makeblock <- function(X,i,p) {
-  Xblock <- X[(p+1-i):(nrow(X)-i),] # get useful lines of X
-  Xblock <- as.matrix(Xblock) # assure X is a matrix, not a vector
-  Xblock <- rbind(matrix(0,nrow=p,ncol=ncol(X)),Xblock)  # append p zero lines at top
-  return(Xblock)
-}
-
-mlag2 <- function(X,p) {
-  X <- as.matrix(X)
-  
-  # we need to bind horizontally p blocks
-  Xlag <- matrix(nrow=nrow(X),ncol=0) # create empty matrix with correct number of raws
-  for (i in 1:p) Xlag <- cbind(Xlag,makeblock(X,i,p)) # bind blocks horizontally
-  return(Xlag)  
-}
+# match supplied prior against possible values
+prior <- match.arg(prior)
 
 
 # even if the prior is not ssvs we'll have these objects in output
@@ -195,10 +243,7 @@ M <- ncol(Yraw)
 
 if (forecasting & h<=0) 
   stop("You have set forecasting, but the forecast horizon h<=0")
-possible.priors <- c("diffuse","minnesota","conjugate",
-                     "independent","ssvs-wishart","ssvs-ssvs")
-prior <- tolower(prior)
-if (!prior %in% possible.priors) stop("Possible priors are: ", paste(possible.priors,collapse=", ")) 
+
 
 # The model specification is different when implementing direct forecasts,
 # compared to the specification when computing iterated forecasts.
