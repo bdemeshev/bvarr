@@ -44,14 +44,27 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   # set Phi_prior
   if (VAR_in=="levels") Phi_1 <- diag(m)
   if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
-  Phi_prior <- cbind(Phi_1, matrix(0, nrow=k-m, ncol=m))
+  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=k-m, ncol=m)) )
   
   S_prior <- diag(sigmas_sq)
   v_prior <- m+2
   
   # set Omega_prior
   
-  Omega_prior <- diag(omega_diagonal)
+  s2i_ <- matrix(sigmas_sq, nrow = m, ncol = m)
+  s2_j <- matrix(sigmas_sq, nrow = m, ncol = m, byrow = TRUE)
+  
+  Phi_vars <- NULL
+  for (b in 1:p) {
+    var_block <- l1*l2*s2i_/s2_j/b
+    Phi_vars <- cbind(Phi_vars, var_block)
+  }
+  Phi_vars <- cbind(Phi_vars, l0*s2i_ )
+  
+  Phi_vars <- t(Phi_vars)
+  
+  Omega_diagonal <- as.vector(Phi_vars)
+  Omega_prior <- diag(Omega_diagonal)
   
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior)
@@ -83,7 +96,7 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
 #' @examples
 #' model <- bvar_conjugate0(Y)
 bvar_conjugate0 <-
-  function(Y_in, Z_in=NULL, constant=TRUE, p=2, keep=10000, verbose=FALSE,
+  function(Y_in, Z_in=NULL, constant=TRUE, p=4, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL) ) {
 
     # if Z_in is provided it should have the same number of rows that Y_in
@@ -131,6 +144,14 @@ bvar_conjugate0 <-
     m <- ncol(Y)
     k <- m*p + d
     
+    if (verbose) { 
+      message("Number of lags, p =", p)
+      message("Number of endogeneos variables, m = ",m)
+      message("Number of exogeneos variables (including constant), d = ",d)
+      message("Number of parameters, k = mp + d =",k)
+      message("Initial number of observations, T_in = ",T_in)
+      message("Number of observations available for regression, T = ",T)
+    }
     
     # extract priors from list
     v_prior <- priors$v_prior
