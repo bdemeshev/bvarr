@@ -54,20 +54,27 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   s2i_ <- matrix(sigmas_sq, nrow = m, ncol = m)
   s2_j <- matrix(sigmas_sq, nrow = m, ncol = m, byrow = TRUE)
   
+  # first we calculate prior variance of each element of Phi
+  # they are located in [k x m] matrix like Phi itself
   Phi_vars <- NULL
   for (b in 1:p) {
     var_block <- l1*l2*s2i_/s2_j/b
     Phi_vars <- cbind(Phi_vars, var_block)
   }
   Phi_vars <- cbind(Phi_vars, l0*s2i_ )
-  
   Phi_vars <- t(Phi_vars)
   
+  # we vectorize Phi_vars
   Omega_diagonal <- as.vector(Phi_vars)
+  # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
+  
+  
+  
+  
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
-                 Phi_prior=Phi_prior, Omega_prior=Omega_prior)
+                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, Y_dummy=Y_dummy, X_dummy=X_dummy)
   
   return(priors)
 }
@@ -89,7 +96,9 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
 #' @param p (2 by default) the number of lags
 #' @param keep (10000 by default) the number of Gibbs sampling replications to keep
 #' @param verbose (FALSE by default)
-#' @param priors the list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+#' @param priors the list containing Phi_prior [k x m], Omega_prior [k x k], 
+#' S_prior [m x m], v_prior [1x1],
+#' Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 #' where k = mp+d
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
@@ -97,7 +106,8 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
 #' model <- bvar_conjugate0(Y)
 bvar_conjugate0 <-
   function(Y_in, Z_in=NULL, constant=TRUE, p=4, keep=10000, verbose=FALSE,
-           priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL) ) {
+           priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
+                       Y_dummy=NULL, X_dummy=NULL) ) {
 
     # if Z_in is provided it should have the same number of rows that Y_in
     if (!is.null(Z_in)) 
@@ -136,8 +146,14 @@ bvar_conjugate0 <-
     # dimension of deterministic regressors
     d <- ncol(Z)
     
-    # here we add dummy observations...?
-    # ...
+    # here we add dummy observations
+    T_dummy <- 0 
+    if (!is.null(priors$Y_dummy)) {
+      if (!nrow(priors$Y_dummy)==nrow(priors$X_dummy)) stop("X_dummy and Y_dummy should have the same number of rows")
+      T_dummy <- nrow(priors$Y_dummy)
+    }
+    Y <- rbind(priors$Y_dummy, Y)
+    X <- rbind(priors$X_dummy, X)
         
     # get dimensions
     T <- nrow(Y)
@@ -150,10 +166,11 @@ bvar_conjugate0 <-
       message("Number of exogeneos variables (including constant), d = ",d)
       message("Number of parameters, k = mp + d =",k)
       message("Initial number of observations, T_in = ",T_in)
-      message("Number of observations available for regression, T = ",T)
+      message("Number of dummy observations, T_dummy = ", T_dummy )
+      message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
     }
     
-    # extract priors from list
+    # extract priors from list for simplier notation
     v_prior <- priors$v_prior
     S_prior <- priors$S_prior
     Omega_prior <- priors$Omega_prior
