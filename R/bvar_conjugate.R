@@ -16,13 +16,24 @@
 #' @examples 
 #' data(Yraw)
 #' priors <- lambda2priors(Yraw)
-lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1), 
+lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1), 
                           VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
   l2 <- lambdas[3]
   l3 <- lambdas[4]
   l4 <- lambdas[5]
+  
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z)) {
+    d <- 1*constant
+  } else {
+    d <- ncol(Z) + 1*constant
+  }
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) Z <- cbind(rep(1, nrow(Y)), Z)
+  
   
   m <- ncol(Y)
   k <- m*p+d
@@ -70,7 +81,8 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   Omega_prior <- diag(Omega_diagonal)
   
   # create dummy observations
-  y_0_bar <- apply(Y, 2, mean) # vector [m x 1] of mean values of each series
+  y_0_bar <- apply(Y, 2, mean) # vector [m x 1] of mean values of each endo-series
+  z_bar <- apply(Z, 2, bar) # vector [d x 1] of mean values of each exo-series
   
   # sum of coefficients prior
   Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
@@ -83,10 +95,9 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   
   # dummy initial observation
   Y_dummy_io <- matrix(y_0_bar/l4, nrow=1)
-  X_dummy_io <- .....
+  X_dummy_io <- matrix(c(rep(y_0_bar/l4, p), z_bar/l4), nrow=1)
   
   
-    
   # order of dummies???
   X_dummy <- rbind(X_dummy_io, X_dummy_sc)
   Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
