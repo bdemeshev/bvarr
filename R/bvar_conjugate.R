@@ -58,10 +58,10 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   # they are located in [k x m] matrix like Phi itself
   Phi_vars <- NULL
   for (b in 1:p) {
-    var_block <- l1*l2*s2i_/s2_j/b
+    var_block <- (l1*l2)^2*s2i_/s2_j/b^2
     Phi_vars <- cbind(Phi_vars, var_block)
   }
-  Phi_vars <- cbind(Phi_vars, l0*s2i_ )
+  Phi_vars <- cbind(Phi_vars, l0^2*s2i_ )
   Phi_vars <- t(Phi_vars)
   
   # we vectorize Phi_vars
@@ -69,10 +69,29 @@ lambda2priors <- function(Y, p=4, d=1, lambdas=c(1,0.2,1,1,1),
   # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
+  # create dummy observations
+  y_0_bar <- apply(Y, 2, mean) # vector [m x 1] of mean values of each series
+  
+  # sum of coefficients prior
+  Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
+  diag(Y_dummy_sc) <- y_0_bar / l3
+  
+  X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
+  # X_dummy_sc is not a square matrix, 
+  # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
+  diag(X_dummy_sc) <- y_0_bar / l3
+  
+  # dummy initial observation
+  Y_dummy_io <- matrix(y_0_bar/l4, nrow=1)
+  X_dummy_io <- .....
   
   
+    
+  # order of dummies???
+  X_dummy <- rbind(X_dummy_io, X_dummy_sc)
+  Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
   
-  
+    
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, Y_dummy=Y_dummy, X_dummy=X_dummy)
   
