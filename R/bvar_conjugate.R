@@ -55,13 +55,14 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   # set Phi_prior
   if (VAR_in=="levels") Phi_1 <- diag(m)
   if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
-  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=k-m, ncol=m)) )
+  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
   
   S_prior <- diag(sigmas_sq)
   v_prior <- m+2
   
   # set Omega_prior
   
+  # here we have an error, what is calculated is Omega_prior o Sigma ???
   s2i_ <- matrix(sigmas_sq, nrow = m, ncol = m)
   s2_j <- matrix(sigmas_sq, nrow = m, ncol = m, byrow = TRUE)
   
@@ -80,9 +81,13 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
+  
+  
+  
   # create dummy observations
+  
   y_0_bar <- apply(Y, 2, mean) # vector [m x 1] of mean values of each endo-series
-  z_bar <- apply(Z, 2, bar) # vector [d x 1] of mean values of each exo-series
+  z_bar <- apply(Z, 2, mean) # vector [d x 1] of mean values of each exo-series
   
   # sum of coefficients prior
   Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
