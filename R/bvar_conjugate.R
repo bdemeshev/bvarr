@@ -61,23 +61,7 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   v_prior <- m+2
   
   # set Omega_prior
-  
-  # here we have an error, what is calculated is Omega_prior o Sigma ???
-  s2i_ <- matrix(sigmas_sq, nrow = m, ncol = m)
-  s2_j <- matrix(sigmas_sq, nrow = m, ncol = m, byrow = TRUE)
-  
-  # first we calculate prior variance of each element of Phi
-  # they are located in [k x m] matrix like Phi itself
-  Phi_vars <- NULL
-  for (b in 1:p) {
-    var_block <- (l1*l2)^2*s2i_/s2_j/b^2
-    Phi_vars <- cbind(Phi_vars, var_block)
-  }
-  Phi_vars <- cbind(Phi_vars, l0^2*s2i_ )
-  Phi_vars <- t(Phi_vars)
-  
-  # we vectorize Phi_vars
-  Omega_diagonal <- as.vector(Phi_vars)
+  Omega_diagonal <- c(l1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^2, each=m), rep(l3^2, d))
   # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
