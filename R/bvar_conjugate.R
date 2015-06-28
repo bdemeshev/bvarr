@@ -8,14 +8,15 @@
 #' @param p number of lags
 #' @param Y multivariate time series
 #' @param lambdas vector = (l0, l1, l2, l3, l4)
-#' @param d (default is 1) number of exogeneous variables
+#' @param Z exogeneous variables
 #' @param VAR_in (either "levels" or "growth rates")
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- lambda2priors(Yraw)
+#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1), 
                           VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
@@ -102,12 +103,63 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
 
 
 
-
-#' Estimate Normal-Inverse-Wishart bayesian VAR model
+#' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
+#' 
+#' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
+#' 
+#' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
 #'
-#' Estimate Normal-Inverse-Wishart bayesian VAR model
+#' @param p number of lags
+#' @param Y multivariate time series
+#' @param Z exogeneous variables
+#' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+#' where k = mp+d
+#' @export
+#' @examples 
+#' data(Yraw)
+#' priors <- KK_code_priors(Yraw, p = 4)
+#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+KK_code_priors <- function(Y, Z=NULL, constant=TRUE, p=4) {
+
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z)) {
+    d <- 1*constant
+  } else {
+    d <- ncol(Z) + 1*constant
+  }
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) Z <- cbind(rep(1, nrow(Y)), Z)
+  
+  
+  m <- ncol(Y)
+  k <- m*p+d
+  
+  v_prior <- m + 1
+  S_prior <- diag(m)
+  Omega_prior <- 10*diag(k) 
+  Phi_prior <- matrix(0, nrow=k, ncol=m)
+    
+
+  X_dummy <- NULL
+  Y_dummy <- NULL
+  
+  
+  priors <- list(v_prior=v_prior, S_prior=S_prior, 
+                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, Y_dummy=Y_dummy, X_dummy=X_dummy)
+  
+  return(priors)
+}
+
+
+
+
+
+#' Estimate conjugate Normal-Inverse-Wishart bayesian VAR model
+#'
+#' Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 #'  
-#' Estimate Normal-Inverse-Wishart bayesian VAR model
+#' Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 #' 
 #' @param Y_in the matrix or data.frame with endogeneous VAR variables
 #' @param Z_in (NULL by default) the matrix or data.frame with exogeneous VAR variables
@@ -122,7 +174,9 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
-#' model <- bvar_conjugate0(Y)
+#' data(Yraw)
+#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 bvar_conjugate0 <-
   function(Y_in, Z_in=NULL, constant=TRUE, p=4, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
@@ -188,18 +242,32 @@ bvar_conjugate0 <-
       message("Number of dummy observations, T_dummy = ", T_dummy )
       message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
     }
+
+    # set some bad priors for lazy guys if not supplied 
+    if (is.null(priors$v_prior)) {
+      priors$v_prior <- m + 1
+      message("v_prior was not specified, set to (m+1)")
+    }
+    if (is.null(priors$S_prior)) {
+      priors$S_prior <- diag(m)
+      message("S_prior was not specified, set to I [m x m]")
+    }
+    if (is.null(priors$Omega_prior)) {
+      priors$Omega_prior <- 10*diag(k) 
+      message("Omega_prior was not specified, set to 10I [k x k]")
+    }  
+    if (is.null(priors$Phi_prior)) {
+      priors$Phi_prior <- matrix(0, nrow=k, ncol=m)
+      message("Phi_prior was not specified, set to 0 [k x m]")
+    }
     
+    
+        
     # extract priors from list for simplier notation
     v_prior <- priors$v_prior
     S_prior <- priors$S_prior
     Omega_prior <- priors$Omega_prior
     Phi_prior <- priors$Phi_prior
-    
-    # set some bad priors for lazy guys if not supplied 
-    if (is.null(v_prior)) v_prior <- m + 1
-    if (is.null(S_prior)) S_prior <- diag(m)
-    if (is.null(Omega_prior)) Omega_prior <- 10*diag(k) 
-    if (is.null(Phi_prior)) Phi_prior <- matrix(0, nrow=k, ncol=m)
     
 
     # Phi|Sigma ~ MN(Phi_prior,Sigma o Omega_prior)
@@ -263,12 +331,124 @@ bvar_conjugate0 <-
     answer <- coda::as.mcmc(answer)
     
     # set prior attributes:
-    attr(answer, "prior")       <- list(type="conjugate",
-                                   Phi_prior=Phi_prior,
-                                   v_prior=v_prior,
-                                   Omega_prior=Omega_prior,
-                                   S_prior=S_prior)
+    attr(answer, "params")      <- data.frame(k=k,m=m,p=p,d=d, T_in=T_in,T=T,constant=constant)
+    
+    attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in)
+    
+    priors$type <- "conjugate"
+    attr(answer, "prior")       <- priors
 
     return(answer)
 }
+
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#'
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#'  
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#' 
+#' @param model estimated conjugate N-IW model
+#' @param h number of periods for forecasting
+#' @param level confidence levels for prediction intervals
+#' @param Y_in (NULL by default) past values of endogeneous variables (shold have at least p observations).
+#' If NULL, then Y_in supplied for estimation will be used. Only last p values of Y_in are used.
+#' @param Z_f future values of exogeneous variables
+#' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
+#' future shocks; "credible" deals only with parameter uncertainty.
+#' @param useMean (FALSE by default) use mean values (TRUE) of posterior draws of y_t,
+#' or median values (FALSE) 
+#' @export
+#' @return forecast results
+#' @examples 
+#' data(Yraw)
+#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' forecst_conjugate(model)
+forecast_conjugate <- function(model, 
+                               Y_in=NULL, 
+                               Z_f=NULL,
+                               useMean=FALSE,
+                               h=1, level=c(80,95),
+                               type=c("prediction","credible")) {
+
+  
+  # select type of prediction specified by user
+  type <- match.arg(type)
+  
+  # simplify notation, extract params from attribute
+  T <- attr(model,"params")$T # number of observations minus p
+  p <- attr(model,"params")$p
+  k <- attr(model,"params")$k
+  m <- attr(model,"params")$m
+  
+  constant <- attr(model,"params")$constant
+  
+  
+  # sanity check
+  if (!is.null(Z_f))
+    if (!nrow(Z_f)==h) stop("I need exactly h=",h," observations for exogeneous variables.")
+  
+  if (nrow(Y_in)<p) stop("Model has ",p," lags. To predict I need at least ",p," observations, but only ",nrow(Y_in)," are provided.")
+  
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) Z_f <- cbind(rep(1, h), Z_f)
+  
+  
+  
+  # if Y_in is not supplied take Y_in from estimation
+  if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
+  
+  # take last p observations of Y_in
+  Y_in <- tail(Y_in, p)
+  
+  e_t <- rep(0, m) # ok for bayesian credible intervals  
+  
+  # space to store all forecasted values
+  forecast_raw <- matrix(0, nrow = keep, ncol = m*h)
+  
+  x_t <- rep(0, k)
+  
+  for (i in 1:keep) {
+    # forecast h steps for given sampling of Phi
+    Phi <- as.matrix(model[i,1:(k*m)], nrow=k)
+    Phi_trnsp <- t(Phi) # precalculate to do less operations in case h>1
+    
+    for (j in 1:h) {
+      # fill exogeneous values
+      x_t[(m*p+1):(m*p+d)] <- Z_in[j,]
+      
+      if (type=="prediction") e_t <- ...
+      # e_t is 0 for bayesian credible intervals
+      
+      y_t <- Phi_transp %*% x_t + e_t
+      forecast_raw[i, (m*(j-1)+1):(m*j)] <- y_t
+    }
+  }
+  # save as mcmc object for standartisation
+  forecast_raw <- coda::as.mcmc(forecast_raw)
+  
+  # calculate mean or median to obtain point-forecast
+  if (useMean) {
+    point_forecast <- apply(forecast_raw, 2, mean)
+  } else {
+    point_forecast <- apply(forecast_raw, 2, mean)
+  }
+  
+  sd_forecast <- apply(forecast_raw, 2, sd)
+  
+  # calculate quantiles
+  # ....
+  
+  forecast_summary <- data.frame(y=rep(1:m, h), h=rep(1:h, each=m), 
+                                 point_forecast=point_forecast, 
+                                 sd=sd_forecast)
+    
+  attr(forecast_summary, "forecast_raw") <- forecast_raw
+  
+  return(forecast_summary)
+}
+
+
+
 
