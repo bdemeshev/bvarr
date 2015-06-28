@@ -2,11 +2,11 @@
 % Please edit documentation in R/bvar_conjugate.R
 \name{bvar_conjugate0}
 \alias{bvar_conjugate0}
-\title{Estimate Normal-Inverse-Wishart bayesian VAR model}
+\title{Estimate conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
-bvar_conjugate0(Y_in, Z_in = NULL, constant = TRUE, p = 2, keep = 10000,
+bvar_conjugate0(Y_in, Z_in = NULL, constant = TRUE, p = 4, keep = 10000,
   verbose = FALSE, priors = list(Phi_prior = NULL, Omega_prior = NULL,
-  S_prior = NULL, v_prior = NULL))
+  S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy = NULL))
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
@@ -21,19 +21,23 @@ bvar_conjugate0(Y_in, Z_in = NULL, constant = TRUE, p = 2, keep = 10000,
 
 \item{verbose}{(FALSE by default)}
 
-\item{priors}{the list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+\item{priors}{the list containing Phi_prior [k x m], Omega_prior [k x k],
+S_prior [m x m], v_prior [1x1],
+Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 where k = mp+d}
 }
 \value{
 the list containing all results of bayesian VAR estimation
 }
 \description{
-Estimate Normal-Inverse-Wishart bayesian VAR model
+Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 }
 \details{
-Estimate Normal-Inverse-Wishart bayesian VAR model
+Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
-model <- bvar_conjugate0(Y)
+data(Yraw)
+priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 }
 
