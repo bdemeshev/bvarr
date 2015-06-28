@@ -337,6 +337,10 @@ bvar_conjugate0 <-
     
     priors$type <- "conjugate"
     attr(answer, "prior")       <- priors
+    attr(answer, "posterior") <- list(Omega_post=Omega_post,
+                                      v_post=v_post,
+                                      Phi_post=Phi_post,
+                                      S_post=S_post)
 
     return(answer)
 }
@@ -407,6 +411,8 @@ forecast_conjugate <- function(model,
   # space to store all forecasted values
   forecast_raw <- matrix(0, nrow = keep, ncol = m*h)
   
+  
+  
   x_t <- rep(0, k)
   
   for (i in 1:keep) {
@@ -414,11 +420,22 @@ forecast_conjugate <- function(model,
     Phi <- as.matrix(model[i,1:(k*m)], nrow=k)
     Phi_trnsp <- t(Phi) # precalculate to do less operations in case h>1
     
+    # find square root of draw from Sigma (part of mvtnorm function)
+    ev <- eigen( ... , symmetric = TRUE)
+    if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
+      warning("Omega_post is numerically not positive definite")
+    }
+    R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
+    
+    
     for (j in 1:h) {
       # fill exogeneous values
       x_t[(m*p+1):(m*p+d)] <- Z_in[j,]
       
-      if (type=="prediction") e_t <- ...
+      # fill endogeneous values
+      ...
+      
+      if (type=="prediction") e_t <- R %*% rnorm(m) 
       # e_t is 0 for bayesian credible intervals
       
       y_t <- Phi_transp %*% x_t + e_t
