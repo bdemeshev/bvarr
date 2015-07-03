@@ -299,7 +299,7 @@ bvar_conjugate0 <-
     #                  t(Phi_post) %*% solve(Omega_post) %*% Phi_post
     
     # reserve space for Gibbs sampling replications
-    answer <- matrix(0, nrow=keep, ncol = m*(m*p+d) + m*m)
+    answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
     
     # precalculate chol(Omega_post) for faster cycle
     chol_Omega_post <- chol(Omega_post)
@@ -359,8 +359,7 @@ bvar_conjugate0 <-
 #' @param Z_f future values of exogeneous variables
 #' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 #' future shocks; "credible" deals only with parameter uncertainty.
-#' @param useMean (FALSE by default) use mean values (TRUE) of posterior draws of y_t,
-#' or median values (FALSE) 
+#' @param output (default "long") --- long or wide table for mean/quantiles of forecasts
 #' @export
 #' @return forecast results
 #' @examples 
@@ -371,13 +370,14 @@ bvar_conjugate0 <-
 forecast_conjugate <- function(model, 
                                Y_in=NULL, 
                                Z_f=NULL,
-                               useMean=FALSE,
+                               output=c("long","wide"),
                                h=1, level=c(80,95),
                                type=c("prediction","credible")) {
 
   
   # select type of prediction specified by user
   type <- match.arg(type)
+  output <- match.arg(output)
   
   # simplify notation, extract params from attribute
   T <- attr(model,"params")$T # number of observations minus p
@@ -420,11 +420,13 @@ forecast_conjugate <- function(model,
     Phi <- as.matrix(model[i,1:(k*m)], nrow=k)
     Phi_trnsp <- t(Phi) # precalculate to do less operations in case h>1
     
-    # find square root of draw from Sigma (part of mvtnorm function)
-    ev <- eigen( ... , symmetric = TRUE)
+    Sigma <- as.matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
+    # find square root of draw from Sigma (code is part of mvtnorm function)
+    ev <- eigen( Sigma, symmetric = TRUE)
     if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
       warning("Omega_post is numerically not positive definite")
     }
+    # precalculate R to do less operations in case h>1
     R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
     
     
@@ -432,8 +434,14 @@ forecast_conjugate <- function(model,
       # fill exogeneous values
       x_t[(m*p+1):(m*p+d)] <- Z_in[j,]
       
-      # fill endogeneous values
-      ...
+      # fill x_t
+      if (j==1) x_t[1:(m*p)] <- as.vector(t(Y_in)[,p:1])
+      
+      # fill endogeneous values recursively
+      if (j>1) {
+        x_t[(m+1):(m*p)] <- x_t[1:(m*(p-1))]
+        x_t[1:m] <- y_t
+      }
       
       if (type=="prediction") e_t <- R %*% rnorm(m) 
       # e_t is 0 for bayesian credible intervals
@@ -445,22 +453,50 @@ forecast_conjugate <- function(model,
   # save as mcmc object for standartisation
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
-  # calculate mean or median to obtain point-forecast
-  if (useMean) {
-    point_forecast <- apply(forecast_raw, 2, mean)
-  } else {
-    point_forecast <- apply(forecast_raw, 2, mean)
+  
+  varnames <- data.frame(y=rep(1:m, h), h=rep(1:h, each=m))
+  
+  forecast_summary <- NULL
+  
+  # calculate mean
+  what <- rep("mean", h*m)
+  value <- apply(forecast_raw, 2, mean)
+  block <- cbind(varnames, what, value) # block of information
+  forecast_summary <- cbind(forecast_summary, block)
+  
+  # calculate median
+  what <- rep("median", h*m)
+  value <- apply(forecast_raw, 2, median)
+  block <- cbind(varnames, what, value) # block of information
+  forecast_summary <- cbind(forecast_summary, block)
+  
+  # sd
+  what <- rep("sd", h*m)
+  value <- apply(forecast_raw, 2, sd)
+  block <- cbind(varnames, what, value) # block of information
+  forecast_summary <- cbind(forecast_summary, block)
+  
+
+  # calculate quantiles
+  for (lev in level) {
+    # lower
+    what <- rep(paste0("lower_",lev), h*m)
+    value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
+    block <- cbind(varnames, what, value) # block of information
+    forecast_summary <- cbind(forecast_summary, block)
+    
+    # upper
+    what <- rep(paste0("upper_",lev), h*m)
+    value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
+    block <- cbind(varnames, what, value) # block of information
+    forecast_summary <- cbind(forecast_summary, block)
   }
   
-  sd_forecast <- apply(forecast_raw, 2, sd)
   
-  # calculate quantiles
-  # ....
+  if (output=="wide") { # transform to wide format if requested
+    forecast_summary <- reshape2::dcast(forecast_summary, y+h~what, value)
+  }
   
-  forecast_summary <- data.frame(y=rep(1:m, h), h=rep(1:h, each=m), 
-                                 point_forecast=point_forecast, 
-                                 sd=sd_forecast)
-    
   attr(forecast_summary, "forecast_raw") <- forecast_raw
   
   return(forecast_summary)
