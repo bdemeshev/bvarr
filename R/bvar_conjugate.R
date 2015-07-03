@@ -368,7 +368,7 @@ bvar_conjugate0 <-
 #' data(Yraw)
 #' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
-#' forecst_conjugate(model)
+#' forecast_conjugate(model, h=2, output="wide")
 forecast_conjugate <- function(model, 
                                Y_in=NULL, 
                                Z_f=NULL,
@@ -386,6 +386,7 @@ forecast_conjugate <- function(model,
   p <- attr(model,"params")$p
   k <- attr(model,"params")$k
   m <- attr(model,"params")$m
+  d <- attr(model,"params")$d
   keep <- attr(model, "params")$keep
 
   constant <- attr(model,"params")$constant
@@ -422,7 +423,7 @@ forecast_conjugate <- function(model,
   for (i in 1:keep) {
     # forecast h steps for given sampling of Phi
     Phi <- matrix(model[i,1:(k*m)], nrow=k)
-    Phi_trnsp <- t(Phi) # precalculate to do less operations in case h>1
+    Phi_transp <- t(Phi) # precalculate to do less operations in case h>1
     
     Sigma <- matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
     # find square root of draw from Sigma (code is part of mvtnorm function)
@@ -457,7 +458,7 @@ forecast_conjugate <- function(model,
   # save as mcmc object for standartisation
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
-  
+  # we have m endogeneous variables and h forecasts for each
   varnames <- data.frame(y=rep(1:m, h), h=rep(1:h, each=m))
   
   forecast_summary <- NULL
@@ -466,19 +467,19 @@ forecast_conjugate <- function(model,
   what <- rep("mean", h*m)
   value <- apply(forecast_raw, 2, mean)
   block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- cbind(forecast_summary, block)
+  forecast_summary <- rbind(forecast_summary, block)
   
   # calculate median
   what <- rep("median", h*m)
   value <- apply(forecast_raw, 2, median)
   block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- cbind(forecast_summary, block)
+  forecast_summary <- rbind(forecast_summary, block)
   
   # sd
   what <- rep("sd", h*m)
   value <- apply(forecast_raw, 2, sd)
   block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- cbind(forecast_summary, block)
+  forecast_summary <- rbind(forecast_summary, block)
   
 
   # calculate quantiles
@@ -487,20 +488,23 @@ forecast_conjugate <- function(model,
     what <- rep(paste0("lower_",lev), h*m)
     value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
     block <- cbind(varnames, what, value) # block of information
-    forecast_summary <- cbind(forecast_summary, block)
+    forecast_summary <- rbind(forecast_summary, block)
     
     # upper
     what <- rep(paste0("upper_",lev), h*m)
     value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
     block <- cbind(varnames, what, value) # block of information
-    forecast_summary <- cbind(forecast_summary, block)
+    forecast_summary <- rbind(forecast_summary, block)
   }
+  
+  rownames(forecast_summary)  <- NULL
   
   
   if (output=="wide") { # transform to wide format if requested
-    forecast_summary <- reshape2::dcast(forecast_summary, y+h~what, value)
+    forecast_summary <- reshape2::dcast(forecast_summary, y+h~what)
   }
   
+  # save raw forecasts for further analysis
   attr(forecast_summary, "forecast_raw") <- forecast_raw
   
   return(forecast_summary)
