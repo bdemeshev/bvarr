@@ -4,12 +4,12 @@
 \alias{KK_code_priors}
 \title{Set conjugate N-IW priors as in matlab code of Koops-Korobilis}
 \usage{
-KK_code_priors(Y, Z = NULL, constant = TRUE, p = 4)
+KK_code_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4)
 }
 \arguments{
-\item{Y}{multivariate time series}
+\item{Y_in}{multivariate time series}
 
-\item{Z}{exogeneous variables}
+\item{Z_in}{exogeneous variables}
 
 \item{p}{number of lags}
 }

@@ -20,7 +20,7 @@ summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
 data(Yraw)
-priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 summary_conjugate(model)
 }

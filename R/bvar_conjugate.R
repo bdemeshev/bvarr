@@ -1,23 +1,23 @@
-#' Set conjugate N-IW priors from lambdas
+#' Set conjugate N-IW priors from lambdas as in Carriero
 #' 
-#' Set conjugate N-IW priors from lambdas
+#' Set conjugate N-IW priors from lambdas as in Carriero
 #' 
-#' Set conjugate N-IW priors from lambdas
-#' Based on Carriero p. 53
+#' Set conjugate N-IW priors from lambdas as in Carriero
+#' Based on Carriero p. 52-53
 #'
 #' @param p number of lags
-#' @param Y multivariate time series
+#' @param Y_in multivariate time series
 #' @param lambdas vector = (l0, l1, l2, l3, l4)
-#' @param Z exogeneous variables
+#' @param Z_in exogeneous variables
 #' @param VAR_in (either "levels" or "growth rates")
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
-lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1), 
+Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1), 
                           VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
@@ -26,17 +26,17 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   l4 <- lambdas[5]
   
   # calculate d, the number of exogeneous regressors
-  if (is.null(Z)) {
+  if (is.null(Z_in)) {
     d <- 1*constant
   } else {
-    d <- ncol(Z) + 1*constant
+    d <- ncol(Z_in) + 1*constant
   }
   
   # if requested add constant to exogeneous regressors
-  if (constant) Z <- cbind(rep(1, nrow(Y)), Z)
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
   
-  m <- ncol(Y)
+  m <- ncol(Y_in)
   k <- m*p+d
   
   VAR_in <- match.arg(VAR_in)
@@ -48,7 +48,7 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   # estimate sigma^2 from univariate AR(p) processes
   sigmas_sq <- rep(NA, m)
   for (j in 1:m) {
-    y_uni <- Y[,j] # univariate time series
+    y_uni <- Y_in[,j] # univariate time series
     AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
     sigmas_sq[j] <- AR_p$sigma2
   }
@@ -71,7 +71,7 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   
   # create dummy observations
   
-  y_0_bar <- apply(Y, 2, mean) # vector [m x 1] of mean values of each endo-series
+  y_0_bar <- apply(Y_in, 2, mean) # vector [m x 1] of mean values of each endo-series
   z_bar <- apply(Z, 2, mean) # vector [d x 1] of mean values of each exo-series
   
   # sum of coefficients prior
@@ -94,7 +94,9 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
   
     
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
-                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, Y_dummy=Y_dummy, X_dummy=X_dummy)
+                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
+                 Y_dummy=Y_dummy, X_dummy=X_dummy,
+                 Y_in=Y_in, Z_in=Z_in, p=p) # to avoid duplicating
   
   return(priors)
 }
@@ -110,8 +112,8 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
 #' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
 #'
 #' @param p number of lags
-#' @param Y multivariate time series
-#' @param Z exogeneous variables
+#' @param Y_in multivariate time series
+#' @param Z_in exogeneous variables
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
@@ -119,20 +121,20 @@ lambda2priors <- function(Y, Z=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1),
 #' data(Yraw)
 #' priors <- KK_code_priors(Yraw, p = 4)
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
-KK_code_priors <- function(Y, Z=NULL, constant=TRUE, p=4) {
+KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 
   # calculate d, the number of exogeneous regressors
-  if (is.null(Z)) {
+  if (is.null(Z_in)) {
     d <- 1*constant
   } else {
-    d <- ncol(Z) + 1*constant
+    d <- ncol(Z_in) + 1*constant
   }
   
   # if requested add constant to exogeneous regressors
-  if (constant) Z <- cbind(rep(1, nrow(Y)), Z)
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
   
-  m <- ncol(Y)
+  m <- ncol(Y_in)
   k <- m*p+d
   
   v_prior <- m + 1
@@ -146,11 +148,127 @@ KK_code_priors <- function(Y, Z=NULL, constant=TRUE, p=4) {
   
   
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
-                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, Y_dummy=Y_dummy, X_dummy=X_dummy)
+                 Phi_prior=Phi_prior, 
+                 Omega_prior=Omega_prior, 
+                 Y_dummy=Y_dummy, X_dummy=X_dummy,
+                 Y_in=Y_in, Z=Z_in, p=p)
   
   return(priors)
 }
 
+
+
+
+#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
+#' 
+#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
+#' 
+#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
+#' Should be compatible with szbvar function. Maybe error!!!! 
+#' MAYBE lambda should be in denominator!!!!
+#'
+#' @param p number of lags
+#' @param Y_in multivariate time series
+#' @param lambdas vector = (l0, l1, l2, l3, l4, l5)
+#' @param mu56 vector = (mu5, mu6)
+#' @param Z_in exogeneous variables
+#' @param VAR_in (either "levels" or "growth rates")
+#' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+#' where k = mp+d
+#' @export
+#' @examples 
+#' data(Yraw)
+#' priors <- SimZha_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1,1), mu56=c(1,1))
+#' model <- bvar_conjugate0(priors = priors)
+SimZha_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+                          lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
+                            VAR_in=c("levels","growth rates")) {
+  l0 <- lambdas[1]
+  l1 <- lambdas[2]
+  l2 <- lambdas[3]
+  l3 <- lambdas[4]
+  l4 <- lambdas[5]
+  l5 <- lambdas[6]
+  mu5 <- mu56[1]
+  mu6 <- mu56[2]
+  
+  message("MAYBE a bug and lambdas should be inverted!!!")
+  
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z_in)) {
+    d <- 1*constant
+  } else {
+    d <- ncol(Z_in) + 1*constant
+  }
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
+  
+  
+  m <- ncol(Y_in)
+  k <- m*p+d
+  
+  VAR_in <- match.arg(VAR_in)
+  
+  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
+  
+  # Litterman takes 6 lags in AR(p)
+  
+  # estimate sigma^2 from univariate AR(p) processes
+  sigmas_sq <- rep(NA, m)
+  for (j in 1:m) {
+    y_uni <- Y_in[,j] # univariate time series
+    AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
+    sigmas_sq[j] <- AR_p$sigma2
+  }
+  
+  # set Phi_prior
+  if (VAR_in=="levels") Phi_1 <- diag(m)
+  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
+  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
+  
+  S_prior <- diag(m) # identity matrix [m x m]
+  v_prior <- m+1
+  
+  # set Omega_prior
+  Omega_diagonal <- c(l0^2*l1^2*rep(1/sigmas_sq, p)/rep((1/(1:p)^2)^l3, each=m), l0^2*l4^2, rep(l0^2*l5^2, d-1))
+  # and set zero prior covariances
+  Omega_prior <- diag(Omega_diagonal)
+  
+  
+  
+  
+  # create dummy observations
+  
+  y_0_bar <- apply(Y_in, 2, mean) # vector [m x 1] of mean values of each endo-series
+  z_bar <- apply(Z, 2, mean) # vector [d x 1] of mean values of each exo-series
+  
+  # sum of coefficients prior
+  Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
+  diag(Y_dummy_sc) <- y_0_bar * mu5
+  
+  X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
+  # X_dummy_sc is not a square matrix, 
+  # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
+  diag(X_dummy_sc) <- y_0_bar * mu5
+  
+  # dummy initial observation
+  Y_dummy_io <- matrix(y_0_bar * mu6, nrow=1)
+  X_dummy_io <- matrix(c(rep(y_0_bar * mu6, p), z_bar * mu6), nrow=1)
+  
+  
+  # order of dummies???
+  X_dummy <- rbind(X_dummy_io, X_dummy_sc)
+  Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
+  
+  
+  priors <- list(v_prior=v_prior, S_prior=S_prior, 
+                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
+                 Y_dummy=Y_dummy, X_dummy=X_dummy,
+                 Y_in=Y_in, Z_in=Z_in, p=p) # to avoid duplicating
+  
+  return(priors)
+}
 
 
 
@@ -175,13 +293,36 @@ KK_code_priors <- function(Y, Z=NULL, constant=TRUE, p=4) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 bvar_conjugate0 <-
-  function(Y_in, Z_in=NULL, constant=TRUE, p=4, keep=10000, verbose=FALSE,
+  function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
-                       Y_dummy=NULL, X_dummy=NULL) ) {
+                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL) ) {
 
+    if ( (is.null(Y_in)) & (!is.null(priors$Y_in)) ){
+      Y_in <- priors$Y_in
+      message("Y_in is inferred from priors data.")
+    }
+    
+    if ( (is.null(Z_in)) & (!is.null(priors$Z_in)) ){
+      Z_in <- priors$Z_in
+      message("Z_in is inferred from priors data.")
+    }
+
+    if ( (is.null(p)) & (!is.null(priors$p)) ) {
+      p <- priors$p
+      message("Number of lags is inferred from priors data: p = ",p)
+    }
+    
+    if ( (is.null(p)) & (is.null(priors$p)) ) {
+      p <- 4
+      message("Number of lags, p, is not specified inside and outside priors, set to p = ",p)
+    }
+    
+    
+    
+    
     # if Z_in is provided it should have the same number of rows that Y_in
     if (!is.null(Z_in)) 
       if (!nrow(Y_in)==nrow(Z_in))
@@ -369,7 +510,7 @@ bvar_conjugate0 <-
 #' @return forecast results
 #' @examples 
 #' data(Yraw)
-#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 #' forecast_conjugate(model, h=2, output="wide")
 forecast_conjugate <- function(model, 
@@ -525,7 +666,7 @@ forecast_conjugate <- function(model,
 #' @return nothing
 #' @examples 
 #' data(Yraw)
-#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 #' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 #' summary_conjugate(model)
 summary_conjugate <- function(model) {

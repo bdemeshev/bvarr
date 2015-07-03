@@ -4,9 +4,10 @@
 \alias{bvar_conjugate0}
 \title{Estimate conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
-bvar_conjugate0(Y_in, Z_in = NULL, constant = TRUE, p = 4, keep = 10000,
-  verbose = FALSE, priors = list(Phi_prior = NULL, Omega_prior = NULL,
-  S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy = NULL))
+bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
+  keep = 10000, verbose = FALSE, priors = list(Phi_prior = NULL,
+  Omega_prior = NULL, S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy =
+  NULL, Y_in = NULL, Z_in = NULL, p = NULL))
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
@@ -37,7 +38,7 @@ Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
 data(Yraw)
-priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
 model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
 }
 
