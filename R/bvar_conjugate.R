@@ -331,7 +331,9 @@ bvar_conjugate0 <-
     answer <- coda::as.mcmc(answer)
     
     # set prior attributes:
-    attr(answer, "params")      <- data.frame(k=k,m=m,p=p,d=d, T_in=T_in,T=T,constant=constant)
+    attr(answer, "params")  <- data.frame(k=k,m=m,p=p,d=d, 
+                                          T_in=T_in,T=T,constant=constant,
+                                          keep=keep)
     
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in)
     
@@ -384,8 +386,12 @@ forecast_conjugate <- function(model,
   p <- attr(model,"params")$p
   k <- attr(model,"params")$k
   m <- attr(model,"params")$m
-  
+  keep <- attr(model, "params")$keep
+
   constant <- attr(model,"params")$constant
+  
+  # if Y_in is not supplied take Y_in from estimation
+  if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
   
   
   # sanity check
@@ -400,8 +406,6 @@ forecast_conjugate <- function(model,
   
   
   
-  # if Y_in is not supplied take Y_in from estimation
-  if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
   
   # take last p observations of Y_in
   Y_in <- tail(Y_in, p)
@@ -417,10 +421,10 @@ forecast_conjugate <- function(model,
   
   for (i in 1:keep) {
     # forecast h steps for given sampling of Phi
-    Phi <- as.matrix(model[i,1:(k*m)], nrow=k)
+    Phi <- matrix(model[i,1:(k*m)], nrow=k)
     Phi_trnsp <- t(Phi) # precalculate to do less operations in case h>1
     
-    Sigma <- as.matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
+    Sigma <- matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
     # find square root of draw from Sigma (code is part of mvtnorm function)
     ev <- eigen( Sigma, symmetric = TRUE)
     if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
@@ -432,7 +436,7 @@ forecast_conjugate <- function(model,
     
     for (j in 1:h) {
       # fill exogeneous values
-      x_t[(m*p+1):(m*p+d)] <- Z_in[j,]
+      x_t[(m*p+1):(m*p+d)] <- Z_f[j,]
       
       # fill x_t
       if (j==1) x_t[1:(m*p)] <- as.vector(t(Y_in)[,p:1])
