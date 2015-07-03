@@ -234,10 +234,10 @@ bvar_conjugate0 <-
     k <- m*p + d
     
     if (verbose) { 
-      message("Number of lags, p =", p)
+      message("Number of lags, p = ", p)
       message("Number of endogeneos variables, m = ",m)
       message("Number of exogeneos variables (including constant), d = ",d)
-      message("Number of parameters, k = mp + d =",k)
+      message("Number of parameters, k = mp + d = ",k)
       message("Initial number of observations, T_in = ",T_in)
       message("Number of dummy observations, T_dummy = ", T_dummy )
       message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
@@ -280,7 +280,9 @@ bvar_conjugate0 <-
     # calculate posterior hyperparameters
     v_post <- v_prior + T
     Omega_post <- solve(solve(Omega_prior)+XtX)
-    Phi_post <- Omega_post %*% (solve(Omega_prior) %*% Phi_prior)
+    
+    # here was a mistake :)
+    Phi_post <- Omega_post %*% (solve(Omega_prior) %*% Phi_prior + t(X) %*% Y)
     
     Phi_hat <- XtX_inv %*% t(X) %*% Y 
     E_hat <- Y - X %*% Phi_hat
@@ -332,7 +334,8 @@ bvar_conjugate0 <-
     
     # set prior attributes:
     attr(answer, "params")  <- data.frame(k=k,m=m,p=p,d=d, 
-                                          T_in=T_in,T=T,constant=constant,
+                                          T_in=T_in,T=T,T_dummy=T_dummy,
+                                          constant=constant,
                                           keep=keep)
     
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in)
@@ -397,7 +400,7 @@ forecast_conjugate <- function(model,
   
   # sanity check
   if (!is.null(Z_f))
-    if (!nrow(Z_f)==h) stop("I need exactly h=",h," observations for exogeneous variables.")
+    if (!nrow(Z_f)==h) stop("I need exactly h = ",h," observations for exogeneous variables.")
   
   if (nrow(Y_in)<p) stop("Model has ",p," lags. To predict I need at least ",p," observations, but only ",nrow(Y_in)," are provided.")
   
@@ -511,5 +514,53 @@ forecast_conjugate <- function(model,
 }
 
 
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#'
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#'  
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#' 
+#' @param model estimated conjugate N-IW model
+#' @export
+#' @return nothing
+#' @examples 
+#' data(Yraw)
+#' priors <- lambda2priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
+#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' summary_conjugate(model)
+summary_conjugate <- function(model) {
+  T <- attr(model,"params")$T # number of observations minus p
+  p <- attr(model,"params")$p
+  k <- attr(model,"params")$k
+  m <- attr(model,"params")$m
+  d <- attr(model,"params")$d
+  keep <- attr(model, "params")$keep
+  T_in <- attr(model, "params")$T_in
+  T_dummy <- attr(model, "params")$T_dummy
+  
+  message("Number of lags, p = ", p)
+  message("Number of endogeneos variables, m = ",m)
+  message("Number of exogeneos variables (including constant), d = ",d)
+  message("Number of parameters, k = mp + d = ",k)
+  message("Initial number of observations, T_in = ",T_in)
+  message("Number of dummy observations, T_dummy = ", T_dummy )
+  message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
+  
+  post_mean <- apply(model, 2, mean)
+  post_sd <- apply(model, 2, sd)
+  
+  message("Posterior mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+  print(matrix(head(post_mean, k*m), nrow=k))
+  
+  message("Posterior mean of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
+  print(matrix(tail(post_mean, m*m), nrow=m))
+    
+  message("Posterior sd of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+  print(matrix(head(post_sd, k*m), nrow=k))
+  
+  message("Posterior sd of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
+  print(matrix(tail(post_sd, m*m), nrow=m))
+  
+}
 
 
