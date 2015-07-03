@@ -4,8 +4,8 @@
 \alias{forecast_conjugate}
 \title{predict with conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
-forecast_conjugate(model, Y_in = NULL, Z_f = NULL, useMean = FALSE,
-  h = 1, level = c(80, 95), type = c("prediction", "credible"))
+forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
+  "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"))
 }
 \arguments{
 \item{model}{estimated conjugate N-IW model}
@@ -15,8 +15,7 @@ If NULL, then Y_in supplied for estimation will be used. Only last p values of Y
 
 \item{Z_f}{future values of exogeneous variables}
 
-\item{useMean}{(FALSE by default) use mean values (TRUE) of posterior draws of y_t,
-or median values (FALSE)}
+\item{output}{(default "long") --- long or wide table for mean/quantiles of forecasts}
 
 \item{h}{number of periods for forecasting}
 
