@@ -70,9 +70,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   
   
   # create dummy observations
-  
-  y_0_bar <- apply(Y_in, 2, mean) # vector [m x 1] of mean values of each endo-series
-  z_bar <- apply(Z, 2, mean) # vector [d x 1] of mean values of each exo-series
+  y_0_bar <- apply(as.matrix(Y_in[1:p,],nrow=p), 2, mean) # vector [m x 1] of mean values of each endo-series
+  z_bar <- apply(as.matrix(Z_in[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
+  # "as.matrix" above is needed to avoid errors for p=1 or d=1
   
   # sum of coefficients prior
   Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
@@ -88,7 +88,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   X_dummy_io <- matrix(c(rep(y_0_bar/l4, p), z_bar/l4), nrow=1)
   
   
-  # order of dummies???
+  # order of dummies??? 
   X_dummy <- rbind(X_dummy_io, X_dummy_sc)
   Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
   
@@ -96,7 +96,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
-                 Y_in=Y_in, Z_in=Z_in, p=p) # to avoid duplicating
+                 Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
+                 sigmas_sq = sigmas_sq ) # get more info from function
   
   return(priors)
 }
@@ -178,9 +179,9 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- SimZha_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1,1), mu56=c(1,1))
+#' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1,1), mu56=c(1,1))
 #' model <- bvar_conjugate0(priors = priors)
-SimZha_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                           lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
                             VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
@@ -192,8 +193,7 @@ SimZha_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   mu5 <- mu56[1]
   mu6 <- mu56[2]
   
-  message("MAYBE a bug and lambdas should be inverted!!!")
-  
+  Y_in <- as.matrix(Y_in)
   # calculate d, the number of exogeneous regressors
   if (is.null(Z_in)) {
     d <- 1*constant
@@ -210,38 +210,15 @@ SimZha_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   VAR_in <- match.arg(VAR_in)
   
-  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
-  
-  # Litterman takes 6 lags in AR(p)
-  
-  # estimate sigma^2 from univariate AR(p) processes
-  sigmas_sq <- rep(NA, m)
-  for (j in 1:m) {
-    y_uni <- Y_in[,j] # univariate time series
-    AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
-    sigmas_sq[j] <- AR_p$sigma2
-  }
-  
-  # set Phi_prior
-  if (VAR_in=="levels") Phi_1 <- diag(m)
-  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
-  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
-  
-  S_prior <- diag(m) # identity matrix [m x m]
-  v_prior <- m+1
-  
-  # set Omega_prior
-  Omega_diagonal <- c(l0^2*l1^2*rep(1/sigmas_sq, p)/rep((1/(1:p)^2)^l3, each=m), l0^2*l4^2, rep(l0^2*l5^2, d-1))
-  # and set zero prior covariances
-  Omega_prior <- diag(Omega_diagonal)
-  
-  
-  
   
   # create dummy observations
+  y_0_bar <- apply(as.matrix(Y_in[1:p,],nrow=p), 2, mean) # vector [m x 1] of mean values of each endo-series
   
-  y_0_bar <- apply(Y_in, 2, mean) # vector [m x 1] of mean values of each endo-series
-  z_bar <- apply(Z, 2, mean) # vector [d x 1] of mean values of each exo-series
+  z_bar <- NULL
+  if (!is.null(Z)) z_bar <- # avoid error with null Z and no constant
+    apply(as.matrix(Z[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
+  # "as.matrix" above is needed to avoid errors for p=1 or d=1
+  
   
   # sum of coefficients prior
   Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
@@ -257,15 +234,67 @@ SimZha_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   X_dummy_io <- matrix(c(rep(y_0_bar * mu6, p), z_bar * mu6), nrow=1)
   
   
-  # order of dummies???
-  X_dummy <- rbind(X_dummy_io, X_dummy_sc)
-  Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
+  # order of dummies??? does not matter??? # dummy_sc, dummy_io in MSBVAR::szbvar
+  X_dummy <- rbind(X_dummy_sc, X_dummy_io)
+  Y_dummy <- rbind(Y_dummy_sc, Y_dummy_io)
+  
+  
+  message("MAYBE a bug and lambdas should be inverted!!!")
+  
+  
+  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
+  
+  # Litterman takes 6 lags in AR(p)
+  
+  # estimate sigma^2 from univariate AR(p) processes
+  sigmas_sq <- rep(NA, m)
+  
+  Y <- rbind(Y_dummy,tail(Y_in,-p))
+  
+  for (j in 1:m) {
+    # y_uni <- Y_in[,j] # univariate time series (original Y_in)
+    # VERY strange, but:
+    y_uni <- Y[,j] # univariate time series (Y instead of Y_in)
+    
+    # here MSBVAR::szbvar uses Y (= Y_in without first p obs and augmented with dummy obs)
+    
+    # AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
+    # sigmas_sq[j] <- AR_p$sigma2
+    
+    # in MSBVAR:
+    sigmas_sq[j] <- ar.ols(y_uni, aic = FALSE, order.max = p, 
+           intercept = TRUE, demean = FALSE)$var.pred
+    
+  }
+  
+  # set Phi_prior
+  if (VAR_in=="levels") Phi_1 <- diag(m)
+  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
+  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
+  
+  # S_prior <- diag(m) # identity matrix [m x m]
+  S_prior <- diag(sigmas_sq)*l0^2 # as in MSBVAR::szbvar
+  
+  v_prior <- m+1
+  
+  lag_power <- 1/(1:p)^l3
+  
+  # set Omega_prior
+  Omega_diagonal <- c(kronecker(1/lag_power^2, 1/sigmas_sq), l0^2*l4^2, rep(l0^2*l5^2, d-1))
+  # and set zero prior covariances
+  Omega_prior <- diag(Omega_diagonal)
+  
+  
+  
+  
+
   
   
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
-                 Y_in=Y_in, Z_in=Z_in, p=p) # to avoid duplicating
+                 Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
+                 sigmas_sq=sigmas_sq, Y=Y) # get more info from function
   
   return(priors)
 }
@@ -366,6 +395,8 @@ bvar_conjugate0 <-
       if (!nrow(priors$Y_dummy)==nrow(priors$X_dummy)) stop("X_dummy and Y_dummy should have the same number of rows")
       T_dummy <- nrow(priors$Y_dummy)
     }
+    
+    # maybe we should add dummy to the end :)
     Y <- rbind(priors$Y_dummy, Y)
     X <- rbind(priors$X_dummy, X)
         
