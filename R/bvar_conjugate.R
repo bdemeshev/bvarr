@@ -7,7 +7,8 @@
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l0, l1, l2, l3, l4)
+#' @param lambdas vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for 
+#' conjugate N-IW prior
 #' @param Z_in exogeneous variables
 #' @param VAR_in (either "levels" or "growth rates")
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
@@ -15,15 +16,15 @@
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
-#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
-Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1,1), 
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' model <- bvar_conjugate0(priors = priors)
+Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1), 
                           VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
-  l2 <- lambdas[3]
-  l3 <- lambdas[4]
-  l4 <- lambdas[5]
+  l2 <- 1
+  l3 <- lambdas[3]
+  l4 <- lambdas[4]
   
   # calculate d, the number of exogeneous regressors
   if (is.null(Z_in)) {
@@ -124,7 +125,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
 #' @examples 
 #' data(Yraw)
 #' priors <- KK_code_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' model <- bvar_conjugate0(priors = priors)
 KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 
   # calculate d, the number of exogeneous regressors
@@ -173,7 +174,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l0, l1, l2, l3, l4, l5)
+#' @param lambdas vector = (l0, l1, l3, l4, l5), l2 is set to 1 for conjugate N-IW
 #' @param mu56 vector = (mu5, mu6)
 #' @param Z_in exogeneous variables
 #' @param VAR_in (either "levels" or "growth rates")
@@ -182,17 +183,17 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1,1), mu56=c(1,1))
+#' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
 #' model <- bvar_conjugate0(priors = priors)
 szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                           lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
                             VAR_in=c("levels","growth rates")) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
-  l2 <- lambdas[3]
-  l3 <- lambdas[4]
-  l4 <- lambdas[5]
-  l5 <- lambdas[6]
+  l2 <- 1
+  l3 <- lambdas[3]
+  l4 <- lambdas[4]
+  l5 <- lambdas[5]
   mu5 <- mu56[1]
   mu6 <- mu56[2]
   
@@ -325,8 +326,8 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' @export
 #' @examples
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
-#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' model <- bvar_conjugate0(priors = priors)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
@@ -544,8 +545,8 @@ bvar_conjugate0 <-
 #' @return forecast results
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
-#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' model <- bvar_conjugate0(priors = priors)
 #' forecast_conjugate(model, h=2, output="wide")
 forecast_conjugate <- function(model, 
                                Y_in=NULL, 
@@ -700,8 +701,8 @@ forecast_conjugate <- function(model,
 #' @return nothing
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
-#' model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' model <- bvar_conjugate0(priors = priors)
 #' summary_conjugate(model)
 summary_conjugate <- function(model) {
   T <- attr(model,"params")$T # number of observations minus p

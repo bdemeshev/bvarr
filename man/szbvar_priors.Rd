@@ -14,7 +14,7 @@ szbvar_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4, lambdas = c(1,
 
 \item{p}{number of lags}
 
-\item{lambdas}{vector = (l0, l1, l2, l3, l4, l5)}
+\item{lambdas}{vector = (l0, l1, l3, l4, l5), l2 is set to 1 for conjugate N-IW}
 
 \item{mu56}{vector = (mu5, mu6)}
 
@@ -34,7 +34,7 @@ MAYBE lambda should be in denominator!!!!
 }
 \examples{
 data(Yraw)
-priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1,1), mu56=c(1,1))
+priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
 model <- bvar_conjugate0(priors = priors)
 }
 

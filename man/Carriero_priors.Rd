@@ -5,7 +5,7 @@
 \title{Set conjugate N-IW priors from lambdas as in Carriero}
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
-  lambdas = c(1, 0.2, 1, 1, 1), VAR_in = c("levels", "growth rates"))
+  lambdas = c(1, 0.2, 1, 1), VAR_in = c("levels", "growth rates"))
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -14,7 +14,8 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
 \item{p}{number of lags}
 
-\item{lambdas}{vector = (l0, l1, l2, l3, l4)}
+\item{lambdas}{vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for
+conjugate N-IW prior}
 
 \item{VAR_in}{(either "levels" or "growth rates")}
 }
@@ -31,7 +32,7 @@ Based on Carriero p. 52-53
 }
 \examples{
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1))
-model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+model <- bvar_conjugate0(priors = priors)
 }
 

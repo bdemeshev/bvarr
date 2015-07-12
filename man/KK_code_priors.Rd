@@ -26,6 +26,6 @@ Set conjugate N-IW priors as in matlab code of Koops-Korobilis
 \examples{
 data(Yraw)
 priors <- KK_code_priors(Yraw, p = 4)
-model <- bvar_conjugate0(Yraw, p = 4, priors = priors)
+model <- bvar_conjugate0(priors = priors)
 }
 
