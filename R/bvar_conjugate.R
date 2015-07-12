@@ -71,8 +71,11 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   
   # create dummy observations
   y_0_bar <- apply(as.matrix(Y_in[1:p,],nrow=p), 2, mean) # vector [m x 1] of mean values of each endo-series
-  z_bar <- apply(as.matrix(Z_in[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
+  if (is.null(Z)) z_bar <- NULL # special case of no constant and no exo vars
+  if (!is.null(Z)) z_bar <- 
+    apply(as.matrix(Z[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
   # "as.matrix" above is needed to avoid errors for p=1 or d=1
+  
   
   # sum of coefficients prior
   Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
