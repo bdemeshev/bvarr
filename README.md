@@ -40,4 +40,9 @@ unified fashion. Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc
 7. Rewrite code using Rcpp.
 
 
+You may also wish look at [BMR](http://bayes.squarespace.com/bmr/) and [MSBVAR](http://cran.r-project.org/web/packages/MSBVAR/) packages. They seem to be more professional, but they do not contain something I wish for :) Maybe `bvarr` will be redesigned completely in late 2015.
+
+
+
+
 
