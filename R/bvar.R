@@ -3,7 +3,7 @@
 #' @name bvar
 #' @docType package
 #' @author Gary Koop, Dimitris Korobilis, Boris Demeshev 
-#' @import MCMCpack mvtnorm reshape2 ggplot2
+#' @import MCMCpack mvtnorm reshape2 ggplot2 dplyr tidyr
 NULL
 
 
@@ -935,6 +935,54 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   # print(p)
   return(p)
 }
+
+#' Draw irfs of bayesian VAR model
+#'
+#' Draw irfs of bayesian VAR model
+#' 
+#' Draw irfs of bayesian VAR model
+#'
+#' @param bvar.model the list containing all results of bayesian VAR estimation
+#' @param qus the vector of quantiles for irfs
+#' @lower lower quantile for irfs
+#' @middle middle quantile for irfs
+#' @upper upper quantile for irfs
+#' @export
+#' @examples
+#' data(Yraw)
+#' model <- bvar(Yraw)
+#' bvar.imp.plot.band(model)
+bvar.imp.plot_band <-
+  function (bvar.model, lower = 0.1, upper = 0.9, middle = 0.5) {
+    imp_responses <- apply(bvar.model$all_responses, c(2, 3, 
+                                                       4), quantile, probs = c(lower, upper, middle))
+    imp_resp_melt <- reshape2::melt(imp_responses)
+    colnames(imp_resp_melt) <- c("probability", "from", "to", 
+                                 "lag", "impulse")
+    imp_resp_melt <-
+      imp_resp_melt %>% 
+      mutate(probability = as.character(probability)) %>% 
+      mutate(probability = ifelse(probability == paste0(lower*100, "%"), yes = "lower", no = probability),
+             probability = ifelse(probability == paste0(middle*100, "%"), yes = "middle", no = probability),
+             probability = ifelse(probability == paste0(upper*100, "%"), yes = "upper", no = probability)) %>% 
+      spread(probability, impulse)
+    
+    
+    p <- ggplot(data = imp_resp_melt,
+                aes(x = lag, y = middle)) +
+      geom_ribbon(aes(ymin=lower, ymax=upper), fill="grey", alpha=.5) +
+      geom_line(colour = "blue") +
+      geom_line(data = imp_resp_melt, aes(x = lag, y = lower), colour = "black", linetype = "dotted") + 
+      geom_line(data = imp_resp_melt, aes(x = lag, y = upper), colour = "black", linetype = "dotted") + 
+      facet_wrap(from ~ to, scales = "free") +
+      geom_hline(yintercept = 0,
+                 col = "black") +
+      labs(x="", y="") +
+      theme(strip.background = element_rect(fill=NA),
+            strip.text.x = element_text(size = rel(1.3)))
+    p
+  }
+
 
 #' Histograms of forecasts
 #'
