@@ -17,7 +17,8 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 \item{lambdas}{vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for
 conjugate N-IW prior}
 
-\item{VAR_in}{(either "levels" or "growth rates")}
+\item{VAR_in}{(either "levels" or "growth rates").
+If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.}
 }
 \value{
 priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],

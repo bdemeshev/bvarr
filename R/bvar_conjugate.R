@@ -10,7 +10,8 @@
 #' @param lambdas vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for 
 #' conjugate N-IW prior
 #' @param Z_in exogeneous variables
-#' @param VAR_in (either "levels" or "growth rates")
+#' @param VAR_in (either "levels" or "growth rates"). 
+#' If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
@@ -49,9 +50,18 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   # estimate sigma^2 from univariate AR(p) processes
   sigmas_sq <- rep(NA, m)
   for (j in 1:m) {
-    y_uni <- Y_in[,j] # univariate time series
-    AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
-    sigmas_sq[j] <- AR_p$sigma2
+    message(j)
+    y_uni <- Y_in[,j] %>% collect %>% .[[1]] # univariate time series
+    # collect extracts 1 column from tbl_df
+    
+    # old version: it fails when ML estimation fails :)
+    #AR_p <- forecast::Arima(y_uni, order = c(p,0,0), method="ML") # AR(p) model
+    #sigmas_sq[j] <- AR_p$sigma2
+    
+    # more robust version: fails only in the case of  severe multicollinearity
+    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = p) # AR(p) model
+    resid <- tail(AR_p$resid,-p) # omit first p NA in residuals
+    sigmas_sq[j] <- sum(resid^2)/(length(resid)-p-1)
   }
   
   # set Phi_prior
