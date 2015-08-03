@@ -943,15 +943,14 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
 #' Draw irfs of bayesian VAR model
 #'
 #' @param bvar.model the list containing all results of bayesian VAR estimation
-#' @param qus the vector of quantiles for irfs
-#' @lower lower quantile for irfs
-#' @middle middle quantile for irfs
-#' @upper upper quantile for irfs
+#' @param lower lower quantile for irfs
+#' @param middle middle quantile for irfs
+#' @param upper upper quantile for irfs
 #' @export
 #' @examples
 #' data(Yraw)
 #' model <- bvar(Yraw)
-#' bvar.imp.plot.band(model)
+#' bvar.imp.plot_band(model)
 bvar.imp.plot_band <-
   function (bvar.model, lower = 0.1, upper = 0.9, middle = 0.5) {
     imp_responses <- apply(bvar.model$all_responses, c(2, 3, 
