@@ -58,6 +58,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
     #AR_p <- forecast::Arima(y_uni, order = c(p,0,0), method="ML") # AR(p) model
     #sigmas_sq[j] <- AR_p$sigma2
     
+    
+    # Carriero matlab code: always AR(1)! make an option?
+    
     # more robust version: fails only in the case of  severe multicollinearity
     AR_p <- ar.ols(y_uni, aic=FALSE, order.max = p) # AR(p) model
     resid <- tail(AR_p$resid,-p) # omit first p NA in residuals
@@ -461,7 +464,7 @@ bvar_conjugate0 <-
     
     # convinient short-cuts
     XtX <- t(X) %*% X
-    XtX_inv <- solve(XtX)
+    XtX_inv <- ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
     
     # calculate posterior hyperparameters
     v_post <- v_prior + T
@@ -508,8 +511,8 @@ bvar_conjugate0 <-
       # fast way, Carriero, p. 54
       V <- matrix(rnorm((m*p+d)*m), ncol = m) # [(mp+d) x m] matrix of standard normal
       Phi <- Phi_post + chol_Omega_post %*% V %*% t(chol(Sigma))
+
       Phi_vec <- as.vector(Phi)
-      
       Sigma_vec <- as.vector(Sigma) # length = m x m
       
       answer[i,] <- c(Phi_vec, Sigma_vec)

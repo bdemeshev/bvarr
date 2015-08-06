@@ -9,7 +9,8 @@ Imports:
     MCMCpack (>= 1.3.3),
     mvtnorm (>= 1.0.1),
     reshape2 (>= 1.4),
-    ggplot2 (>= 1.0.0)
+    ggplot2 (>= 1.0.0),
+    MASS (>= 7.3-40)
 Description: The bvarr package allows estimation of 6 different bayesian VAR
     models.
 License: MIT
