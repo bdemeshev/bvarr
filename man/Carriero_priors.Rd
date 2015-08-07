@@ -6,7 +6,7 @@
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(1, 0.2, 1, 1), VAR_in = c("levels", "growth rates"),
-  s2_lag = NULL)
+  s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE)
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -23,6 +23,10 @@ If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to
 
 \item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
 Carriero uses 1 in his matlab code}
+
+\item{dummy_io}{whether to include "initial observation" dummies, logical (TRUE by default)}
+
+\item{dummy_sc}{whether to include "sum of coefficients" dummies, logical (TRUE by default)}
 }
 \value{
 priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],

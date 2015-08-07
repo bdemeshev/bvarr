@@ -14,6 +14,8 @@
 #' Carriero uses 1 in his matlab code
 #' @param VAR_in (either "levels" or "growth rates"). 
 #' If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.
+#' @param dummy_sc whether to include "sum of coefficients" dummies, logical (TRUE by default)
+#' @param dummy_io whether to include "initial observation" dummies, logical (TRUE by default)
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
@@ -21,8 +23,11 @@
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
 #' model <- bvar_conjugate0(priors = priors)
-Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1), 
-                          VAR_in=c("levels","growth rates"), s2_lag=NULL) {
+Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+                            lambdas=c(1,0.2,1,1), 
+                            VAR_in=c("levels","growth rates"), 
+                            s2_lag=NULL, 
+                            dummy_io=TRUE, dummy_sc=TRUE) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
   l2 <- 1
@@ -97,19 +102,27 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   # "as.matrix" above is needed to avoid errors for p=1 or d=1
   
   
-  # sum of coefficients prior
-  Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
-  diag(Y_dummy_sc) <- y_0_bar / l3
   
-  X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
-  # X_dummy_sc is not a square matrix, 
-  # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
-  diag(X_dummy_sc) <- y_0_bar / l3
+  # sum of coefficients prior
+  Y_dummy_sc <- NULL
+  X_dummy_sc <- NULL
+  if (dummy_sc) {
+    Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
+    diag(Y_dummy_sc) <- y_0_bar / l3
+  
+    X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
+    # X_dummy_sc is not a square matrix, 
+    # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
+    diag(X_dummy_sc) <- y_0_bar / l3
+  }
   
   # dummy initial observation
-  Y_dummy_io <- matrix(y_0_bar/l4, nrow=1)
-  X_dummy_io <- matrix(c(rep(y_0_bar/l4, p), z_bar/l4), nrow=1)
-  
+  Y_dummy_io <- NULL
+  X_dummy_io <- NULL
+  if (dummy_io) {
+    Y_dummy_io <- matrix(y_0_bar/l4, nrow=1)
+    X_dummy_io <- matrix(c(rep(y_0_bar/l4, p), z_bar/l4), nrow=1)
+  }
   
   # order of dummies??? 
   X_dummy <- rbind(X_dummy_io, X_dummy_sc)
