@@ -464,8 +464,11 @@ bvar_conjugate0 <-
     
     # convinient short-cuts
     XtX <- t(X) %*% X
-    XtX_inv <- ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
-    
+    XtX_inv <- try(solve(XtX), silent=TRUE)
+    if (class(XtX_inv)=="try-error") {
+      warning("The XtX matrix is so ugly... :( \n I will use the Moore-Penrose inverse :)")
+      XtX_inv <- MASS::ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
+    }
     # calculate posterior hyperparameters
     v_post <- v_prior + T
     Omega_post <- solve(solve(Omega_prior)+XtX)
