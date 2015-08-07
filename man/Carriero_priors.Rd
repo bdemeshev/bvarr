@@ -6,7 +6,7 @@
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(1, 0.2, 1, 1), VAR_in = c("levels", "growth rates"),
-  s2_lag = p)
+  s2_lag = NULL)
 }
 \arguments{
 \item{Y_in}{multivariate time series}

@@ -22,7 +22,7 @@
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
 #' model <- bvar_conjugate0(priors = priors)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1), 
-                          VAR_in=c("levels","growth rates"), s2_lag=p) {
+                          VAR_in=c("levels","growth rates"), s2_lag=NULL) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
   l2 <- 1
@@ -50,6 +50,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   # Litterman takes 6 lags in AR(p)
   
   # estimate sigma^2 from univariate AR(p) processes
+  if (is.null(s2_lag)) s2_lag <- p
+  
   sigmas_sq <- rep(NA, m)
   for (j in 1:m) {
     
