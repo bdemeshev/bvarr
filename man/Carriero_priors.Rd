@@ -5,7 +5,8 @@
 \title{Set conjugate N-IW priors from lambdas as in Carriero}
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
-  lambdas = c(1, 0.2, 1, 1), VAR_in = c("levels", "growth rates"))
+  lambdas = c(1, 0.2, 1, 1), VAR_in = c("levels", "growth rates"),
+  s2_lag = p)
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -19,6 +20,9 @@ conjugate N-IW prior}
 
 \item{VAR_in}{(either "levels" or "growth rates").
 If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.}
+
+\item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
+Carriero uses 1 in his matlab code}
 }
 \value{
 priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],

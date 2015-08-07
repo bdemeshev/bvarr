@@ -10,6 +10,8 @@
 #' @param lambdas vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for 
 #' conjugate N-IW prior
 #' @param Z_in exogeneous variables
+#' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
+#' Carriero uses 1 in his matlab code
 #' @param VAR_in (either "levels" or "growth rates"). 
 #' If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
@@ -20,7 +22,7 @@
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
 #' model <- bvar_conjugate0(priors = priors)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2,1,1), 
-                          VAR_in=c("levels","growth rates")) {
+                          VAR_in=c("levels","growth rates"), s2_lag=p) {
   l0 <- lambdas[1]
   l1 <- lambdas[2]
   l2 <- 1
@@ -62,9 +64,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
     # Carriero matlab code: always AR(1)! make an option?
     
     # more robust version: fails only in the case of  severe multicollinearity
-    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = p) # AR(p) model
-    resid <- tail(AR_p$resid,-p) # omit first p NA in residuals
-    sigmas_sq[j] <- sum(resid^2)/(length(resid)-p-1)
+    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
+    resid <- tail(AR_p$resid,-s2_lag) # omit first p NA in residuals
+    sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
   }
   
   # set Phi_prior
