@@ -7,8 +7,11 @@
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l0, l1, l3, l4), the l2 is set to 1 automatically for 
-#' conjugate N-IW prior
+#' @param lambdas vector = (l1, l3, l4, lconst, lexo), the l2 is set to 1 automatically for 
+#' conjugate N-IW prior. Short summary:
+#' sd(const in eq i) = lconst * sigma_i
+#' sd(exo in eq i)= lexo * sigma_i
+#' sd(coef for var j lag l in eq i) = l1*sigma_i/sigma_j/l
 #' @param Z_in exogeneous variables
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code
@@ -24,15 +27,16 @@
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
 #' model <- bvar_conjugate0(priors = priors)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
-                            lambdas=c(1,0.2,1,1), 
+                            lambdas=c(1,0.2,1,1,1), 
                             VAR_in=c("levels","growth rates"), 
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE) {
-  l0 <- lambdas[1]
-  l1 <- lambdas[2]
+  l1 <- lambdas[1]
   l2 <- 1
-  l3 <- lambdas[3]
-  l4 <- lambdas[4]
+  l3 <- lambdas[2]
+  l4 <- lambdas[3]
+  lconst <- lambdas[4]
+  lexo <- lambdas[5]
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
@@ -44,6 +48,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   }
   
   # if requested add constant to exogeneous regressors
+  # constant to the left of other exo variables
   if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
   
@@ -87,7 +92,14 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   v_prior <- m+2
   
   # set Omega_prior
-  Omega_diagonal <- c(l1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^2, each=m), rep(l3^2, d))
+  # the diagonal of Omega_prior begins with endogeneous part:
+  endo_diagonal <- l1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^2, each=m)
+  
+  # and ends with exogeneous part:
+  exo_diagonal <- rep(lexo^2,d)
+  if (constant) exo_diagonal[1] <- lconst^2
+  
+  Omega_diagonal <- c(endo_diagonal, exo_diagonal)
   # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
