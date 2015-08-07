@@ -318,7 +318,23 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   return(priors)
 }
 
-
+#' Compute inverse of symmetric positive definite matrix using Cholesky decomposition
+#'
+#' Compute inverse of symmetric positive definite matrix using Cholesky decomposition
+#'  
+#' Compute inverse of symmetric positive definite matrix using Cholesky decomposition
+#' 
+#' @param A symmetric matrix 
+#' @return inverse of A
+#' @export
+#' @examples
+#' A <- matrix(c(2,1,1,2),nrow=2)
+#' sym_inv(A)
+sym_inv <- function(A) {
+  A_chol <- chol(A)
+  inv_A <- chol2inv(A_chol)
+  return(inv_A)
+}
 
 
 #' Estimate conjugate Normal-Inverse-Wishart bayesian VAR model
@@ -473,10 +489,10 @@ bvar_conjugate0 <-
     }
     # calculate posterior hyperparameters
     v_post <- v_prior + T
-    Omega_post <- solve(solve(Omega_prior)+XtX)
+    Omega_post <- sym_inv(sym_inv(Omega_prior)+XtX)
     
     # here was a mistake :)
-    Phi_post <- Omega_post %*% (solve(Omega_prior) %*% Phi_prior + t(X) %*% Y)
+    Phi_post <- Omega_post %*% (sym_inv(Omega_prior) %*% Phi_prior + t(X) %*% Y)
     
     Phi_hat <- XtX_inv %*% t(X) %*% Y 
     E_hat <- Y - X %*% Phi_hat
@@ -484,7 +500,7 @@ bvar_conjugate0 <-
     # Karlsson, p 15
     S_post <- S_prior + t(E_hat) %*% E_hat +
       t(Phi_prior - Phi_hat) %*% 
-                solve(Omega_prior + XtX_inv) %*% 
+                sym_inv(Omega_prior + XtX_inv) %*% 
                          (Phi_prior - Phi_hat)
     
     
