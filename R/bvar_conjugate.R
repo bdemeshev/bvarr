@@ -29,6 +29,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   l3 <- lambdas[3]
   l4 <- lambdas[4]
   
+  Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
+  
   # calculate d, the number of exogeneous regressors
   if (is.null(Z_in)) {
     d <- 1*constant
@@ -55,8 +57,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, lambdas=c(1,0.2
   sigmas_sq <- rep(NA, m)
   for (j in 1:m) {
     
-    y_uni <- Y_in[,j] %>% collect %>% .[[1]] # univariate time series
-    # collect extracts 1 column from tbl_df
+    y_uni <- Y_in[,j] # univariate time series
+
     
     # old version: it fails when ML estimation fails :)
     #AR_p <- forecast::Arima(y_uni, order = c(p,0,0), method="ML") # AR(p) model
