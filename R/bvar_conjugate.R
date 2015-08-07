@@ -484,7 +484,7 @@ bvar_conjugate0 <-
     XtX <- t(X) %*% X
     XtX_inv <- try(solve(XtX), silent=TRUE)
     if (class(XtX_inv)=="try-error") {
-      warning("The XtX matrix is so ugly... :( \n I will use the Moore-Penrose inverse :)")
+      warning("The XtX matrix is so ugly... :( \n I will use the Moore-Penrose inverse :) \n kappa(XtX) = ",kappa(XtX))
       XtX_inv <- MASS::ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
     }
     # calculate posterior hyperparameters
