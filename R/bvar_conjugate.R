@@ -7,11 +7,11 @@
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l1, l3, l4, lconst, lexo), the l2 is set to 1 automatically for 
+#' @param lambdas vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_2 is set to 1 automatically for 
 #' conjugate N-IW prior. Short summary:
-#' sd(const in eq i) = lconst * sigma_i
-#' sd(exo in eq i)= lexo * sigma_i
-#' sd(coef for var j lag l in eq i) = l1*sigma_i/sigma_j/l
+#' sd(const in eq i) = l_const * sigma_i
+#' sd(exo in eq i)= l_exo * sigma_i
+#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power
 #' @param Z_in exogeneous variables
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code
@@ -24,19 +24,20 @@
 #' @export
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2,1,1,1,100,100))
 #' model <- bvar_conjugate0(priors = priors)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
-                            lambdas=c(1,0.2,1,1,1), 
+                            lambdas=c(0.2,1,1,1,100,100), 
                             VAR_in=c("levels","growth rates"), 
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE) {
-  l1 <- lambdas[1]
-  l2 <- 1
-  l3 <- lambdas[2]
-  l4 <- lambdas[3]
-  lconst <- lambdas[4]
-  lexo <- lambdas[5]
+  l_1 <- lambdas[1]
+  l_2 <- 1
+  l_power <- lambdas[2]
+  l_sc <- lambdas[3]
+  l_io <- lambdas[4]
+  l_const <- lambdas[5]
+  l_exo <- lambdas[6]
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
@@ -57,7 +58,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   VAR_in <- match.arg(VAR_in)
   
-  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
+  if (!l_2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
   
   # Litterman takes 6 lags in AR(p)
   
@@ -93,11 +94,11 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # set Omega_prior
   # the diagonal of Omega_prior begins with endogeneous part:
-  endo_diagonal <- l1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^2, each=m)
+  endo_diagonal <- l_1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^(2*l_power), each=m)
   
   # and ends with exogeneous part:
-  exo_diagonal <- rep(lexo^2,d)
-  if (constant) exo_diagonal[1] <- lconst^2
+  exo_diagonal <- rep(l_exo^2,d)
+  if (constant) exo_diagonal[1] <- l_const^2
   
   Omega_diagonal <- c(endo_diagonal, exo_diagonal)
   # and set zero prior covariances
@@ -120,23 +121,23 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   X_dummy_sc <- NULL
   if (dummy_sc) {
     Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
-    diag(Y_dummy_sc) <- y_0_bar / l3
+    diag(Y_dummy_sc) <- y_0_bar / l_sc
   
     X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
     # X_dummy_sc is not a square matrix, 
     # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
-    diag(X_dummy_sc) <- y_0_bar / l3
+    diag(X_dummy_sc) <- y_0_bar / l_sc
   }
   
   # dummy initial observation
   Y_dummy_io <- NULL
   X_dummy_io <- NULL
   if (dummy_io) {
-    Y_dummy_io <- matrix(y_0_bar/l4, nrow=1)
-    X_dummy_io <- matrix(c(rep(y_0_bar/l4, p), z_bar/l4), nrow=1)
+    Y_dummy_io <- matrix(y_0_bar/l_io, nrow=1)
+    X_dummy_io <- matrix(c(rep(y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }
   
-  # order of dummies??? 
+  # order of dummies does not matter
   X_dummy <- rbind(X_dummy_io, X_dummy_sc)
   Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
   
@@ -386,7 +387,7 @@ sym_inv <- function(A) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4)
 #' model <- bvar_conjugate0(priors = priors)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
@@ -448,6 +449,9 @@ bvar_conjugate0 <-
     }
     X <- cbind(X,Z)
     
+    # save X and Y to include them in output later:
+    X_wo_dummy <- X
+    Y_wo_dummy <- Y
     
     
     # dimension of deterministic regressors
@@ -460,7 +464,7 @@ bvar_conjugate0 <-
       T_dummy <- nrow(priors$Y_dummy)
     }
     
-    # maybe we should add dummy to the end :)
+    # order of dummy observation does not matter :)
     Y <- rbind(priors$Y_dummy, Y)
     X <- rbind(priors$X_dummy, X)
         
@@ -577,7 +581,9 @@ bvar_conjugate0 <-
                                           constant=constant,
                                           keep=keep)
     
-    attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in)
+    attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in, 
+                                 X_dummy=X_dummy, Y_dummy=Y_dummy,
+                                 X_wo_dummy=X_wo_dummy, Y_wo_dummy=Y_wo_dummy)
     
     priors$type <- "conjugate"
     attr(answer, "prior")       <- priors
@@ -604,11 +610,15 @@ bvar_conjugate0 <-
 #' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 #' future shocks; "credible" deals only with parameter uncertainty.
 #' @param output (default "long") --- long or wide table for mean/quantiles of forecasts
+#' @param out_of_sample logical, default is TRUE, whether forecasts are out of sample or not.
+#' If forecasts are not out of sample, then parameter h is ignored
+#' @param include (default is c("mean", "median", "sd")) what type of summary to provide
+#' If include is NULL and level is NULL then the function will return raw mcmc predictions
 #' @export
 #' @return forecast results
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4)
 #' model <- bvar_conjugate0(priors = priors)
 #' forecast_conjugate(model, h=2, output="wide")
 forecast_conjugate <- function(model, 
@@ -616,7 +626,9 @@ forecast_conjugate <- function(model,
                                Z_f=NULL,
                                output=c("long","wide"),
                                h=1, level=c(80,95),
-                               type=c("prediction","credible")) {
+                               type=c("prediction","credible"),
+                               out_of_sample=TRUE,
+                               include=c("mean","median","sd")) {
 
   
   # select type of prediction specified by user
@@ -637,6 +649,10 @@ forecast_conjugate <- function(model,
   if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
   
   
+  # in case of in-sample forecast h is set to T
+  if (!out_of_sample) h <- T
+  
+  
   # sanity check
   if (!is.null(Z_f))
     if (!nrow(Z_f)==h) stop("I need exactly h = ",h," observations for exogeneous variables.")
@@ -650,8 +666,14 @@ forecast_conjugate <- function(model,
   
   
   
-  # take last p observations of Y_in
-  Y_in <- tail(Y_in, p)
+  
+  if (out_of_sample) {
+    # take last p observations of Y_in (out-of-sample forecast)
+    Y_in <- tail(Y_in, p)
+  } else {
+    # take first p observations of Y_in (in-sample forecast)
+    Y_in <- head(Y_in, p)
+  }
   
   e_t <- rep(0, m) # ok for bayesian credible intervals  
   
@@ -678,16 +700,23 @@ forecast_conjugate <- function(model,
     
     
     for (j in 1:h) {
-      # fill exogeneous values
-      x_t[(m*p+1):(m*p+d)] <- Z_f[j,]
       
-      # fill x_t
-      if (j==1) x_t[1:(m*p)] <- as.vector(t(Y_in)[,p:1])
       
-      # fill endogeneous values recursively
-      if (j>1) {
-        x_t[(m+1):(m*p)] <- x_t[1:(m*(p-1))]
-        x_t[1:m] <- y_t
+      if (out_of_sample) { # out-of-sample forecast
+        # fill exogeneous values in x_t
+        x_t[(m * p + 1):(m * p + d)] <- Z_f[j,]
+        
+        # fill endogeneous values in x_t (first out-of-sample forecast)
+        if (j == 1)
+          x_t[1:(m * p)] <- as.vector(t(Y_in)[,p:1])
+        
+        # fill endogeneous values recursively (second+ out-of-sample forecast)
+        if (j > 1) {
+          x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
+          x_t[1:m] <- y_t
+        }
+      } else { # in-sample forecast
+        x_t <- attr(model,"data")$X_wo_dummy[j,]
       }
       
       if (type=="prediction") e_t <- R %*% rnorm(m) 
@@ -706,23 +735,28 @@ forecast_conjugate <- function(model,
   forecast_summary <- NULL
   
   # calculate mean
-  what <- rep("mean", h*m)
-  value <- apply(forecast_raw, 2, mean)
-  block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- rbind(forecast_summary, block)
-  
+  if ("mean" %in% include) {
+    what <- rep("mean", h*m)
+    value <- apply(forecast_raw, 2, mean)
+    block <- cbind(varnames, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
+
   # calculate median
-  what <- rep("median", h*m)
-  value <- apply(forecast_raw, 2, median)
-  block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- rbind(forecast_summary, block)
+  if ("median" %in% include) {
+    what <- rep("median", h*m)
+    value <- apply(forecast_raw, 2, median)
+    block <- cbind(varnames, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
   
   # sd
-  what <- rep("sd", h*m)
-  value <- apply(forecast_raw, 2, sd)
-  block <- cbind(varnames, what, value) # block of information
-  forecast_summary <- rbind(forecast_summary, block)
-  
+  if ("sd" %in% include) {
+    what <- rep("sd", h*m)
+    value <- apply(forecast_raw, 2, sd)
+    block <- cbind(varnames, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
 
   # calculate quantiles
   for (lev in level) {
@@ -746,8 +780,15 @@ forecast_conjugate <- function(model,
     forecast_summary <- reshape2::dcast(forecast_summary, y+h~what)
   }
   
-  # save raw forecasts for further analysis
-  attr(forecast_summary, "forecast_raw") <- forecast_raw
+  
+
+  if (is.null(include) & is.null(level)) {
+    # report only raw forecasts
+    forecast_summary <- forecast_raw
+  } else {
+    # save raw forecasts for further analysis
+    attr(forecast_summary, "forecast_raw") <- forecast_raw
+  }
   
   return(forecast_summary)
 }

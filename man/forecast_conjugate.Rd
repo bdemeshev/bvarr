@@ -5,7 +5,8 @@
 \title{predict with conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
 forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
-  "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"))
+  "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"),
+  out_of_sample = TRUE, include = c("mean", "median", "sd"))
 }
 \arguments{
 \item{model}{estimated conjugate N-IW model}
@@ -23,6 +24,12 @@ If NULL, then Y_in supplied for estimation will be used. Only last p values of Y
 
 \item{type}{("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 future shocks; "credible" deals only with parameter uncertainty.}
+
+\item{out_of_sample}{logical, default is TRUE, whether forecasts are out of sample or not.
+If forecasts are not out of sample, then parameter h is ignored}
+
+\item{include}{(default is c("mean", "median", "sd")) what type of summary to provide
+If include is NULL and level is NULL then the function will return raw mcmc predictions}
 }
 \value{
 forecast results
@@ -35,7 +42,7 @@ predict with conjugate Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+priors <- Carriero_priors(Yraw, p = 4)
 model <- bvar_conjugate0(priors = priors)
 forecast_conjugate(model, h=2, output="wide")
 }
