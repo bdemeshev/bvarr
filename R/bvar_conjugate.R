@@ -582,7 +582,7 @@ bvar_conjugate0 <-
                                           keep=keep)
     
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in, 
-                                 X_dummy=X_dummy, Y_dummy=Y_dummy,
+                                 X_dummy=priors$X_dummy, Y_dummy=priors$Y_dummy,
                                  X_wo_dummy=X_wo_dummy, Y_wo_dummy=Y_wo_dummy)
     
     priors$type <- "conjugate"
