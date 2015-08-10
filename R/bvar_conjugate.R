@@ -636,7 +636,7 @@ forecast_conjugate <- function(model,
   output <- match.arg(output)
   
   # simplify notation, extract params from attribute
-  T <- attr(model,"params")$T # number of observations minus p
+  T <- attr(model,"params")$T # number of observations minus p plus T_dummy
   p <- attr(model,"params")$p
   k <- attr(model,"params")$k
   m <- attr(model,"params")$m
@@ -649,8 +649,8 @@ forecast_conjugate <- function(model,
   if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
   
   
-  # in case of in-sample forecast h is set to T
-  if (!out_of_sample) h <- T
+  # in case of in-sample forecast h is set to T-T_dummy
+  if (!out_of_sample) h <- T-T_dummy
   
   
   # sanity check
