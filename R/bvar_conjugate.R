@@ -621,6 +621,7 @@ bvar_conjugate0 <-
 #' priors <- Carriero_priors(Yraw, p = 4)
 #' model <- bvar_conjugate0(priors = priors)
 #' forecast_conjugate(model, h=2, output="wide")
+#' forecast_conjugaet(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 forecast_conjugate <- function(model, 
                                Y_in=NULL, 
                                Z_f=NULL,
@@ -807,7 +808,7 @@ forecast_conjugate <- function(model,
 #' @return nothing
 #' @examples 
 #' data(Yraw)
-#' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1))
+#' priors <- Carriero_priors(Yraw, p = 4)
 #' model <- bvar_conjugate0(priors = priors)
 #' summary_conjugate(model)
 summary_conjugate <- function(model) {

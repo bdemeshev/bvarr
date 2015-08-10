@@ -45,5 +45,6 @@ data(Yraw)
 priors <- Carriero_priors(Yraw, p = 4)
 model <- bvar_conjugate0(priors = priors)
 forecast_conjugate(model, h=2, output="wide")
+forecast_conjugaet(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 }
 
