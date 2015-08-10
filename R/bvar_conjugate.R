@@ -641,6 +641,8 @@ forecast_conjugate <- function(model,
   k <- attr(model,"params")$k
   m <- attr(model,"params")$m
   d <- attr(model,"params")$d
+  T_dummy <- attr(model,"params")$T_dummy
+  
   keep <- attr(model, "params")$keep
 
   constant <- attr(model,"params")$constant
