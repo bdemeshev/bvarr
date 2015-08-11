@@ -7,7 +7,7 @@
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_2 is set to 1 automatically for 
+#' @param lambdas vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
 #' conjugate N-IW prior. Short summary:
 #' sd(const in eq i) = l_const * sigma_i
 #' sd(exo in eq i)= l_exo * sigma_i
@@ -32,7 +32,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE) {
   l_1 <- lambdas[1]
-  l_2 <- 1
+  l_kron <- 1
   l_power <- lambdas[2]
   l_sc <- lambdas[3]
   l_io <- lambdas[4]
@@ -58,7 +58,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   VAR_in <- match.arg(VAR_in)
   
-  if (!l_2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
+  if (!l_kron==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
   
   # Litterman takes 6 lags in AR(p)
   
@@ -610,8 +610,8 @@ bvar_conjugate0 <-
 #' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 #' future shocks; "credible" deals only with parameter uncertainty.
 #' @param output (default "long") --- long or wide table for mean/quantiles of forecasts
-#' @param out_of_sample logical, default is TRUE, whether forecasts are out of sample or not.
-#' If forecasts are not out of sample, then parameter h is ignored
+#' @param out_of_sample logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
+#' If forecasts are not out-of-sample, then parameter h is ignored
 #' @param include (default is c("mean", "median", "sd")) what type of summary to provide
 #' If include is NULL and level is NULL then the function will return raw mcmc predictions
 #' @export

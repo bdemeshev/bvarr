@@ -25,8 +25,8 @@ If NULL, then Y_in supplied for estimation will be used. Only last p values of Y
 \item{type}{("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 future shocks; "credible" deals only with parameter uncertainty.}
 
-\item{out_of_sample}{logical, default is TRUE, whether forecasts are out of sample or not.
-If forecasts are not out of sample, then parameter h is ignored}
+\item{out_of_sample}{logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
+If forecasts are not out-of-sample, then parameter h is ignored}
 
 \item{include}{(default is c("mean", "median", "sd")) what type of summary to provide
 If include is NULL and level is NULL then the function will return raw mcmc predictions}

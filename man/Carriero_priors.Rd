@@ -15,7 +15,7 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
 \item{p}{number of lags}
 
-\item{lambdas}{vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_2 is set to 1 automatically for
+\item{lambdas}{vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for
 conjugate N-IW prior. Short summary:
 sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
