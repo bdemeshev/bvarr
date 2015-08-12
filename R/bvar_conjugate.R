@@ -854,6 +854,7 @@ summary_conjugate <- function(model) {
   keep <- attr(model, "params")$keep
   T_in <- attr(model, "params")$T_in
   T_dummy <- attr(model, "params")$T_dummy
+  fast_forecast <- attr(model, "params")$fast_forecast
   
   message("Number of lags, p = ", p)
   message("Number of endogeneos variables, m = ",m)
@@ -863,20 +864,32 @@ summary_conjugate <- function(model) {
   message("Number of dummy observations, T_dummy = ", T_dummy )
   message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
   
-  post_mean <- apply(model, 2, mean)
-  post_sd <- apply(model, 2, sd)
-  
   message("Posterior mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
-  print(matrix(head(post_mean, k*m), nrow=k))
+  print(attr(model,"posterior")$Phi_post)
   
-  message("Posterior mean of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
-  print(matrix(tail(post_mean, m*m), nrow=m))
+  message("Posterior nu = ",attr(model,"posterior")$v_post)
+  
+  if (fast_forecast) {
+    message("'fast_forecast' option is TRUE. Only posterior hyperparameters are calculated.")
+  } else {
+    message("Number of mcmc simulations, keep = ", keep) 
+    post_mean <- apply(model, 2, mean)
+    post_sd <- apply(model, 2, sd)
     
-  message("Posterior sd of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
-  print(matrix(head(post_sd, k*m), nrow=k))
-  
-  message("Posterior sd of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
-  print(matrix(tail(post_sd, m*m), nrow=m))
+    message("Posterior sample mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+    print(matrix(head(post_mean, k*m), nrow=k))
+    
+    message("Posterior sample mean of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
+    print(matrix(tail(post_mean, m*m), nrow=m))
+    
+    message("Posterior sample sd of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+    print(matrix(head(post_sd, k*m), nrow=k))
+    
+    message("Posterior sample sd of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
+    print(matrix(tail(post_sd, m*m), nrow=m))
+    
+  }
+    
   
 }
 
