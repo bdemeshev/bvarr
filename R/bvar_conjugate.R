@@ -21,8 +21,8 @@
 #' @param Z_in exogeneous variables
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code
-#' @param VAR_in (either "levels" or "growth rates"). 
-#' If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.
+#' @param delta vector [m x 1] or scalar. Are used for prior Phi_1 and in sc/io dummy observations
+#' Scalar value is replicated m times. Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.
 #' @param dummy_sc whether to include "sum of coefficients" dummies, logical (TRUE by default)
 #' @param dummy_io whether to include "initial observation" dummies, logical (TRUE by default)
 #' @param y_bar0_type (either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
@@ -38,6 +38,7 @@
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                             lambdas=c(0.2,1,1,1,100,100), 
                             VAR_in=c("levels","growth rates"), 
+                            delta=1,
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE,
                             y_bar0_type = c("initial", "all") ) {
@@ -68,7 +69,10 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   m <- ncol(Y_in)
   k <- m*p+d
   
-  VAR_in <- match.arg(VAR_in)
+  if (length(delta)==1) delta <- rep(delta, m)
+  if (! length(delta)==m ) stop("Length of delta should be equal to 1 or m")
+  
+  #VAR_in <- match.arg(VAR_in)
   
   if (!l_kron==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
   
@@ -99,8 +103,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # replace by deltas!
   # set Phi_prior
-  if (VAR_in=="levels") Phi_1 <- diag(m)
-  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
+  Phi_1 <- matrix(0, m,m)
+  diag(Phi_1) <- delta
   Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
   
   S_prior <- diag(sigmas_sq)
@@ -139,20 +143,18 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   X_dummy_sc <- NULL
   if (dummy_sc) {
     Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
-    diag(Y_dummy_sc) <- y_0_bar / l_sc
+    diag(Y_dummy_sc) <- delta * y_0_bar / l_sc
   
-    X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
-    # X_dummy_sc is not a square matrix, 
-    # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
-    diag(X_dummy_sc) <- y_0_bar / l_sc
+    
+    X_dummy_sc <- cbind( kronecker(matrix(1, 1, p), Y_dummy_sc) , rep(0, m))  # zero matrix [m x k]
   }
   
   # dummy initial observation
   Y_dummy_io <- NULL
   X_dummy_io <- NULL
   if (dummy_io) {
-    Y_dummy_io <- matrix(y_0_bar/l_io, nrow=1)
-    X_dummy_io <- matrix(c(rep(y_0_bar/l_io, p), z_bar/l_io), nrow=1)
+    Y_dummy_io <- matrix(delta * y_0_bar/l_io, nrow=1)
+    X_dummy_io <- matrix(c(rep(delta * y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }
   
   # order of dummies does not matter

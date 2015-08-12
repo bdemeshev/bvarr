@@ -6,7 +6,7 @@
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(0.2, 1, 1, 1, 100, 100), VAR_in = c("levels", "growth rates"),
-  s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE,
+  delta = 1, s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE,
   y_bar0_type = c("initial", "all"))
 }
 \arguments{
@@ -22,8 +22,8 @@ sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
 sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power}
 
-\item{VAR_in}{(either "levels" or "growth rates").
-If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.}
+\item{delta}{vector [m x 1] or scalar. Are used for prior Phi_1 and in sc/io dummy observations
+Scalar value is replicated m times. Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.}
 
 \item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
 Carriero uses 1 in his matlab code}
