@@ -1,5 +1,4 @@
 # todo: 
-# replace VAR_in by deltas
 # make parallel computations in estimate and forecast
 
 
