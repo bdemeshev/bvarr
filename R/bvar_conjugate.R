@@ -1,3 +1,8 @@
+# todo: 
+# make parallel computations in estimate and forecast
+
+
+
 #' Set conjugate N-IW priors from lambdas as in Carriero
 #' 
 #' Set conjugate N-IW priors from lambdas as in Carriero
