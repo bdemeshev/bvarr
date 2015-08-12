@@ -7,7 +7,7 @@
 bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
   keep = 10000, verbose = FALSE, priors = list(Phi_prior = NULL,
   Omega_prior = NULL, S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy =
-  NULL, Y_in = NULL, Z_in = NULL, p = NULL))
+  NULL, Y_in = NULL, Z_in = NULL, p = NULL), fast_forecast = FALSE)
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
@@ -26,6 +26,9 @@ bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
 S_prior [m x m], v_prior [1x1],
 Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 where k = mp+d}
+
+\item{fast_forecast}{logical, FALSE by default. If TRUE then no simulations are done,
+only posterior hyperparameters are calculated.}
 }
 \value{
 the list containing all results of bayesian VAR estimation

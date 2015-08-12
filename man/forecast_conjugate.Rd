@@ -6,7 +6,8 @@
 \usage{
 forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
   "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"),
-  out_of_sample = TRUE, include = c("mean", "median", "sd"))
+  out_of_sample = TRUE, include = c("mean", "median", "sd"),
+  fast_forecast = FALSE)
 }
 \arguments{
 \item{model}{estimated conjugate N-IW model}
@@ -30,6 +31,10 @@ If forecasts are not out-of-sample, then parameter h is ignored}
 
 \item{include}{(default is c("mean", "median", "sd")) what type of summary to provide
 If include is NULL and level is NULL then the function will return raw mcmc predictions}
+
+\item{fast_forecast}{logical, FALSE by default. If TRUE then only mean forecast is calculated,
+posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median.
+This mode is activated by default if there are no simulations in supplied model.}
 }
 \value{
 forecast results

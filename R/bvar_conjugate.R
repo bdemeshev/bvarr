@@ -383,6 +383,8 @@ sym_inv <- function(A) {
 #' S_prior [m x m], v_prior [1x1],
 #' Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 #' where k = mp+d
+#' @param fast_forecast logical, FALSE by default. If TRUE then no simulations are done,
+#' only posterior hyperparameters are calculated.
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
@@ -392,7 +394,8 @@ sym_inv <- function(A) {
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
-                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL) ) {
+                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL),
+           fast_forecast=FALSE) {
 
     if ( (is.null(Y_in)) & (!is.null(priors$Y_in)) ){
       Y_in <- priors$Y_in
@@ -546,40 +549,45 @@ bvar_conjugate0 <-
     # reserve space for Gibbs sampling replications
     answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
     
-    # precalculate chol(Omega_post) for faster cycle
-    chol_Omega_post <- chol(Omega_post)
     
-    for (i in 1:keep) {
-      if ((verbose) & (i %% 10^3 == 0)) message("Iteration ",i," out of ",keep)
+    if (fast_forecast) { # no simulations
+      answer <- "Option 'fast_forecast' is TRUE. Hyperparameters available in attr(.,'posterior')."
+    } else { # simulate phi, sigma
+      # precalculate chol(Omega_post) for faster cycle
+      chol_Omega_post <- chol(Omega_post)
       
-      Sigma <- MCMCpack::riwish(v_post,S_post) 
+      for (i in 1:keep) {
+        if ((verbose) & (i %% 10^3 == 0)) message("Iteration ",i," out of ",keep)
+        
+        Sigma <- MCMCpack::riwish(v_post,S_post) 
+        
+        # slow way
+        # Phi_vec <- mvtnorm::rmvnorm(n = 1, # vec(Phi) ~ N(vec(Phi_post), Sigma o Omega_post)
+        #                            mean = as.vector(Phi_post),
+        #                            sigma = kronecker(Sigma, Omega_post)) 
+        
+        # Phi_vec has length (mp+d) x m
+        # Phi <- matrix(Phi_vec, ncol=m) # we are saving only vector Phi_vec
+        
+        # fast way, Carriero, p. 54
+        V <- matrix(rnorm((m*p+d)*m), ncol = m) # [(mp+d) x m] matrix of standard normal
+        Phi <- Phi_post + chol_Omega_post %*% V %*% t(chol(Sigma))
+        
+        Phi_vec <- as.vector(Phi)
+        Sigma_vec <- as.vector(Sigma) # length = m x m
+        
+        answer[i,] <- c(Phi_vec, Sigma_vec)
+      }
       
-      # slow way
-      # Phi_vec <- mvtnorm::rmvnorm(n = 1, # vec(Phi) ~ N(vec(Phi_post), Sigma o Omega_post)
-      #                            mean = as.vector(Phi_post),
-      #                            sigma = kronecker(Sigma, Omega_post)) 
-      
-      # Phi_vec has length (mp+d) x m
-      # Phi <- matrix(Phi_vec, ncol=m) # we are saving only vector Phi_vec
-      
-      # fast way, Carriero, p. 54
-      V <- matrix(rnorm((m*p+d)*m), ncol = m) # [(mp+d) x m] matrix of standard normal
-      Phi <- Phi_post + chol_Omega_post %*% V %*% t(chol(Sigma))
-
-      Phi_vec <- as.vector(Phi)
-      Sigma_vec <- as.vector(Sigma) # length = m x m
-      
-      answer[i,] <- c(Phi_vec, Sigma_vec)
+      # save as mcmc object to make some good functions available
+      answer <- coda::as.mcmc(answer)
     }
-    
-    # save as mcmc object to make some good functions available
-    answer <- coda::as.mcmc(answer)
     
     # set prior attributes:
     attr(answer, "params")  <- data.frame(k=k,m=m,p=p,d=d, 
                                           T_in=T_in,T=T,T_dummy=T_dummy,
                                           constant=constant,
-                                          keep=keep)
+                                          keep=keep, fast_forecast=fast_forecast)
     
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in, 
                                  X_dummy=priors$X_dummy, Y_dummy=priors$Y_dummy,
@@ -605,7 +613,7 @@ bvar_conjugate0 <-
 #' @param h number of periods for forecasting
 #' @param level confidence levels for prediction intervals
 #' @param Y_in (NULL by default) past values of endogeneous variables (shold have at least p observations).
-#' If NULL, then Y_in supplied for estimation will be used. Only last p values of Y_in are used.
+#' If NULL, then Y_in supplied for estimation will be used. For out-of-sample forecast only last p values of Y_in are used
 #' @param Z_f future values of exogeneous variables
 #' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 #' future shocks; "credible" deals only with parameter uncertainty.
@@ -614,6 +622,9 @@ bvar_conjugate0 <-
 #' If forecasts are not out-of-sample, then parameter h is ignored
 #' @param include (default is c("mean", "median", "sd")) what type of summary to provide
 #' If include is NULL and level is NULL then the function will return raw mcmc predictions
+#' @param fast_forecast logical, FALSE by default. If TRUE then only mean forecast is calculated,
+#' posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median. 
+#' This mode is activated by default if there are no simulations in supplied model.
 #' @export
 #' @return forecast results
 #' @examples 
@@ -629,7 +640,8 @@ forecast_conjugate <- function(model,
                                h=1, level=c(80,95),
                                type=c("prediction","credible"),
                                out_of_sample=TRUE,
-                               include=c("mean","median","sd")) {
+                               include=c("mean","median","sd"),
+                               fast_forecast=FALSE) {
 
   
   # select type of prediction specified by user
@@ -647,6 +659,22 @@ forecast_conjugate <- function(model,
   keep <- attr(model, "params")$keep
 
   constant <- attr(model,"params")$constant
+  
+  if (attr(model,"params")$fast_forecast) {
+    message("No simulations in 'model', fast_forecast option is set to TRUE.")
+    fast_forecast <- TRUE
+  }
+  
+  if (fast_forecast) {
+    level <- NULL
+    include <- "mean"
+    keep <- 1
+    
+    # type of confidence interval does not make sense for fast mean forecast
+    # but setting type to 'credible' avoids simulations of future epsilon, so
+    type <- "credible"
+  }
+  
   
   # if Y_in is not supplied take Y_in from estimation
   if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
@@ -689,18 +717,24 @@ forecast_conjugate <- function(model,
   
   for (i in 1:keep) {
     # forecast h steps for given sampling of Phi
-    Phi <- matrix(model[i,1:(k*m)], nrow=k)
-    Phi_transp <- t(Phi) # precalculate to do less operations in case h>1
     
-    Sigma <- matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
-    # find square root of draw from Sigma (code is part of mvtnorm function)
-    ev <- eigen( Sigma, symmetric = TRUE)
-    if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
-      warning("Omega_post is numerically not positive definite")
+    if (fast_forecast) { # use posterior expected value of Phi
+      Phi <- attr(model, "posterior")$Phi_post
+    } else { # use Phi^[s] and Sigma^[s]
+      Phi <- matrix(model[i,1:(k*m)], nrow=k)
+      
+      
+      Sigma <- matrix(model[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
+      # find square root of draw from Sigma (code is part of mvtnorm function)
+      ev <- eigen( Sigma, symmetric = TRUE)
+      if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
+        warning("Omega_post is numerically not positive definite")
+      }
+      # precalculate R to do less operations in case h>1
+      R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
     }
-    # precalculate R to do less operations in case h>1
-    R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
     
+    Phi_transp <- t(Phi) # precalculate to do less operations in case h>1
     
     for (j in 1:h) {
       
