@@ -485,6 +485,7 @@ bvar_conjugate0 <-
       message("Initial number of observations, T_in = ",T_in)
       message("Number of dummy observations, T_dummy = ", T_dummy )
       message("Number of observations available for regression, T = T_in + T_dummy - p = ",T)
+      message("'fast_forecast' is ", fast_forecast)
     }
 
     # set some bad priors for lazy guys if not supplied 
@@ -547,13 +548,18 @@ bvar_conjugate0 <-
     #               t(Phi_prior) %*% solve(Omega_prior) %*% Phi_prior -
     #                  t(Phi_post) %*% solve(Omega_post) %*% Phi_post
     
-    # reserve space for Gibbs sampling replications
-    answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
+    
     
     
     if (fast_forecast) { # no simulations
       answer <- "Option 'fast_forecast' is TRUE. Hyperparameters available in attr(.,'posterior')."
-    } else { # simulate phi, sigma
+    } 
+    
+    if (!fast_forecast) { # simulate phi, sigma
+      
+      # reserve space for Gibbs sampling replications
+      answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
+      
       # precalculate chol(Omega_post) for faster cycle
       chol_Omega_post <- chol(Omega_post)
       
@@ -578,11 +584,11 @@ bvar_conjugate0 <-
         Sigma_vec <- as.vector(Sigma) # length = m x m
         
         answer[i,] <- c(Phi_vec, Sigma_vec)
-      }
+      } # cycle from 1 to keep
       
       # save as mcmc object to make some good functions available
       answer <- coda::as.mcmc(answer)
-    }
+    } # simulations 
     
     # set prior attributes:
     attr(answer, "params")  <- data.frame(k=k,m=m,p=p,d=d, 
