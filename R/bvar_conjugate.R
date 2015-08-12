@@ -378,6 +378,7 @@ sym_inv <- function(A) {
 #' @param constant (TRUE by default) whether we should include constant
 #' @param p (2 by default) the number of lags
 #' @param keep (10000 by default) the number of Gibbs sampling replications to keep
+#' Is ignored when the fast_forecast is TRUE.
 #' @param verbose (FALSE by default)
 #' @param priors the list containing Phi_prior [k x m], Omega_prior [k x k], 
 #' S_prior [m x m], v_prior [1x1],

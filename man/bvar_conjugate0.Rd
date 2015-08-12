@@ -18,7 +18,8 @@ bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
 
 \item{p}{(2 by default) the number of lags}
 
-\item{keep}{(10000 by default) the number of Gibbs sampling replications to keep}
+\item{keep}{(10000 by default) the number of Gibbs sampling replications to keep
+Is ignored when the fast_forecast is TRUE.}
 
 \item{verbose}{(FALSE by default)}
 

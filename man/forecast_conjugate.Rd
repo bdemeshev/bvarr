@@ -13,7 +13,7 @@ forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
 \item{model}{estimated conjugate N-IW model}
 
 \item{Y_in}{(NULL by default) past values of endogeneous variables (shold have at least p observations).
-If NULL, then Y_in supplied for estimation will be used. Only last p values of Y_in are used.}
+If NULL, then Y_in supplied for estimation will be used. For out-of-sample forecast only last p values of Y_in are used}
 
 \item{Z_f}{future values of exogeneous variables}
 
