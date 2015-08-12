@@ -6,7 +6,8 @@
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(0.2, 1, 1, 1, 100, 100), VAR_in = c("levels", "growth rates"),
-  s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE)
+  s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE,
+  y_bar0_type = c("initial", "all"))
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -30,6 +31,10 @@ Carriero uses 1 in his matlab code}
 \item{dummy_io}{whether to include "initial observation" dummies, logical (TRUE by default)}
 
 \item{dummy_sc}{whether to include "sum of coefficients" dummies, logical (TRUE by default)}
+
+\item{y_bar0_type}{(either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
+"all": y_bar0 is mean of y for all observations, "initial": p initial observations
+Carriero: all, Sim-Zha: initial}
 }
 \value{
 priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],

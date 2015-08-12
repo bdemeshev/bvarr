@@ -1,4 +1,5 @@
 # todo: 
+# replace VAR_in by deltas
 # make parallel computations in estimate and forecast
 
 
@@ -24,6 +25,9 @@
 #' If set to "levels" (default) Phi_1 matrix is identity, if "growth rates" then to zero matrix.
 #' @param dummy_sc whether to include "sum of coefficients" dummies, logical (TRUE by default)
 #' @param dummy_io whether to include "initial observation" dummies, logical (TRUE by default)
+#' @param y_bar0_type (either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
+#' "all": y_bar0 is mean of y for all observations, "initial": p initial observations
+#' Carriero: all, Sim-Zha: initial
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
 #' @export
@@ -35,7 +39,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             lambdas=c(0.2,1,1,1,100,100), 
                             VAR_in=c("levels","growth rates"), 
                             s2_lag=NULL, 
-                            dummy_io=TRUE, dummy_sc=TRUE) {
+                            dummy_io=TRUE, dummy_sc=TRUE,
+                            y_bar0_type = c("initial", "all") ) {
   l_1 <- lambdas[1]
   l_kron <- 1
   l_power <- lambdas[2]
@@ -43,6 +48,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   l_io <- lambdas[4]
   l_const <- lambdas[5]
   l_exo <- lambdas[6]
+  
+  y_bar0_type <- match.arg(y_bar0_type)
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
@@ -68,6 +75,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # Litterman takes 6 lags in AR(p)
   
   # estimate sigma^2 from univariate AR(p) processes
+  # Carriero matlab code: always AR(1)! 
   if (is.null(s2_lag)) s2_lag <- p
   
   sigmas_sq <- rep(NA, m)
@@ -81,7 +89,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     #sigmas_sq[j] <- AR_p$sigma2
     
     
-    # Carriero matlab code: always AR(1)! make an option?
+   
     
     # more robust version: fails only in the case of  severe multicollinearity
     AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
@@ -89,6 +97,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
   }
   
+  # replace by deltas!
   # set Phi_prior
   if (VAR_in=="levels") Phi_1 <- diag(m)
   if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
@@ -113,11 +122,15 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   
   # create dummy observations
-  y_0_bar <- apply(as.matrix(Y_in[1:p,],nrow=p), 2, mean) # vector [m x 1] of mean values of each endo-series
+  if (y_bar0_type=="initial") sc_io_numrows <- p
+  if (y_bar0_type=="all") sc_io_numrows <- nrow(Y_in)
+  
+  
+  y_0_bar <- apply(as.matrix(Y_in[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [m x 1] of mean values of each endo-series
   if (is.null(Z)) z_bar <- NULL # special case of no constant and no exo vars
   if (!is.null(Z)) z_bar <- 
-    apply(as.matrix(Z[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
-  # "as.matrix" above is needed to avoid errors for p=1 or d=1
+    apply(as.matrix(Z[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [d x 1] of mean values of each exo-series
+  # "as.matrix" above is needed to avoid errors for sc_io_numrows=1 or d=1
   
   
   
@@ -150,6 +163,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
+                 sc_io_numrows=sc_io_numrows,
                  Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
                  sigmas_sq = sigmas_sq ) # get more info from function
   
