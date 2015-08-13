@@ -20,11 +20,12 @@
 #' @param Z_in exogeneous variables
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code
-#' @param delta vector [m x 1] or scalar. Are used for prior Phi_1 and in sc/io dummy observations
-#' Scalar value is replicated m times. Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.
+#' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
+#' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+#' Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.
 #' @param dummy_sc whether to include "sum of coefficients" dummies, logical (TRUE by default)
 #' @param dummy_io whether to include "initial observation" dummies, logical (TRUE by default)
-#' @param y_bar0_type (either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
+#' @param y_0_bar_type (either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
 #' "all": y_bar0 is mean of y for all observations, "initial": p initial observations
 #' Carriero: all, Sim-Zha: initial
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
@@ -40,7 +41,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             delta=1,
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE,
-                            y_bar0_type = c("initial", "all") ) {
+                            y_0_bar_type = c("initial", "all") ) {
   l_1 <- lambdas[1]
   l_kron <- 1
   l_power <- lambdas[2]
@@ -49,7 +50,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   l_const <- lambdas[5]
   l_exo <- lambdas[6]
   
-  y_bar0_type <- match.arg(y_bar0_type)
+  y_0_bar_type <- match.arg(y_0_bar_type)
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
@@ -68,7 +69,18 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   m <- ncol(Y_in)
   k <- m*p+d
   
-  if (length(delta)==1) delta <- rep(delta, m)
+  if (delta=="AR1") { # set deltas as AR(1) coefficients but no more than 1
+    delta <- rep(1,m) # reserve space
+    for (j in 1:m) {
+      y_uni <- Y_in[,j] # univariate time series
+      # more robust version: fails only in the case of  severe multicollinearity
+      AR_1 <- ar.ols(y_uni, aic=FALSE, order.max = 1) # AR(1) model
+      delta[j] <- AR_1$ar
+      if (delta[j]>1) delta[j] <- 1
+    }
+    
+  }
+  if (length(delta)==1) delta <- rep(delta, m) # copy scalar values
   if (! length(delta)==m ) stop("Length of delta should be equal to 1 or m")
   
   #VAR_in <- match.arg(VAR_in)
@@ -125,8 +137,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   
   # create dummy observations
-  if (y_bar0_type=="initial") sc_io_numrows <- p
-  if (y_bar0_type=="all") sc_io_numrows <- nrow(Y_in)
+  if (y_0_bar_type=="initial") sc_io_numrows <- p
+  if (y_0_bar_type=="all") sc_io_numrows <- nrow(Y_in)
   
   
   y_0_bar <- apply(as.matrix(Y_in[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [m x 1] of mean values of each endo-series
@@ -144,8 +156,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
     diag(Y_dummy_sc) <- delta * y_0_bar / l_sc
   
+    exo_dummy <- matrix(0, m, d)
     
-    X_dummy_sc <- cbind( kronecker(matrix(1, 1, p), Y_dummy_sc) , rep(0, m))  # zero matrix [m x k]
+    X_dummy_sc <- cbind( kronecker(matrix(1, 1, p), Y_dummy_sc) , exo_dummy)  # zero matrix [m x k]
   }
   
   # dummy initial observation

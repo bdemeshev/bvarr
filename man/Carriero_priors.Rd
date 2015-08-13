@@ -7,7 +7,7 @@
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(0.2, 1, 1, 1, 100, 100), VAR_in = c("levels", "growth rates"),
   delta = 1, s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE,
-  y_bar0_type = c("initial", "all"))
+  y_0_bar_type = c("initial", "all"))
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -22,8 +22,9 @@ sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
 sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power}
 
-\item{delta}{vector [m x 1] or scalar. Are used for prior Phi_1 and in sc/io dummy observations
-Scalar value is replicated m times. Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.}
+\item{delta}{vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
+Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.}
 
 \item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
 Carriero uses 1 in his matlab code}
@@ -32,7 +33,7 @@ Carriero uses 1 in his matlab code}
 
 \item{dummy_sc}{whether to include "sum of coefficients" dummies, logical (TRUE by default)}
 
-\item{y_bar0_type}{(either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
+\item{y_0_bar_type}{(either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
 "all": y_bar0 is mean of y for all observations, "initial": p initial observations
 Carriero: all, Sim-Zha: initial}
 }
