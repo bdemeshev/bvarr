@@ -366,12 +366,7 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # and set zero prior covariances
   Omega_prior <- diag(Omega_diagonal)
   
-  
-  
-  
 
-  
-  
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
@@ -398,6 +393,29 @@ sym_inv <- function(A) {
   inv_A <- chol2inv(A_chol)
   return(inv_A)
 }
+
+
+#' check whether matrix is diagonal
+#'
+#' check whether matrix is diagonal
+#'  
+#' check whether matrix is diagonal
+#' 
+#' @param A symmetric matrix 
+#' @param epsilon tolerance, default is 0. 
+#' @return logical, TRUE/FALSE, TRUE for diagonal matrices
+#' @export
+#' @examples
+#' A <- matrix(c(2,1,1,2),nrow=2)
+#' sym_inv(A)
+is.diagonal <- function(A, epsilon=0) {
+  non_diag_elements <- !diag(nrow(A))
+  answer <- all( abs(A[non_diag_elements]) <= epsilon )
+  return(answer)
+}
+
+
+
 
 
 #' Estimate conjugate Normal-Inverse-Wishart bayesian VAR model
@@ -560,10 +578,18 @@ bvar_conjugate0 <-
     }
     # calculate posterior hyperparameters
     v_post <- v_prior + T
-    Omega_post <- sym_inv(sym_inv(Omega_prior)+XtX)
+    
+    if (is.diagonal(Omega_prior)) { # if Omega_prior is diagonal we may accept Inf on diagonal
+      Omega_prior_inv <- matrix(0, nrow=k, ncol=k)
+      diag(Omega_prior_inv) <- 1/diag(Omega_prio)
+    } else { # sym_inv cannot deal with Inf on the diagonal
+      Omega_prior_inv <- sym_inv(Omega_prior)
+    }
+    
+    Omega_post <- sym_inv(Omega_prior_inv+XtX)
     
     # here was a mistake :)
-    Phi_post <- Omega_post %*% (sym_inv(Omega_prior) %*% Phi_prior + t(X) %*% Y)
+    Phi_post <- Omega_post %*% (Omega_prior_inv %*% Phi_prior + t(X) %*% Y)
     
     Phi_hat <- XtX_inv %*% t(X) %*% Y 
     E_hat <- Y - X %*% Phi_hat
@@ -734,10 +760,7 @@ forecast_conjugate <- function(model,
   # if requested add constant to exogeneous regressors
   if (constant) Z_f <- cbind(rep(1, h), Z_f)
   
-  
-  
-  
-  
+
   if (out_of_sample) {
     # take last p observations of Y_in (out-of-sample forecast)
     Y_in <- tail(Y_in, p)
@@ -930,7 +953,6 @@ summary_conjugate <- function(model) {
     
   }
     
-  
 }
 
 
