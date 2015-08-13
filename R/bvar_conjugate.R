@@ -581,7 +581,7 @@ bvar_conjugate0 <-
     
     if (is.diagonal(Omega_prior)) { # if Omega_prior is diagonal we may accept Inf on diagonal
       Omega_prior_inv <- matrix(0, nrow=k, ncol=k)
-      diag(Omega_prior_inv) <- 1/diag(Omega_prio)
+      diag(Omega_prior_inv) <- 1/diag(Omega_prior)
     } else { # sym_inv cannot deal with Inf on the diagonal
       Omega_prior_inv <- sym_inv(Omega_prior)
     }
