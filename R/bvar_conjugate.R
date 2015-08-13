@@ -1,4 +1,5 @@
 # todo: 
+# variable names in forecast (instead of var numbers)
 # make parallel computations in estimate and forecast
 
 
@@ -655,9 +656,14 @@ bvar_conjugate0 <-
                                           constant=constant,
                                           keep=keep, fast_forecast=fast_forecast)
     
+    # get variable names
+    varnames <- colnames(Y_in)
+    if (is.null(varnames)) varnames <- 1:m
+    
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in, 
                                  X_dummy=priors$X_dummy, Y_dummy=priors$Y_dummy,
-                                 X_wo_dummy=X_wo_dummy, Y_wo_dummy=Y_wo_dummy)
+                                 X_wo_dummy=X_wo_dummy, Y_wo_dummy=Y_wo_dummy,
+                                 varnames=varnames)
     
     priors$type <- "conjugate"
     attr(answer, "prior")       <- priors
@@ -830,7 +836,7 @@ forecast_conjugate <- function(model,
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
   # we have m endogeneous variables and h forecasts for each
-  varnames <- data.frame(y=rep(1:m, h), h=rep(1:h, each=m))
+  id_block <- data.frame(variable=rep( attr(model ,"data")$varnames, h), h=rep(1:h, each=m))
   
   forecast_summary <- NULL
   
@@ -838,7 +844,7 @@ forecast_conjugate <- function(model,
   if ("mean" %in% include) {
     what <- rep("mean", h*m)
     value <- apply(forecast_raw, 2, mean)
-    block <- cbind(varnames, what, value) # block of information
+    block <- cbind(id_block, what, value) # block of information
     forecast_summary <- rbind(forecast_summary, block)
   }
 
@@ -846,7 +852,7 @@ forecast_conjugate <- function(model,
   if ("median" %in% include) {
     what <- rep("median", h*m)
     value <- apply(forecast_raw, 2, median)
-    block <- cbind(varnames, what, value) # block of information
+    block <- cbind(id_block, what, value) # block of information
     forecast_summary <- rbind(forecast_summary, block)
   }
   
@@ -854,7 +860,7 @@ forecast_conjugate <- function(model,
   if ("sd" %in% include) {
     what <- rep("sd", h*m)
     value <- apply(forecast_raw, 2, sd)
-    block <- cbind(varnames, what, value) # block of information
+    block <- cbind(id_block, what, value) # block of information
     forecast_summary <- rbind(forecast_summary, block)
   }
 
@@ -863,13 +869,13 @@ forecast_conjugate <- function(model,
     # lower
     what <- rep(paste0("lower_",lev), h*m)
     value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
-    block <- cbind(varnames, what, value) # block of information
+    block <- cbind(id_block, what, value) # block of information
     forecast_summary <- rbind(forecast_summary, block)
     
     # upper
     what <- rep(paste0("upper_",lev), h*m)
     value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
-    block <- cbind(varnames, what, value) # block of information
+    block <- cbind(id_block, what, value) # block of information
     forecast_summary <- rbind(forecast_summary, block)
   }
   
