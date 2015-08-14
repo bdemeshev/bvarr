@@ -5,14 +5,15 @@
 \title{Set conjugate N-IW priors from lambdas as in Carriero}
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
-  lambdas = c(0.2, 1, 1, 1, 100, 100), VAR_in = c("levels", "growth rates"),
-  delta = 1, s2_lag = NULL, dummy_io = TRUE, dummy_sc = TRUE,
-  y_0_bar_type = c("initial", "all"))
+  lambdas = c(0.2, 1, 1, 1, 100, 100), delta = 1, s2_lag = NULL,
+  dummy_io = TRUE, dummy_sc = TRUE, y_0_bar_type = c("initial", "all"))
 }
 \arguments{
 \item{Y_in}{multivariate time series}
 
 \item{Z_in}{exogeneous variables}
+
+\item{constant}{logical, default is TRUE, whether the constant should be included}
 
 \item{p}{number of lags}
 

@@ -12,6 +12,8 @@ szbvar_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4, lambdas = c(1,
 
 \item{Z_in}{exogeneous variables}
 
+\item{constant}{logical, default is TRUE, whether the constant should be included}
+
 \item{p}{number of lags}
 
 \item{lambdas}{vector = (l0, l1, l3, l4, l5), l2 is set to 1 for conjugate N-IW}
@@ -30,7 +32,7 @@ Set conjugate N-IW priors from lambdas and mus as in Sim Zha
 \details{
 Set conjugate N-IW priors from lambdas and mus as in Sim Zha
 Should be compatible with szbvar function. Maybe error!!!!
-MAYBE lambda should be in denominator!!!!
+MAYBE lambda should be in denominator!!!! Article vs MSBVAR???
 }
 \examples{
 data(Yraw)

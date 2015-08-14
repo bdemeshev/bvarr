@@ -10,7 +10,10 @@ Imports:
     mvtnorm (>= 1.0.1),
     reshape2 (>= 1.4),
     ggplot2 (>= 1.0.0),
-    MASS (>= 7.3-40)
+    MASS (>= 7.3-40),
+    dplyr (>= 0.4.2),
+    tidyr (>= 0.2.0),
+    coda (>= 0.17-1)
 Description: The bvarr package allows estimation of 6 different bayesian VAR
     models.
 License: MIT

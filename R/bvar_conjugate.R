@@ -19,6 +19,7 @@
 #' sd(exo in eq i)= l_exo * sigma_i
 #' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power
 #' @param Z_in exogeneous variables
+#' @param constant logical, default is TRUE, whether the constant should be included
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code
 #' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
@@ -38,7 +39,6 @@
 #' model <- bvar_conjugate0(priors = priors)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                             lambdas=c(0.2,1,1,1,100,100), 
-                            VAR_in=c("levels","growth rates"), 
                             delta=1,
                             s2_lag=NULL, 
                             dummy_io=TRUE, dummy_sc=TRUE,
@@ -193,10 +193,11 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' 
 #' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
 #' 
-#' Set conjugate N-IW priors as in matlab code of Koops-Korobilis
+#' Set conjugate N-IW priors as in matlab code of Koops-Korobilis. Mainly for testing.
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
+#' @param constant logical, default is TRUE, whether the constant should be included
 #' @param Z_in exogeneous variables
 #' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
 #' where k = mp+d
@@ -249,10 +250,11 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' 
 #' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
 #' Should be compatible with szbvar function. Maybe error!!!! 
-#' MAYBE lambda should be in denominator!!!!
+#' MAYBE lambda should be in denominator!!!! Article vs MSBVAR???
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
+#' @param constant logical, default is TRUE, whether the constant should be included
 #' @param lambdas vector = (l0, l1, l3, l4, l5), l2 is set to 1 for conjugate N-IW
 #' @param mu56 vector = (mu5, mu6)
 #' @param Z_in exogeneous variables

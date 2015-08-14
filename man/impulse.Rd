@@ -7,11 +7,17 @@
 impulse(By, smat, nstep)
 }
 \arguments{
-\item{By}{neq x nvar x nlag array}
+\item{By}{[neq x nvar x nlag] array}
 
-\item{smat}{}
+\item{smat}{square matrix of initial shock vectors. To produce "orthogonalized
+impulse responses" it should have the property that smat'*smat=sigma, where sigma
+is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
+is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
+use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.}
 
-\item{nstep}{}
+\item{nstep}{neq=nvar, of course, but the first index runs over
+equations. In response, the first index runs over variables, the second over
+shocks (in effect, equations).}
 }
 \value{
 nvar x neq x nstep array
@@ -21,14 +27,6 @@ impulse
 }
 \details{
 function response=impulse(By,smat,nstep), C. Sims' code.
-smat is a square matrix of initial shock vectors.  To produce "orthogonalized
-impulse responses" it should have the property that smat'*smat=sigma, where sigma
-is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
-is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
-use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.
-By is a neq x nvar x nlags matrix.  neq=nvar, of course, but the first index runs over
-equations. In response, the first index runs over variables, the second over
-shocks (in effect, equations).
 }
 \examples{
 impulse(1,2,3)

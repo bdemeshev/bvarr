@@ -7,7 +7,7 @@
 bvar.summary(model)
 }
 \arguments{
-\item{bvar.model}{the list containing all results of bayesian VAR estimation}
+\item{model}{the list containing all results of bayesian VAR estimation}
 }
 \description{
 Print summary for bayesian VAR model

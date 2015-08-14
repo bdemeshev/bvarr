@@ -1,10 +1,3 @@
-#' bvar
-#'
-#' @name bvar
-#' @docType package
-#' @author Gary Koop, Dimitris Korobilis, Boris Demeshev 
-#' @import MCMCpack mvtnorm reshape2 ggplot2 dplyr tidyr MASS
-NULL
 
 
 
@@ -36,7 +29,8 @@ NULL
 #' @param p vector of probabilities for zero
 #' @return the vector of 0/1 Bernoulli random variables
 #' @examples 
-#' bernoullirnd(c(0.5,0.8,0.1))
+#' probs <- c(0.5,0.8,0.1)
+#' # bvarr::bernoullirnd(probs) # why????
 bernoullirnd <- function(p) {
   len <- length(p)
   ans <- ifelse(runif(len)<p,0,1)
@@ -48,17 +42,15 @@ bernoullirnd <- function(p) {
 #' impulse
 #' 
 #' function response=impulse(By,smat,nstep), C. Sims' code.
-#' smat is a square matrix of initial shock vectors.  To produce "orthogonalized
+#' @param By [neq x nvar x nlag] array
+#' @param smat square matrix of initial shock vectors. To produce "orthogonalized
 #' impulse responses" it should have the property that smat'*smat=sigma, where sigma
 #' is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
 #' is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
 #' use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.
-#' By is a neq x nvar x nlags matrix.  neq=nvar, of course, but the first index runs over 
+#' @param nstep neq=nvar, of course, but the first index runs over 
 #' equations. In response, the first index runs over variables, the second over 
 #' shocks (in effect, equations).
-#' @param By neq x nvar x nlag array
-#' @param smat
-#' @param nstep
 #' @return nvar x neq x nstep array
 #' @examples 
 #' impulse(1,2,3)
@@ -153,6 +145,7 @@ mlag2 <- function(X,p) {
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
+#' data(Yraw)
 #' bvar(Yraw)
 bvar <-
 function(Yraw, prior = c("diffuse","minnesota","conjugate",
@@ -538,7 +531,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     ALPHA <- matrix(alpha,K,M) # Create draw of ALPHA       
                         
     # Posterior of SIGMA|Data ~ iW(SSE_Gibbs,T-K) 
-    SIGMA <- riwish(T-K,SSE_Gibbs) # matlab: inv(wish(inv(SSE_Gibbs),T-K)) # Draw SIGMA                        
+    SIGMA <- MCMCpack::riwish(T-K,SSE_Gibbs) # matlab: inv(wish(inv(SSE_Gibbs),T-K)) # Draw SIGMA                        
   } 
   
   #--------- Draw ALPHA and SIGMA with minnesota Prior
@@ -573,7 +566,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     ALPHA <- matrix(alpha,nrow=K,ncol=M) # Draw of ALPHA
 
     # Posterior of SIGMA|ALPHA,Data ~ iW(inv(S_post),v_post)
-    SIGMA <- riwish(v_post,S_post) # inv(wish(inv(S_post),v_post));% Draw SIGMA
+    SIGMA <- MCMCpack::riwish(v_post,S_post) # inv(wish(inv(S_post),v_post));% Draw SIGMA
   }
 
   if (prior == "independent") {
@@ -587,7 +580,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
     # Posterior of SIGMA|ALPHA,Data ~ iW(inv(S_post),v_post)
     v_post <- T + v_prior
     S_post <- S_prior + t(Y - X %*% ALPHA) %*% (Y - X %*% ALPHA)
-    SIGMA <- riwish(v_post,S_post) # Draw SIGMA        
+    SIGMA <- MCMCpack::riwish(v_post,S_post) # Draw SIGMA        
   }
   
   # --------- Draw ALPHA and SIGMA using ssvs prior 
@@ -597,7 +590,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
       # Posterior of SIGMA|ALPHA,Data ~ iW(inv(S_post),v_post)
       v_post <- T + v_prior
       S_post <- inv_S_prior + t(Y - X %*% ALPHA) %*% (Y - X %*% ALPHA)
-      SIGMA <- riwish(v_post,S_post) # Draw SIGMA
+      SIGMA <- MCMCpack::riwish(v_post,S_post) # Draw SIGMA
     }
     
     
@@ -723,7 +716,7 @@ for (irep in 1:ntot)  { # Start the Gibbs "loop"
         # Matrix of predictions
         Y_pred[((irep-nburn-1)*repfor+1):((irep-nburn)*repfor),] <- Y_temp
         # Predictive likelihood
-        PL[irep-nburn] <- dmvnorm (Y1[T+1,],X[T,] %*% ALPHA,SIGMA)
+        PL[irep-nburn] <- mvtnorm::dmvnorm (Y1[T+1,],X[T,] %*% ALPHA,SIGMA)
         #if (PL[irep-nburn] == 0) { # BB: ACHTUNG!!!! VERY STRANGE
           # BB: maybe the reason was to avoid log(0)
           # BB: in R there is no such problem, so these lines were commented out
@@ -824,7 +817,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
   #This are the true values of Y at T+h:
   true_value <- Y1[T+1,]
   
-  Y_pred_melt <- melt(Y_pred)
+  Y_pred_melt <- reshape2::melt(Y_pred)
   
 
 
@@ -877,7 +870,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 #'
 #' Print summary for bayesian VAR model
 #'
-#' @param bvar.model the list containing all results of bayesian VAR estimation
+#' @param model the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
 #' data(Yraw)
@@ -926,12 +919,12 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   
   imp_responses <- apply(bvar.model$all_responses,c(2,3,4),quantile,probs=qus)
   
-  imp_resp_melt <- melt(imp_responses)
+  imp_resp_melt <- reshape2::melt(imp_responses)
   colnames(imp_resp_melt) <- c("probability","from","to","lag","impulse")
   
   
-  p <- ggplot(data=imp_resp_melt,aes(x=lag,y=impulse)) +
-    geom_line(aes(col=probability)) + facet_wrap(from~to,scales = "free")
+  p <- ggplot2::ggplot(data=imp_resp_melt,ggplot2::aes(x=lag,y=impulse)) +
+    ggplot2::geom_line(ggplot2::aes(col=probability)) + ggplot2::facet_wrap(from~to,scales = "free")
   # print(p)
   return(p)
 }
@@ -960,26 +953,26 @@ bvar.imp.plot_band <-
                                  "lag", "impulse")
     imp_resp_melt <-
       imp_resp_melt %>% 
-      mutate(probability = as.character(probability)) %>% 
-      mutate(probability = ifelse(probability == paste0(lower*100, "%"), yes = "lower", no = probability),
+      dplyr::mutate(probability = as.character(probability)) %>% 
+      dplyr::mutate(probability = ifelse(probability == paste0(lower*100, "%"), yes = "lower", no = probability),
              probability = ifelse(probability == paste0(middle*100, "%"), yes = "middle", no = probability),
              probability = ifelse(probability == paste0(upper*100, "%"), yes = "upper", no = probability)) %>% 
-      spread(probability, impulse)
+      tidyr::spread(probability, impulse)
     
     
-    p <- ggplot(data = imp_resp_melt,
-                aes(x = lag, y = middle)) +
-      geom_ribbon(aes(ymin=lower, ymax=upper), fill="grey", alpha=.5) +
-      geom_line(colour = "blue") +
-      geom_line(data = imp_resp_melt, aes(x = lag, y = lower), colour = "black", linetype = "dotted") + 
-      geom_line(data = imp_resp_melt, aes(x = lag, y = upper), colour = "black", linetype = "dotted") + 
-      facet_wrap(from ~ to, scales = "free") +
-      geom_hline(yintercept = 0,
+    p <- ggplot2::ggplot(data = imp_resp_melt,
+                         ggplot2::aes(x = lag, y = middle)) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin=lower, ymax=upper), fill="grey", alpha=.5) +
+      ggplot2::geom_line(colour = "blue") +
+      ggplot2::geom_line(data = imp_resp_melt, ggplot2::aes(x = lag, y = lower), colour = "black", linetype = "dotted") + 
+      ggplot2::geom_line(data = imp_resp_melt, ggplot2::aes(x = lag, y = upper), colour = "black", linetype = "dotted") + 
+      ggplot2::facet_wrap(from ~ to, scales = "free") +
+      ggplot2::geom_hline(yintercept = 0,
                  col = "black") +
-      labs(x="", y="") +
-      theme(strip.background = element_rect(fill=NA),
-            strip.text.x = element_text(size = rel(1.3)))
-    p
+      ggplot2::labs(x="", y="") +
+      ggplot2::theme(strip.background = ggplot2::element_rect(fill=NA),
+            strip.text.x = ggplot2::element_text(size = ggplot2::rel(1.3)))
+    return(p)
   }
 
 
@@ -997,8 +990,8 @@ bvar.imp.plot_band <-
 #' model <- bvar(Yraw)
 #' bvar.pred.plot(Yraw)
 bvar.pred.plot <- function(bvar.model) {
-  p <- ggplot(data=bvar.model$Y_pred_melt,aes(x=value)) + geom_histogram() + 
-    facet_wrap(~Var2)
+  p <- ggplot2::ggplot(data=bvar.model$Y_pred_melt,ggplot2::aes(x=value)) + ggplot2::geom_histogram() + 
+    ggplot2::facet_wrap(~Var2)
   # print(p)
   return(p)
 }

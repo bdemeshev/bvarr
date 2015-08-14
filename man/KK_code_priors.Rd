@@ -11,6 +11,8 @@ KK_code_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4)
 
 \item{Z_in}{exogeneous variables}
 
+\item{constant}{logical, default is TRUE, whether the constant should be included}
+
 \item{p}{number of lags}
 }
 \value{
@@ -21,7 +23,7 @@ where k = mp+d
 Set conjugate N-IW priors as in matlab code of Koops-Korobilis
 }
 \details{
-Set conjugate N-IW priors as in matlab code of Koops-Korobilis
+Set conjugate N-IW priors as in matlab code of Koops-Korobilis. Mainly for testing.
 }
 \examples{
 data(Yraw)
