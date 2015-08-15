@@ -54,7 +54,7 @@ bernoullirnd <- function(p) {
 #' shocks (in effect, equations).
 #' @return nvar x neq x nstep array
 #' @examples 
-#' impulse(1,2,3)
+#' bvarr:::impulse(1,2,3)
 impulse <- function(By,smat,nstep) {
   neq <- dim(By)[1]
   nvar <- dim(By)[2]

@@ -29,6 +29,6 @@ impulse
 function response=impulse(By,smat,nstep), C. Sims' code.
 }
 \examples{
-impulse(1,2,3)
+bvarr:::impulse(1,2,3)
 }
 
