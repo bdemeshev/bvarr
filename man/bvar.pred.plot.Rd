@@ -21,6 +21,6 @@ This function draws histograms of forecasts
 \examples{
 data(Yraw)
 model <- bvar(Yraw)
-bvar.pred.plot(Yraw)
+bvar.pred.plot(model)
 }
 

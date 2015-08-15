@@ -1,4 +1,5 @@
-
+#' @importFrom magrittr %>%
+NULL
 
 
 #' US inflation, employement and interest rate data.frame
@@ -30,7 +31,7 @@ NULL
 #' @return the vector of 0/1 Bernoulli random variables
 #' @examples 
 #' probs <- c(0.5,0.8,0.1)
-#' # bvarr::bernoullirnd(probs) # why????
+#' bvarr:::bernoullirnd(probs) 
 bernoullirnd <- function(p) {
   len <- length(p)
   ans <- ifelse(runif(len)<p,0,1)
@@ -988,7 +989,7 @@ bvar.imp.plot_band <-
 #' @examples
 #' data(Yraw)
 #' model <- bvar(Yraw)
-#' bvar.pred.plot(Yraw)
+#' bvar.pred.plot(model)
 bvar.pred.plot <- function(bvar.model) {
   p <- ggplot2::ggplot(data=bvar.model$Y_pred_melt,ggplot2::aes(x=value)) + ggplot2::geom_histogram() + 
     ggplot2::facet_wrap(~Var2)

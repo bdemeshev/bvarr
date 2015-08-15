@@ -754,7 +754,7 @@ forecast_conjugate <- function(model,
   if (is.null(Y_in)) Y_in <- attr(model, "data")$Y_in
   
   
-  # in case of in-sample forecast h is set to T-T_dummy
+  # in case of in-sample forecast h is set to T-T_dummy, or is is better set to NA?
   if (!out_of_sample) h <- T-T_dummy
   
   
@@ -832,8 +832,9 @@ forecast_conjugate <- function(model,
       
       y_t <- Phi_transp %*% x_t + e_t
       forecast_raw[i, (m*(j-1)+1):(m*j)] <- y_t
-    }
-  }
+    } # end_for j in 1:h
+  } # end_for i in 1:keep
+  
   # save as mcmc object for standartisation
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
@@ -885,7 +886,7 @@ forecast_conjugate <- function(model,
   
   
   if (output=="wide") { # transform to wide format if requested
-    forecast_summary <- reshape2::dcast(forecast_summary, y+h~what)
+    forecast_summary <- reshape2::dcast(forecast_summary, variable+h~what)
   }
   
   

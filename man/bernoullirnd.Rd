@@ -20,6 +20,6 @@ Generate sample from independent Bernoulli random variables with different proba
 }
 \examples{
 probs <- c(0.5,0.8,0.1)
-# bvarr::bernoullirnd(probs) # why????
+bvarr:::bernoullirnd(probs)
 }
 
