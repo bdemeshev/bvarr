@@ -36,7 +36,7 @@
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2,1,1,1,100,100))
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                             lambdas=c(0.2,1,1,1,100,100), 
                             delta=1,
@@ -205,7 +205,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' @examples 
 #' data(Yraw)
 #' priors <- KK_code_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 
   # calculate d, the number of exogeneous regressors
@@ -265,7 +265,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' @examples 
 #' data(Yraw)
 #' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                           lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
                             VAR_in=c("levels","growth rates")) {
@@ -445,7 +445,7 @@ is.diagonal <- function(A, epsilon=0) {
 #' @examples
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
@@ -704,9 +704,9 @@ bvar_conjugate0 <-
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 #' forecast_conjugate(model, h=2, output="wide")
-#' forecast_conjugaet(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
+#' forecast_conjugate(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 forecast_conjugate <- function(model, 
                                Y_in=NULL, 
                                Z_f=NULL,
@@ -915,7 +915,7 @@ forecast_conjugate <- function(model,
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors)
+#' model <- bvar_conjugate0(priors = priors, keep=1000)
 #' summary_conjugate(model)
 summary_conjugate <- function(model) {
   T <- attr(model,"params")$T # number of observations minus p

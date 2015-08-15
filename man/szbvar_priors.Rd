@@ -37,6 +37,6 @@ MAYBE lambda should be in denominator!!!! Article vs MSBVAR???
 \examples{
 data(Yraw)
 priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
-model <- bvar_conjugate0(priors = priors)
+model <- bvar_conjugate0(priors = priors, keep=1000)
 }
 

@@ -52,6 +52,6 @@ Based on Carriero p. 52-53
 \examples{
 data(Yraw)
 priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2,1,1,1,100,100))
-model <- bvar_conjugate0(priors = priors)
+model <- bvar_conjugate0(priors = priors, keep=1000)
 }
 

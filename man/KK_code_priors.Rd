@@ -28,6 +28,6 @@ Set conjugate N-IW priors as in matlab code of Koops-Korobilis. Mainly for testi
 \examples{
 data(Yraw)
 priors <- KK_code_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors)
+model <- bvar_conjugate0(priors = priors, keep=1000)
 }
 
