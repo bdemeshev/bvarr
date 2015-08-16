@@ -63,6 +63,6 @@ Estimate six types of bayesian VAR models
 }
 \examples{
 data(Yraw)
-bvar(Yraw)
+bvar(Yraw, nsave=1000, nburn=100)
 }
 

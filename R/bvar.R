@@ -43,18 +43,18 @@ bernoullirnd <- function(p) {
 #' impulse
 #' 
 #' function response=impulse(By,smat,nstep), C. Sims' code.
-#' @param By [neq x nvar x nlag] array
+#' @param By [neq x nvar x nlag] array. neq=nvar, of course, but the first index runs over 
+#' equations. In response, the first index runs over variables, the second over 
+#' shocks (in effect, equations).
 #' @param smat square matrix of initial shock vectors. To produce "orthogonalized
 #' impulse responses" it should have the property that smat'*smat=sigma, where sigma
 #' is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a smat
 #' is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
 #' use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.
-#' @param nstep neq=nvar, of course, but the first index runs over 
-#' equations. In response, the first index runs over variables, the second over 
-#' shocks (in effect, equations).
+#' @param nstep number of steps
 #' @return nvar x neq x nstep array
 #' @examples 
-#' bvarr:::impulse(1,2,3)
+#' bvarr:::impulse(array(1, dim=c(2,2,2)), diag(2), 5)
 impulse <- function(By,smat,nstep) {
   neq <- dim(By)[1]
   nvar <- dim(By)[2]
@@ -84,7 +84,7 @@ impulse <- function(By,smat,nstep) {
 #' @return block
 #' @examples 
 #' X <- matrix(1:18, ncol=3)
-#' makeblock(X,1,2)
+#' bvarr:::makeblock(X,1,2)
 makeblock <- function(X,i,p) {
   Xblock <- X[(p+1-i):(nrow(X)-i),] # get useful lines of X
   Xblock <- as.matrix(Xblock) # assure X is a matrix, not a vector
@@ -92,18 +92,18 @@ makeblock <- function(X,i,p) {
   return(Xblock)
 }
 
-#' mlag2
-#' 
-#' mlag2
+#' Binds blocks provided by makeblock function
 #' 
 #' Binds blocks provided by makeblock function
 #' 
+#' Binds blocks provided by makeblock function. Obtain full X matrix.
+#' 
 #' @param X matrix
 #' @param p number of lags, is equal to total the number of blocks
-#' @return ...
+#' @return binded blocks
 #' @examples 
 #' X <- matrix(1:18, ncol=3)
-#' mlag2(X,2)
+#' bvarr:::mlag2(X,2)
 mlag2 <- function(X,p) {
   X <- as.matrix(X)
   # we need to bind horizontally p blocks
@@ -147,7 +147,7 @@ mlag2 <- function(X,p) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' bvar(Yraw)
+#' bvar(Yraw, nsave=1000, nburn=100)
 bvar <-
 function(Yraw, prior = c("diffuse","minnesota","conjugate",
                          "independent","ssvs-wishart","ssvs-ssvs"), 
@@ -875,7 +875,7 @@ if (prior %in% c("ssvs-wishart","ssvs-ssvs") ) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' model <- bvar(Yraw,prior = "independent")
+#' model <- bvar(Yraw,prior = "independent",nsave=1000, nburn=100)
 #' bvar.summary(model)
 bvar.summary <- function(model) {
   # Print some directions to the user
@@ -914,7 +914,7 @@ bvar.summary <- function(model) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' model <- bvar(Yraw)
+#' model <- bvar(Yraw,nsave=1000, nburn=100)
 #' bvar.imp.plot(model)
 bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   
@@ -943,7 +943,7 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
 #' @export
 #' @examples
 #' data(Yraw)
-#' model <- bvar(Yraw)
+#' model <- bvar(Yraw,nsave=1000, nburn=100)
 #' bvar.imp.plot_band(model)
 bvar.imp.plot_band <-
   function (bvar.model, lower = 0.1, upper = 0.9, middle = 0.5) {
@@ -988,7 +988,7 @@ bvar.imp.plot_band <-
 #' @export
 #' @examples
 #' data(Yraw)
-#' model <- bvar(Yraw)
+#' model <- bvar(Yraw,nsave=1000, nburn=100)
 #' bvar.pred.plot(model)
 bvar.pred.plot <- function(bvar.model) {
   p <- ggplot2::ggplot(data=bvar.model$Y_pred_melt,ggplot2::aes(x=value)) + ggplot2::geom_histogram() + 

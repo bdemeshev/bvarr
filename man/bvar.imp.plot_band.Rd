@@ -23,7 +23,7 @@ Draw irfs of bayesian VAR model
 }
 \examples{
 data(Yraw)
-model <- bvar(Yraw)
+model <- bvar(Yraw,nsave=1000, nburn=100)
 bvar.imp.plot_band(model)
 }
 

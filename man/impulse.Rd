@@ -7,7 +7,9 @@
 impulse(By, smat, nstep)
 }
 \arguments{
-\item{By}{[neq x nvar x nlag] array}
+\item{By}{[neq x nvar x nlag] array. neq=nvar, of course, but the first index runs over
+equations. In response, the first index runs over variables, the second over
+shocks (in effect, equations).}
 
 \item{smat}{square matrix of initial shock vectors. To produce "orthogonalized
 impulse responses" it should have the property that smat'*smat=sigma, where sigma
@@ -15,9 +17,7 @@ is the Var(u(t)) matrix and u(t) is the residual vector.  One way to get such a 
 is to set smat=chol(sigma).  To get the smat corresponding to a different ordering,
 use smat=chol(P*Sigma*P')*P, where P is a permutation matrix.}
 
-\item{nstep}{neq=nvar, of course, but the first index runs over
-equations. In response, the first index runs over variables, the second over
-shocks (in effect, equations).}
+\item{nstep}{number of steps}
 }
 \value{
 nvar x neq x nstep array
@@ -29,6 +29,6 @@ impulse
 function response=impulse(By,smat,nstep), C. Sims' code.
 }
 \examples{
-bvarr:::impulse(1,2,3)
+bvarr:::impulse(array(1, dim=c(2,2,2)), diag(2), 5)
 }
 

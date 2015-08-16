@@ -24,6 +24,6 @@ used only inside mlag2 function
 }
 \examples{
 X <- matrix(1:18, ncol=3)
-makeblock(X,1,2)
+bvarr:::makeblock(X,1,2)
 }
 

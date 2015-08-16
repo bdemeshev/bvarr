@@ -14,7 +14,7 @@ Print summary for bayesian VAR model
 }
 \examples{
 data(Yraw)
-model <- bvar(Yraw,prior = "independent")
+model <- bvar(Yraw,prior = "independent",nsave=1000, nburn=100)
 bvar.summary(model)
 }
 
