@@ -2,18 +2,18 @@ bvarr
 =====
 
 The package `bvarr` may be useful for estimating bayesian VAR models.
-This is a translation to R of the matlab code by
-[Gary Koops and Dimitris Korobilis](http://personal.strath.ac.uk/gary.koop/bayes_matlab_code_by_koop_and_korobilis.html)
-with minor improvements.
+
+* It contains a translation to R of the matlab code by
+[Gary Koops and Dimitris Korobilis](http://personal.strath.ac.uk/gary.koop/bayes_matlab_code_by_koop_and_korobilis.html) with minor improvements.
+* It has very versatile realisation of conjugate Normal-Inverse Wishart prior.
 
 You may install the package usinge the commands:
 ```R
 install.packages("devtools")
-library("devtools")
-install_github("bdemeshev/bvarr")
+devtools::install_github("bdemeshev/bvarr")
 ```
 
-Very basic example of usage:
+Replication of KK code:
 ```R
 library("bvarr")
 data(Yraw)
@@ -22,22 +22,24 @@ bvar.imp.plot(model)
 bvar.summary(model)
 ```
 
-Todo:
+New conjugate Normal-Inverse Wishart function:
+```R
+library("bvarr")
+data(Yraw)
+priors <- Carriero_priors(Yraw, p = 4)
+model <- bvar_conjugate0(priors = priors)
+summary_conjugate(model) 
+forecast_conjugate(model, h=2, output="wide")
+forecast_conjugate(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
+```
 
-1. Describe!!! Good documentation is a first need.
 
-2. Check case with no constant!
 
-3. Check case with exogeneous variables!
+Goals of the package:
 
-4. Check border case with M=1!
+1. Good documentation
 
-5. Move hyperparameters in the definition of the function in the
-unified fashion. Something like: minnesota.hyper=c(...), ssvs.hyper=c(....), etc.
-
-6. Make lovely function for prediction. Two types of prediction? 
-
-7. Rewrite code using Rcpp.
+2. Versatile (many-many options)
 
 
 You may also wish look at [BMR](http://bayes.squarespace.com/bmr/) and [MSBVAR](http://cran.r-project.org/web/packages/MSBVAR/) packages. They seem to be more professional, but they do not contain something I wish for :) Maybe `bvarr` will be redesigned completely in late 2015.
