@@ -454,22 +454,22 @@ bvar_conjugate0 <-
 
     if ( (is.null(Y_in)) & (!is.null(priors$Y_in)) ){
       Y_in <- priors$Y_in
-      message("Y_in is inferred from priors data.")
+      if (verbose) message("Y_in is inferred from priors data.")
     }
     
     if ( (is.null(Z_in)) & (!is.null(priors$Z_in)) ){
       Z_in <- priors$Z_in
-      message("Z_in is inferred from priors data.")
+      if (verbose) message("Z_in is inferred from priors data.")
     }
 
     if ( (is.null(p)) & (!is.null(priors$p)) ) {
       p <- priors$p
-      message("Number of lags is inferred from priors data: p = ",p)
+      if (verbose) message("Number of lags is inferred from priors data: p = ",p)
     }
     
     if ( (is.null(p)) & (is.null(priors$p)) ) {
       p <- 4
-      message("Number of lags, p, is not specified inside and outside priors, set to p = ",p)
+      if (verbose) message("Number of lags, p, is not specified inside and outside priors, set to p = ",p)
     }
     
     
@@ -545,19 +545,19 @@ bvar_conjugate0 <-
     # set some bad priors for lazy guys if not supplied 
     if (is.null(priors$v_prior)) {
       priors$v_prior <- m + 1
-      message("v_prior was not specified, set to (m+1)")
+      if (verbose) message("v_prior was not specified, set to (m+1)")
     }
     if (is.null(priors$S_prior)) {
       priors$S_prior <- diag(m)
-      message("S_prior was not specified, set to I [m x m]")
+      if (verbose) message("S_prior was not specified, set to I [m x m]")
     }
     if (is.null(priors$Omega_prior)) {
       priors$Omega_prior <- 10*diag(k) 
-      message("Omega_prior was not specified, set to 10I [k x k]")
+      if (verbose) message("Omega_prior was not specified, set to 10I [k x k]")
     }  
     if (is.null(priors$Phi_prior)) {
       priors$Phi_prior <- matrix(0, nrow=k, ncol=m)
-      message("Phi_prior was not specified, set to 0 [k x m]")
+      if (verbose) message("Phi_prior was not specified, set to 0 [k x m]")
     }
     
     
@@ -576,7 +576,7 @@ bvar_conjugate0 <-
     XtX <- t(X) %*% X
     XtX_inv <- try(solve(XtX), silent=TRUE)
     if (class(XtX_inv)=="try-error") {
-      message("The XtX matrix is so ugly... :( \n I will use the Moore-Penrose inverse :) \n kappa(XtX) = ",kappa(XtX))
+      if (verbose) message("The XtX matrix is so ugly... kappa(XtX) = ",kappa(XtX),". I will use the Moore-Penrose inverse :)")
       XtX_inv <- MASS::ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
     }
     # calculate posterior hyperparameters
