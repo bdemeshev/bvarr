@@ -699,6 +699,7 @@ bvar_conjugate0 <-
 #' @param fast_forecast logical, FALSE by default. If TRUE then only mean forecast is calculated,
 #' posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median. 
 #' This mode is activated by default if there are no simulations in supplied model.
+#' @param verbose (default FALSE) if true some messages will be printed
 #' @export
 #' @return forecast results
 #' @examples 
@@ -715,7 +716,8 @@ forecast_conjugate <- function(model,
                                type=c("prediction","credible"),
                                out_of_sample=TRUE,
                                include=c("mean","median","sd"),
-                               fast_forecast=FALSE) {
+                               fast_forecast=FALSE,
+                               verbose=FALSE) {
 
   
   # select type of prediction specified by user
@@ -735,7 +737,7 @@ forecast_conjugate <- function(model,
   constant <- attr(model,"params")$constant
   
   if (attr(model,"params")$fast_forecast) {
-    message("No simulations in 'model', fast_forecast option is set to TRUE.")
+    if (verbose) message("No simulations in 'model', fast_forecast option is set to TRUE.")
     fast_forecast <- TRUE
   }
   
