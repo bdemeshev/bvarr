@@ -138,6 +138,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   S_prior <- diag(sigmas_sq)
   v_prior <- m+2
   
+  colnames(S_prior) <- endo_varnames
+  rownames(S_prior) <- endo_varnames
+  
   # set Omega_prior
   # the diagonal of Omega_prior begins with endogeneous part:
   endo_diagonal <- l_1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^(2*l_power), each=m)
