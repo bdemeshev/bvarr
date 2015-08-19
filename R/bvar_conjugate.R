@@ -167,7 +167,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # dummy initial observation
   Y_dummy_io <- NULL
   X_dummy_io <- NULL
-  if (!is.na(dummy_io)) {
+  if (!is.na(l_io)) {
     Y_dummy_io <- matrix(delta * y_0_bar/l_io, nrow=1)
     X_dummy_io <- matrix(c(rep(delta * y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }
