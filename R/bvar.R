@@ -377,7 +377,7 @@ dimnames(SIGMA_draws)[[3]] <- colnames(Yraw)
 
 if (prior == "minnesota") { # minnesota-Whishart (2)
   # Prior mean on VAR regression coefficients
-  # !!!!!!! АХТУНГ!!!!!! ПОХОЖЕ БЕЗ КОНСТАНТЫ НАДО УБРАТЬ rep(0,M) !!!!!!!!!!!!
+  # !!!!!!! ACHTUNG !!!!!! IN CASE OF NO CONSTANT REMOVE rep(0,M) !!!!!!!!!!!!
   A_prior <- rbind(rep(0,M),0.9*diag(M),matrix(0,(p-1)*M,M)) #<---- prior mean of ALPHA (parameter matrix) 
   a_prior <- as.vector(A_prior)               #<---- prior mean of alpha (parameter vector)
   

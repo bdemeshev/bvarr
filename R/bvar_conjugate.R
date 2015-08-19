@@ -392,8 +392,13 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' A <- matrix(c(2,1,1,2),nrow=2)
 #' sym_inv(A)
 sym_inv <- function(A) {
-  A_chol <- chol(A)
+  A_chol <- try(chol(A), silent=TRUE)
+  if (class(A_chol)=="try-error") {
+    if (verbose) message("The [",nrow(A),"x",ncol(A),"] matrix I would like to invert is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+    inv_A <- MASS::ginv(A) # for more stable results in multicollinearity cases
+  } else {
   inv_A <- chol2inv(A_chol)
+  }
   return(inv_A)
 }
 
@@ -574,14 +579,13 @@ bvar_conjugate0 <-
     
     # convinient short-cuts
     XtX <- t(X) %*% X
-    XtX_inv <- try(solve(XtX), silent=TRUE)
-    if (class(XtX_inv)=="try-error") {
-      if (verbose) message("The XtX matrix is so ugly... kappa(XtX) = ",kappa(XtX),". I will use the Moore-Penrose inverse :)")
-      XtX_inv <- MASS::ginv(XtX) # solve(XtX) # for more stable results in multicollinearity cases
-    }
+    
+    if (verbose) message("Calculating (XtX)^{-1}...")
+    XtX_inv <- sym_inv(XtX)
     # calculate posterior hyperparameters
     v_post <- v_prior + T
     
+    if (verbose) message("Calculating Omega_prior^{-1}...")
     if (is.diagonal(Omega_prior)) { # if Omega_prior is diagonal we may accept Inf on diagonal
       Omega_prior_inv <- matrix(0, nrow=k, ncol=k)
       diag(Omega_prior_inv) <- 1/diag(Omega_prior)
@@ -589,15 +593,18 @@ bvar_conjugate0 <-
       Omega_prior_inv <- sym_inv(Omega_prior)
     }
     
+    if (verbose) message("Calculating Omega_post...")
     Omega_post <- sym_inv(Omega_prior_inv+XtX)
     
     # here was a mistake :)
+    if (verbose) message("Calculating Phi_post...")
     Phi_post <- Omega_post %*% (Omega_prior_inv %*% Phi_prior + t(X) %*% Y)
     
     Phi_hat <- XtX_inv %*% t(X) %*% Y 
     E_hat <- Y - X %*% Phi_hat
     
     # Karlsson, p 15
+    if (verbose) message("Calculating S_post...")
     S_post <- S_prior + t(E_hat) %*% E_hat +
       t(Phi_prior - Phi_hat) %*% 
                 sym_inv(Omega_prior + XtX_inv) %*% 
@@ -623,6 +630,7 @@ bvar_conjugate0 <-
       answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
       
       # precalculate chol(Omega_post) for faster cycle
+      if (verbose) message("Calculating chol(Omega_post)...")
       chol_Omega_post <- chol(Omega_post)
       
       for (i in 1:keep) {

@@ -1,8 +1,8 @@
 Package: bvarr
 Type: Package
 Title: Bayesian VAR package with 6 models.
-Version: 0.1
-Date: 2014-07-25
+Version: 0.2
+Date: 2015-07-25
 Author: Koop, Korobilis, Demeshev
 Maintainer: Boris Demeshev <boris.demeshev@gmail.com>
 Imports:
