@@ -583,7 +583,7 @@ bvar_conjugate0 <-
     if (verbose) message("Calculating (XtX)^{-1}...")
     XtX_inv <- sym_inv(XtX)
     if (!is.null(attr(XtX_inv,"Moore-Penrose"))) {
-      if (verbose) message("The XtX matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+      if (verbose) message("The XtX matrix is so ugly... kappa(XtX) = ",kappa(XtX),". I will use the Moore-Penrose inverse :)")
     }
     # calculate posterior hyperparameters
     v_post <- v_prior + T
@@ -595,14 +595,14 @@ bvar_conjugate0 <-
     } else { # sym_inv cannot deal with Inf on the diagonal
       Omega_prior_inv <- sym_inv(Omega_prior)
       if (!is.null(attr(Omega_prior_inv,"Moore-Penrose"))) {
-        if (verbose) message("The Omega_prior matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+        if (verbose) message("The Omega_prior matrix is so ugly... kappa(Omega_prior) = ",kappa(Omega_prior),". I will use the Moore-Penrose inverse :)")
       }
     }
     
     if (verbose) message("Calculating Omega_post...")
     Omega_post <- sym_inv(Omega_prior_inv+XtX)
     if (!is.null(attr(Omega_post,"Moore-Penrose"))) {
-      if (verbose) message("The (Omega_prior_inv+XtX) matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+      if (verbose) message("The (Omega_prior_inv+XtX) matrix is so ugly... kappa(Omega_prior_inv+XtX) = ",kappa(Omega_prior_inv+XtX),". I will use the Moore-Penrose inverse :)")
     }
 
     
