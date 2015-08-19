@@ -594,14 +594,14 @@ bvar_conjugate0 <-
       diag(Omega_prior_inv) <- 1/diag(Omega_prior)
     } else { # sym_inv cannot deal with Inf on the diagonal
       Omega_prior_inv <- sym_inv(Omega_prior)
-      if (!is.null(Omega_prior_inv,"Moore-Penrose"))) {
+      if (!is.null(attr(Omega_prior_inv,"Moore-Penrose"))) {
         if (verbose) message("The Omega_prior matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
       }
     }
     
     if (verbose) message("Calculating Omega_post...")
     Omega_post <- sym_inv(Omega_prior_inv+XtX)
-    if (!is.null(Omega_post,"Moore-Penrose"))) {
+    if (!is.null(attr(Omega_post,"Moore-Penrose"))) {
       if (verbose) message("The (Omega_prior_inv+XtX) matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
     }
 
