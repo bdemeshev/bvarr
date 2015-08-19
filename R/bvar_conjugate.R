@@ -18,6 +18,8 @@
 #' sd(const in eq i) = l_const * sigma_i
 #' sd(exo in eq i)= l_exo * sigma_i
 #' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power
+#' lambdas may be Inf
+#' l_io or l_sc equal to NA means no corresponding dummy observations
 #' @param Z_in exogeneous variables
 #' @param constant logical, default is TRUE, whether the constant should be included
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
@@ -25,8 +27,6 @@
 #' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
 #' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
 #' Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.
-#' @param dummy_sc whether to include "sum of coefficients" dummies, logical (TRUE by default)
-#' @param dummy_io whether to include "initial observation" dummies, logical (TRUE by default)
 #' @param y_0_bar_type (either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
 #' "all": y_bar0 is mean of y for all observations, "initial": p initial observations
 #' Carriero: all, Sim-Zha: initial
@@ -155,7 +155,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # sum of coefficients prior
   Y_dummy_sc <- NULL
   X_dummy_sc <- NULL
-  if (dummy_sc) {
+  if (!is.na(l_sc)) {
     Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
     diag(Y_dummy_sc) <- delta * y_0_bar / l_sc
   
@@ -167,7 +167,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # dummy initial observation
   Y_dummy_io <- NULL
   X_dummy_io <- NULL
-  if (dummy_io) {
+  if (!is.na(dummy_io)) {
     Y_dummy_io <- matrix(delta * y_0_bar/l_io, nrow=1)
     X_dummy_io <- matrix(c(rep(delta * y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }

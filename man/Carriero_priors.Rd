@@ -21,7 +21,9 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 conjugate N-IW prior. Short summary:
 sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
-sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power}
+sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power
+lambdas may be Inf
+l_io or l_sc equal to NA means no corresponding dummy observations}
 
 \item{delta}{vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
 Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
@@ -29,10 +31,6 @@ Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwis
 
 \item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
 Carriero uses 1 in his matlab code}
-
-\item{dummy_io}{whether to include "initial observation" dummies, logical (TRUE by default)}
-
-\item{dummy_sc}{whether to include "sum of coefficients" dummies, logical (TRUE by default)}
 
 \item{y_0_bar_type}{(either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
 "all": y_bar0 is mean of y for all observations, "initial": p initial observations
