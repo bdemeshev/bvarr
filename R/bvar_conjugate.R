@@ -1,5 +1,5 @@
 # todo: 
-# variable names in forecast (instead of var numbers)
+# variable names everywhere where possible
 # make parallel computations in estimate and forecast
 
 
@@ -57,11 +57,23 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
+  # get variable names
+  endo_varnames <- colnames(Y_in)
+  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  
+
+  exo_varnames <- NULL  
+  
   # calculate d, the number of exogeneous regressors
   if (is.null(Z_in)) {
     d <- 1*constant
+    exo_varnames <- "const"
   } else {
     d <- ncol(Z_in) + 1*constant
+
+    exo_varnames <- colnames(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (constant) exo_varnames <- c("const",exo_varnames)
   }
   
   # if requested add constant to exogeneous regressors
@@ -115,11 +127,13 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
   }
   
-  # replace by deltas!
   # set Phi_prior
   Phi_1 <- matrix(0, m,m)
   diag(Phi_1) <- delta
   Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
+  
+  colnames(Phi_prior) <- paste0("eq_",endo_varnames)
+  rownames(Phi_prior) <- c(paste0(rep(endo_varnames, p),", l=",rep(1:p,each=m)) , exo_varnames)
   
   S_prior <- diag(sigmas_sq)
   v_prior <- m+2
@@ -182,7 +196,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
                  sc_io_numrows=sc_io_numrows,
                  Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
-                 sigmas_sq = sigmas_sq ) # get more info from function
+                 sigmas_sq = sigmas_sq,
+                 endo_varnames=endo_varnames,
+                 exo_varnames=exo_varnames) # get more info from function
   
   return(priors)
 }
@@ -456,9 +472,15 @@ is.diagonal <- function(A, epsilon=0) {
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
-                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL),
+                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL,
+                       endo_varnames=NULL, exo_varnames=NULL),
            fast_forecast=FALSE) {
 
+    exo_varnames <- priors$exo_varnames
+    endo_varnames <- priors$endo_varnames
+    
+    
+    
     if ( (is.null(Y_in)) & (!is.null(priors$Y_in)) ){
       Y_in <- priors$Y_in
       if (verbose) message("Y_in is inferred from priors data.")
@@ -613,6 +635,10 @@ bvar_conjugate0 <-
     if (verbose) message("Calculating Phi_post...")
     Phi_post <- Omega_post %*% (Omega_prior_inv %*% Phi_prior + t(X) %*% Y)
     
+    colnames(Phi_post) <- paste0("eq_",endo_varnames)
+    rownames(Phi_post) <- c(paste0(rep(endo_varnames, p),", l=",rep(1:p,each=m)) , exo_varnames)
+    
+    
     Phi_hat <- XtX_inv %*% t(X) %*% Y 
     E_hat <- Y - X %*% Phi_hat
     
@@ -679,14 +705,12 @@ bvar_conjugate0 <-
                                           constant=constant,
                                           keep=keep, fast_forecast=fast_forecast)
     
-    # get variable names
-    varnames <- colnames(Y_in)
-    if (is.null(varnames)) varnames <- 1:m
-    
+
     attr(answer, "data") <- list(Y_in=Y_in, Z_in=Z_in, 
                                  X_dummy=priors$X_dummy, Y_dummy=priors$Y_dummy,
                                  X_wo_dummy=X_wo_dummy, Y_wo_dummy=Y_wo_dummy,
-                                 varnames=varnames)
+                                 endo_varnames=endo_varnames,
+                                 exo_varnames=exo_varnames)
     
     priors$type <- "conjugate"
     attr(answer, "prior")       <- priors
@@ -862,7 +886,7 @@ forecast_conjugate <- function(model,
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
   # we have m endogeneous variables and h forecasts for each
-  id_block <- data.frame(variable=rep( attr(model ,"data")$varnames, h), h=rep(1:h, each=m))
+  id_block <- data.frame(variable=rep( attr(model ,"data")$endo_varnames, h), h=rep(1:h, each=m))
   
   forecast_summary <- NULL
   
