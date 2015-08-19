@@ -6,7 +6,7 @@
 \usage{
 Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambdas = c(0.2, 1, 1, 1, 100, 100), delta = 1, s2_lag = NULL,
-  dummy_io = TRUE, dummy_sc = TRUE, y_0_bar_type = c("initial", "all"))
+  y_0_bar_type = c("initial", "all"))
 }
 \arguments{
 \item{Y_in}{multivariate time series}

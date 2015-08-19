@@ -7,7 +7,8 @@
 bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
   keep = 10000, verbose = FALSE, priors = list(Phi_prior = NULL,
   Omega_prior = NULL, S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy =
-  NULL, Y_in = NULL, Z_in = NULL, p = NULL), fast_forecast = FALSE)
+  NULL, Y_in = NULL, Z_in = NULL, p = NULL, endo_varnames = NULL, exo_varnames =
+  NULL), fast_forecast = FALSE)
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
