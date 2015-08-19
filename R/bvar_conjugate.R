@@ -843,7 +843,7 @@ forecast_conjugate <- function(model,
         
         # fill endogeneous values recursively (second+ out-of-sample forecast)
         if (j > 1) {
-          x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
+          if (p>1) x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
           x_t[1:m] <- y_t
         }
       } else { # in-sample forecast
