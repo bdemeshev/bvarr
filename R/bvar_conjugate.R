@@ -394,8 +394,8 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 sym_inv <- function(A) {
   A_chol <- try(chol(A), silent=TRUE)
   if (class(A_chol)=="try-error") {
-    if (verbose) message("The [",nrow(A),"x",ncol(A),"] matrix I would like to invert is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
     inv_A <- MASS::ginv(A) # for more stable results in multicollinearity cases
+    attr(inv_A,"Moore-Penrose") <- TRUE
   } else {
   inv_A <- chol2inv(A_chol)
   }
@@ -582,6 +582,9 @@ bvar_conjugate0 <-
     
     if (verbose) message("Calculating (XtX)^{-1}...")
     XtX_inv <- sym_inv(XtX)
+    if (!is.null(attr(XtX_inv,"Moore-Penrose"))) {
+      if (verbose) message("The XtX matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+    }
     # calculate posterior hyperparameters
     v_post <- v_prior + T
     
@@ -591,10 +594,18 @@ bvar_conjugate0 <-
       diag(Omega_prior_inv) <- 1/diag(Omega_prior)
     } else { # sym_inv cannot deal with Inf on the diagonal
       Omega_prior_inv <- sym_inv(Omega_prior)
+      if (!is.null(Omega_prior_inv,"Moore-Penrose"))) {
+        if (verbose) message("The Omega_prior matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+      }
     }
     
     if (verbose) message("Calculating Omega_post...")
     Omega_post <- sym_inv(Omega_prior_inv+XtX)
+    if (!is.null(Omega_post,"Moore-Penrose"))) {
+      if (verbose) message("The (Omega_prior_inv+XtX) matrix is so ugly... kappa(A) = ",kappa(A),". I will use the Moore-Penrose inverse :)")
+    }
+
+    
     
     # here was a mistake :)
     if (verbose) message("Calculating Phi_post...")
