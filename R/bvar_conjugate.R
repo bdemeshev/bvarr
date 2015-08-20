@@ -723,8 +723,8 @@ bvar_conjugate0 <-
       
       # precalculate ~(Omega_post)^{1/2} for faster cycle
       # way 1:
-      if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
-      Omega_post_root <- chol(Omega_post)
+      # if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
+      # Omega_post_root <- chol(Omega_post)
       
       # way 2:
       # (Omega_post)^{1/2} is equal to (Omega_prior^{-1}+X'X)^{-1/2}
@@ -733,15 +733,15 @@ bvar_conjugate0 <-
       # so we nedd to find
       # (Omega_post)^{1/2} = (X*'X*)^{-1/2}
       # http://math.stackexchange.com/questions/106774
-      # if ("Omega_prior_m05" %in% names(priors)) {
-      #  Omega_prior_m05 <- priors$Omega_prior_m05
-      # } else {
-      #  Opm_eigen <- eigen(Omega_prior_inv)
-      #  Omega_prior_m05 <- Opm_eigen$vectors %*% diag(Opm_eigen$values) %*% t(Opm_eigen$vectors)
-      #}
-      #X_star <- rbind(Omega_prior_m05,X)
-      #X_star_svd <- svd(X_star)
-      #Omega_post_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
+       if ("Omega_prior_m05" %in% names(priors)) {
+        Omega_prior_m05 <- priors$Omega_prior_m05
+       } else {
+        Opm_eigen <- eigen(Omega_prior_inv)
+        Omega_prior_m05 <- Opm_eigen$vectors %*% diag(Opm_eigen$values) %*% t(Opm_eigen$vectors)
+      }
+      X_star <- rbind(Omega_prior_m05,X)
+      X_star_svd <- svd(X_star)
+      Omega_post_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
       
       
       
