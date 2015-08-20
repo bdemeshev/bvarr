@@ -57,7 +57,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
   m <- ncol(Y_in)
-  k <- m*p+d
+
   
   # get variable names
   endo_varnames <- colnames(Y_in)
@@ -82,7 +82,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # constant to the left of other exo variables
   if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
-  
+  k <- m*p+d
 
   
   if (delta=="AR1") { # set deltas as AR(1) coefficients but no more than 1
@@ -233,7 +233,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
   m <- ncol(Y_in)
-  k <- m*p+d
+
   
   # get variable names
   endo_varnames <- colnames(Y_in)
@@ -258,6 +258,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
   # constant to the left of other exo variables
   if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
+  k <- m*p+d
   
   v_prior <- m + 1
   S_prior <- diag(m)
@@ -320,7 +321,7 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
   m <- ncol(Y_in)
-  k <- m*p+d
+
   
   # get variable names
   endo_varnames <- colnames(Y_in)
@@ -345,6 +346,7 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   # constant to the left of other exo variables
   if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
+  k <- m*p+d
   
   VAR_in <- match.arg(VAR_in)
   
