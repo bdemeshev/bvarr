@@ -5,7 +5,8 @@
 \title{Estimate conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
 bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
-  keep = 10000, verbose = FALSE, priors = list(), fast_forecast = FALSE)
+  keep = 10000, verbose = FALSE, priors = list(), fast_forecast = FALSE,
+  way_omega_post_root = c("cholesky", "svd"))
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
@@ -29,6 +30,8 @@ where k = mp+d}
 
 \item{fast_forecast}{logical, FALSE by default. If TRUE then no simulations are done,
 only posterior hyperparameters are calculated.}
+
+\item{way_omega_post_root}{the way for (Omega_post)^{1/2} calculation: "svd" or "cholesky"}
 }
 \value{
 the list containing all results of bayesian VAR estimation

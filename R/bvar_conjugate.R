@@ -519,6 +519,7 @@ is.diagonal <- function(A, epsilon=0) {
 #' where k = mp+d
 #' @param fast_forecast logical, FALSE by default. If TRUE then no simulations are done,
 #' only posterior hyperparameters are calculated.
+#' @param way_omega_post_root the way for (Omega_post)^{1/2} calculation: "svd" or "cholesky"
 #' @return the list containing all results of bayesian VAR estimation
 #' @export
 #' @examples
@@ -527,7 +528,8 @@ is.diagonal <- function(A, epsilon=0) {
 #' model <- bvar_conjugate0(priors = priors, keep=1000)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
-           priors=list(), fast_forecast=FALSE) {
+           priors=list(), fast_forecast=FALSE,
+           way_omega_post_root = c("cholesky","svd") ) {
 
     exo_varnames <- priors$exo_varnames
     endo_varnames <- priors$endo_varnames
@@ -723,8 +725,10 @@ bvar_conjugate0 <-
       
       # precalculate ~(Omega_post)^{1/2} for faster cycle
       # way 1:
-      # if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
-      # Omega_post_root <- chol(Omega_post)
+      if (way_omega_post_root=="cholesky") {
+        if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
+        Omega_post_root <- chol(Omega_post)
+      }
       
       # way 2:
       # (Omega_post)^{1/2} is equal to (Omega_prior^{-1}+X'X)^{-1/2}
@@ -733,16 +737,17 @@ bvar_conjugate0 <-
       # so we nedd to find
       # (Omega_post)^{1/2} = (X*'X*)^{-1/2}
       # http://math.stackexchange.com/questions/106774
-       if ("Omega_prior_m05" %in% names(priors)) {
-        Omega_prior_m05 <- priors$Omega_prior_m05
-       } else {
-        Opm_eigen <- eigen(Omega_prior_inv)
-        Omega_prior_m05 <- Opm_eigen$vectors %*% diag(Opm_eigen$values) %*% t(Opm_eigen$vectors)
+      if (way_omega_post_root=="svd") {
+        if ("Omega_prior_m05" %in% names(priors)) {
+          Omega_prior_m05 <- priors$Omega_prior_m05
+        } else {
+          Opm_eigen <- eigen(Omega_prior_inv)
+          Omega_prior_m05 <- Opm_eigen$vectors %*% diag(Opm_eigen$values) %*% t(Opm_eigen$vectors)
+        }
+        X_star <- rbind(Omega_prior_m05,X)
+        X_star_svd <- svd(X_star)
+        Omega_post_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
       }
-      X_star <- rbind(Omega_prior_m05,X)
-      X_star_svd <- svd(X_star)
-      Omega_post_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
-      
       
       
       for (i in 1:keep) {
