@@ -190,6 +190,21 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     X_dummy_io <- matrix(c(rep(delta * y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }
   
+  
+  # robust calculation of (Omega_prior)^{-1/2}
+  # the diagonal of Omega_prior begins with endogeneous part:
+  endo_diagonal_m05 <- 1/l_1*rep(sqrt(sigmas_sq), p)/rep((1:p)^(l_power), each=m)
+  
+  # and ends with exogeneous part:
+  exo_diagonal_m05 <- rep(1/l_exo,d)
+  if (constant) exo_diagonal_m05[1] <- 1/l_const
+  
+  Omega_diagonal_m05 <- c(endo_diagonal_m05, exo_diagonal_m05)
+  # and set zero prior covariances
+  Omega_prior_m05 <- diag(Omega_diagonal_m05)
+  # end of robust calculation of Omega_diagonal_m05
+  
+  
   # order of dummies does not matter
   X_dummy <- rbind(X_dummy_io, X_dummy_sc)
   Y_dummy <- rbind(Y_dummy_io, Y_dummy_sc)
@@ -202,7 +217,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                  Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
                  sigmas_sq = sigmas_sq,
                  endo_varnames=endo_varnames,
-                 exo_varnames=exo_varnames) # get more info from function
+                 exo_varnames=exo_varnames,
+                 Omega_prior_m05=Omega_prior_m05) # get more info from function
   
   return(priors)
 }
@@ -496,8 +512,9 @@ is.diagonal <- function(A, epsilon=0) {
 #' @param keep (10000 by default) the number of Gibbs sampling replications to keep
 #' Is ignored when the fast_forecast is TRUE.
 #' @param verbose (FALSE by default)
-#' @param priors the list containing Phi_prior [k x m], Omega_prior [k x k], 
+#' @param priors the list containing at least Phi_prior [k x m], Omega_prior [k x k], 
 #' S_prior [m x m], v_prior [1x1],
+#' it may also contain
 #' Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 #' where k = mp+d
 #' @param fast_forecast logical, FALSE by default. If TRUE then no simulations are done,
@@ -510,10 +527,7 @@ is.diagonal <- function(A, epsilon=0) {
 #' model <- bvar_conjugate0(priors = priors, keep=1000)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
-           priors=list(Phi_prior=NULL, Omega_prior=NULL, S_prior=NULL, v_prior=NULL, 
-                       Y_dummy=NULL, X_dummy=NULL, Y_in=NULL, Z_in=NULL, p=NULL,
-                       endo_varnames=NULL, exo_varnames=NULL),
-           fast_forecast=FALSE) {
+           priors=list(), fast_forecast=FALSE) {
 
     exo_varnames <- priors$exo_varnames
     endo_varnames <- priors$endo_varnames
@@ -707,9 +721,29 @@ bvar_conjugate0 <-
       # reserve space for Gibbs sampling replications
       answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
       
-      # precalculate chol(Omega_post) for faster cycle
-      if (verbose) message("Calculating chol(Omega_post)...")
-      chol_Omega_post <- chol(Omega_post)
+      # precalculate ~(Omega_post)^{1/2} for faster cycle
+      # way 1:
+      if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
+      Omega_post_root <- chol(Omega_post)
+      
+      # way 2:
+      # (Omega_post)^{1/2} is equal to (Omega_prior^{-1}+X'X)^{-1/2}
+      # But Omega_prior^{-1}+X'X maybe replaced using augmented X* as:
+      # X*'X* = Omega_prior^{-1}+X'X
+      # so we nedd to find
+      # (Omega_post)^{1/2} = (X*'X*)^{-1/2}
+      # http://math.stackexchange.com/questions/106774
+      # if ("Omega_prior_m05" %in% names(priors)) {
+      #  Omega_prior_m05 <- priors$Omega_prior_m05
+      # } else {
+      #  Opm_eigen <- eigen(Omega_prior_inv)
+      #  Omega_prior_m05 <- Opm_eigen$vectors %*% diag(Opm_eigen$values) %*% t(Opm_eigen$vectors)
+      #}
+      #X_star <- rbind(Omega_prior_m05,X)
+      #X_star_svd <- svd(X_star)
+      #Omega_post_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
+      
+      
       
       for (i in 1:keep) {
         if ((verbose) & (i %% 10^3 == 0)) message("Iteration ",i," out of ",keep)
@@ -726,7 +760,7 @@ bvar_conjugate0 <-
         
         # fast way, Carriero, p. 54
         V <- matrix(rnorm((m*p+d)*m), ncol = m) # [(mp+d) x m] matrix of standard normal
-        Phi <- Phi_post + chol_Omega_post %*% V %*% t(chol(Sigma))
+        Phi <- Phi_post + Omega_post_root %*% V %*% t(chol(Sigma))
         
         Phi_vec <- as.vector(Phi)
         Sigma_vec <- as.vector(Sigma) # length = m x m

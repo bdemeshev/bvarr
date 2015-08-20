@@ -5,10 +5,7 @@
 \title{Estimate conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
 bvar_conjugate0(Y_in = NULL, Z_in = NULL, constant = TRUE, p = NULL,
-  keep = 10000, verbose = FALSE, priors = list(Phi_prior = NULL,
-  Omega_prior = NULL, S_prior = NULL, v_prior = NULL, Y_dummy = NULL, X_dummy =
-  NULL, Y_in = NULL, Z_in = NULL, p = NULL, endo_varnames = NULL, exo_varnames =
-  NULL), fast_forecast = FALSE)
+  keep = 10000, verbose = FALSE, priors = list(), fast_forecast = FALSE)
 }
 \arguments{
 \item{Y_in}{the matrix or data.frame with endogeneous VAR variables}
@@ -24,8 +21,9 @@ Is ignored when the fast_forecast is TRUE.}
 
 \item{verbose}{(FALSE by default)}
 
-\item{priors}{the list containing Phi_prior [k x m], Omega_prior [k x k],
+\item{priors}{the list containing at least Phi_prior [k x m], Omega_prior [k x k],
 S_prior [m x m], v_prior [1x1],
+it may also contain
 Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
 where k = mp+d}
 
