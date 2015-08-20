@@ -56,6 +56,9 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
+  m <- ncol(Y_in)
+  k <- m*p+d
+  
   # get variable names
   endo_varnames <- colnames(Y_in)
   if (is.null(endo_varnames)) endo_varnames <- 1:m
@@ -80,8 +83,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
   
   
-  m <- ncol(Y_in)
-  k <- m*p+d
+
   
   if (delta=="AR1") { # set deltas as AR(1) coefficients but no more than 1
     delta <- rep(1,m) # reserve space
@@ -228,19 +230,34 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' model <- bvar_conjugate0(priors = priors, keep=1000)
 KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 
-  # calculate d, the number of exogeneous regressors
-  if (is.null(Z_in)) {
-    d <- 1*constant
-  } else {
-    d <- ncol(Z_in) + 1*constant
-  }
-  
-  # if requested add constant to exogeneous regressors
-  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
-  
+  Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
   m <- ncol(Y_in)
   k <- m*p+d
+  
+  # get variable names
+  endo_varnames <- colnames(Y_in)
+  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  
+  
+  exo_varnames <- NULL  
+  
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z_in)) {
+    d <- 1*constant
+    exo_varnames <- "const"
+  } else {
+    d <- ncol(Z_in) + 1*constant
+    
+    exo_varnames <- colnames(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (constant) exo_varnames <- c("const",exo_varnames)
+  }
+  
+  # if requested add constant to exogeneous regressors
+  # constant to the left of other exo variables
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
+  
   
   v_prior <- m + 1
   S_prior <- diag(m)
@@ -256,7 +273,9 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
                  Phi_prior=Phi_prior, 
                  Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
-                 Y_in=Y_in, Z=Z_in, p=p)
+                 Y_in=Y_in, Z=Z_in, p=p,
+                 endo_varnames=endo_varnames,
+                 exo_varnames=exo_varnames) # get more info from function
   
   return(priors)
 }
@@ -298,20 +317,34 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   mu5 <- mu56[1]
   mu6 <- mu56[2]
   
-  Y_in <- as.matrix(Y_in)
-  # calculate d, the number of exogeneous regressors
-  if (is.null(Z_in)) {
-    d <- 1*constant
-  } else {
-    d <- ncol(Z_in) + 1*constant
-  }
-  
-  # if requested add constant to exogeneous regressors
-  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
-  
+  Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
   
   m <- ncol(Y_in)
   k <- m*p+d
+  
+  # get variable names
+  endo_varnames <- colnames(Y_in)
+  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  
+  
+  exo_varnames <- NULL  
+  
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z_in)) {
+    d <- 1*constant
+    exo_varnames <- "const"
+  } else {
+    d <- ncol(Z_in) + 1*constant
+    
+    exo_varnames <- colnames(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (constant) exo_varnames <- c("const",exo_varnames)
+  }
+  
+  # if requested add constant to exogeneous regressors
+  # constant to the left of other exo variables
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
+  
   
   VAR_in <- match.arg(VAR_in)
   
@@ -394,7 +427,9 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
                  Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
-                 sigmas_sq=sigmas_sq, Y=Y) # get more info from function
+                 sigmas_sq=sigmas_sq, Y=Y,
+                 endo_varnames=endo_varnames,
+                 exo_varnames=exo_varnames) # get more info from function
   
   return(priors)
 }
