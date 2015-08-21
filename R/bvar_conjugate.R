@@ -727,7 +727,7 @@ bvar_conjugate0 <-
       # way 1:
       if (way_omega_post_root=="cholesky") {
         if (verbose) message("Calculating ~'Omega_post^{1/2}' using chol(Omega_post)...")
-        Omega_post_root <- chol(Omega_post)
+        Omega_post_root <- t(chol(Omega_post))
       }
       
       # way 2:
@@ -755,17 +755,10 @@ bvar_conjugate0 <-
         
         Sigma <- MCMCpack::riwish(v_post,S_post) 
         
-        # slow way
-        # Phi_vec <- mvtnorm::rmvnorm(n = 1, # vec(Phi) ~ N(vec(Phi_post), Sigma o Omega_post)
-        #                            mean = as.vector(Phi_post),
-        #                            sigma = kronecker(Sigma, Omega_post)) 
         
-        # Phi_vec has length (mp+d) x m
-        # Phi <- matrix(Phi_vec, ncol=m) # we are saving only vector Phi_vec
-        
-        # fast way, Carriero, p. 54
+        # fast way to generate matrix-variate normal
         V <- matrix(rnorm((m*p+d)*m), ncol = m) # [(mp+d) x m] matrix of standard normal
-        Phi <- Phi_post + Omega_post_root %*% V %*% t(chol(Sigma))
+        Phi <- Phi_post + Omega_post_root %*% V %*% chol(Sigma)
         
         Phi_vec <- as.vector(Phi)
         Sigma_vec <- as.vector(Sigma) # length = m x m
