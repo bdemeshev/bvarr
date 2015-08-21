@@ -61,7 +61,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # get variable names
   endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
   
 
   exo_varnames <- NULL  
@@ -74,7 +74,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     d <- ncol(Z_in) + 1*constant
 
     exo_varnames <- colnames(Z_in)
-    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- paste0("exo_",1:ncol(Z_in))
     if (constant) exo_varnames <- c("const",exo_varnames)
   }
   
@@ -253,7 +253,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
   
   # get variable names
   endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
   
   
   exo_varnames <- NULL  
@@ -266,7 +266,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
     d <- ncol(Z_in) + 1*constant
     
     exo_varnames <- colnames(Z_in)
-    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- paste0("exo_",1:ncol(Z_in))
     if (constant) exo_varnames <- c("const",exo_varnames)
   }
   
@@ -341,7 +341,7 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # get variable names
   endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames)) endo_varnames <- 1:m
+  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
   
   
   exo_varnames <- NULL  
@@ -354,7 +354,7 @@ szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     d <- ncol(Z_in) + 1*constant
     
     exo_varnames <- colnames(Z_in)
-    if (is.null(exo_varnames)) exo_varnames <- 1:ncol(Z_in)
+    if (is.null(exo_varnames)) exo_varnames <- paste0("exo_",1:ncol(Z_in))
     if (constant) exo_varnames <- c("const",exo_varnames)
   }
   
@@ -1074,7 +1074,10 @@ summary_conjugate <- function(model) {
     post_sd <- apply(model, 2, sd)
     
     message("Posterior sample mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
-    print(matrix(head(post_mean, k*m), nrow=k))
+    Phi_post_sample_mean <- matrix(head(post_mean, k*m), nrow=k)
+    colnames(Phi_post_sample_mean) <- colnames(attr(model,"posterior")$Phi_post)
+    rownames(Phi_post_sample_mean) <- rownames(attr(model,"posterior")$Phi_post)
+    print(Phi_post_sample_mean)
     
     message("Posterior sample mean of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
     print(matrix(tail(post_mean, m*m), nrow=m))
