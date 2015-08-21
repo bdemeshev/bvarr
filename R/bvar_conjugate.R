@@ -1079,15 +1079,25 @@ summary_conjugate <- function(model) {
     rownames(Phi_post_sample_mean) <- rownames(attr(model,"posterior")$Phi_post)
     print(Phi_post_sample_mean)
     
-    message("Posterior sample mean of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
-    print(matrix(tail(post_mean, m*m), nrow=m))
+    message("Posterior sample mean of Sigma (noise covariance matrix) [m = ",m," x m = ",m,"]:")
+    Sigma_post_sample_mean <- matrix(tail(post_mean, m*m), nrow=m)
+    colnames(Sigma_post_sample_mean) <- attr(model,"data")$endo_varnames
+    rownames(Sigma_post_sample_mean) <- attr(model,"data")$endo_varnames
+    print(Sigma_post_sample_mean)
+
     
     message("Posterior sample sd of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
-    print(matrix(head(post_sd, k*m), nrow=k))
-    
-    message("Posterior sample sd of Sigma (noise covariance) [m = ",m," x m = ",m,"]:")
-    print(matrix(tail(post_sd, m*m), nrow=m))
-    
+    Phi_post_sample_sd <- matrix(head(post_sd, k*m), nrow=k)
+    colnames(Phi_post_sample_sd) <- colnames(attr(model,"posterior")$Phi_post)
+    rownames(Phi_post_sample_sd) <- rownames(attr(model,"posterior")$Phi_post)
+    print(Phi_post_sample_sd)
+
+    message("Posterior sample sd of Sigma (noise covariance matrix) [m = ",m," x m = ",m,"]:")
+    Sigma_post_sample_sd <- matrix(tail(post_sd, m*m), nrow=m)
+    colnames(Sigma_post_sample_sd) <- attr(model,"data")$endo_varnames
+    rownames(Sigma_post_sample_sd) <- attr(model,"data")$endo_varnames
+    print(Sigma_post_sample_sd)
+
   }
     
 }
