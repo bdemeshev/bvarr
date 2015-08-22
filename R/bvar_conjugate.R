@@ -534,7 +534,7 @@ bvar_conjugate0 <-
     exo_varnames <- priors$exo_varnames
     endo_varnames <- priors$endo_varnames
     
-    
+    way_omega_post_root <- match.arg(way_omega_post_root)
     
     if ( (is.null(Y_in)) & (!is.null(priors$Y_in)) ){
       Y_in <- priors$Y_in
@@ -827,13 +827,11 @@ bvar_conjugate0 <-
 #' forecast_conjugate(model, h=2, output="wide")
 #' forecast_conjugate(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 forecast_conjugate <- function(model, 
-                               Y_in=NULL, 
-                               Z_f=NULL,
+                               Y_in=NULL, Z_f=NULL,
                                output=c("long","wide"),
-                               h=1, level=c(80,95),
-                               type=c("prediction","credible"),
-                               out_of_sample=TRUE,
-                               include=c("mean","median","sd","raw"),
+                               h=1, out_of_sample=TRUE,
+                               type=c("prediction","credible"), level=c(80,95),
+                               include=c("mean","median","sd","interval", "raw"),
                                fast_forecast=FALSE,
                                verbose=FALSE) {
 
@@ -854,8 +852,8 @@ forecast_conjugate <- function(model,
 
   constant <- attr(model,"params")$constant
   
-  if (attr(model,"params")$fast_forecast) {
-    if (verbose) message("No simulations in 'model', fast_forecast option is set to TRUE.")
+  if ((attr(model,"params")$fast_forecast) & (!fast_forecast) ){
+    if (verbose) message("No simulations found in 'model', fast_forecast option is set to TRUE.")
     fast_forecast <- TRUE
   }
   
@@ -988,18 +986,20 @@ forecast_conjugate <- function(model,
   }
 
   # calculate quantiles
-  for (lev in level) {
-    # lower
-    what <- rep(paste0("lower_",lev), h*m)
-    value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
-    block <- cbind(id_block, what, value) # block of information
-    forecast_summary <- rbind(forecast_summary, block)
-    
-    # upper
-    what <- rep(paste0("upper_",lev), h*m)
-    value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
-    block <- cbind(id_block, what, value) # block of information
-    forecast_summary <- rbind(forecast_summary, block)
+  if ("interval" %in% include) {
+    for (lev in level) {
+      # lower
+      what <- rep(paste0("lower_",lev), h*m)
+      value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
+      block <- cbind(id_block, what, value) # block of information
+      forecast_summary <- rbind(forecast_summary, block)
+      
+      # upper
+      what <- rep(paste0("upper_",lev), h*m)
+      value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
+      block <- cbind(id_block, what, value) # block of information
+      forecast_summary <- rbind(forecast_summary, block)
+    }
   }
   
   rownames(forecast_summary)  <- NULL

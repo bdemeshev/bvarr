@@ -5,9 +5,9 @@
 \title{predict with conjugate Normal-Inverse-Wishart bayesian VAR model}
 \usage{
 forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
-  "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"),
-  out_of_sample = TRUE, include = c("mean", "median", "sd", "raw"),
-  fast_forecast = FALSE, verbose = FALSE)
+  "wide"), h = 1, out_of_sample = TRUE, type = c("prediction",
+  "credible"), level = c(80, 95), include = c("mean", "median", "sd",
+  "interval", "raw"), fast_forecast = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{model}{estimated conjugate N-IW model}
@@ -21,13 +21,13 @@ If NULL, then Y_in supplied for estimation will be used. For out-of-sample forec
 
 \item{h}{number of periods for forecasting}
 
-\item{level}{confidence levels for prediction intervals}
+\item{out_of_sample}{logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
+If forecasts are not out-of-sample, then parameter h is ignored}
 
 \item{type}{("prediction" by default) type of interval: "prediction" incorporates uncertainty about
 future shocks; "credible" deals only with parameter uncertainty.}
 
-\item{out_of_sample}{logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
-If forecasts are not out-of-sample, then parameter h is ignored}
+\item{level}{confidence levels for prediction intervals}
 
 \item{include}{(default is c("mean", "median", "sd", "raw")) what type of summary to provide
 If "raw" is present raw forecasts will be reported. If only "raw" is present
