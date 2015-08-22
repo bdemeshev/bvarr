@@ -810,8 +810,10 @@ bvar_conjugate0 <-
 #' @param output (default "long") --- long or wide table for mean/quantiles of forecasts
 #' @param out_of_sample logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
 #' If forecasts are not out-of-sample, then parameter h is ignored
-#' @param include (default is c("mean", "median", "sd")) what type of summary to provide
-#' If include is NULL and level is NULL then the function will return raw mcmc predictions
+#' @param include (default is c("mean", "median", "sd", "raw")) what type of summary to provide
+#' If "raw" is present raw forecasts will be reported. If only "raw" is present
+#' then function will return coda mcmc object with raw forecasts. 
+#' Otherwise raw forecasts will be attached as attribute.
 #' @param fast_forecast logical, FALSE by default. If TRUE then only mean forecast is calculated,
 #' posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median. 
 #' This mode is activated by default if there are no simulations in supplied model.
@@ -831,7 +833,7 @@ forecast_conjugate <- function(model,
                                h=1, level=c(80,95),
                                type=c("prediction","credible"),
                                out_of_sample=TRUE,
-                               include=c("mean","median","sd"),
+                               include=c("mean","median","sd","raw"),
                                fast_forecast=FALSE,
                                verbose=FALSE) {
 
@@ -1003,20 +1005,18 @@ forecast_conjugate <- function(model,
   rownames(forecast_summary)  <- NULL
   
   
-  if (output=="wide") { # transform to wide format if requested
+  if ((output=="wide") & (!is.null(forecast_summary))) { # transform to wide format if requested
     forecast_summary <- reshape2::dcast(forecast_summary, variable+h~what)
   }
   
   
-
-  if (is.null(include) & is.null(level)) {
-    # report only raw forecasts
-    forecast_summary <- forecast_raw
-  } else {
-    # save raw forecasts for further analysis
-    attr(forecast_summary, "forecast_raw") <- forecast_raw
+  if ("raw" %in% include) {
+    if (length(include)==1) { # only raw forecasts are requested
+      forecast_summary <- forecast_raw
+    } else { # attach raw forecasts as attribute
+      attr(forecast_summary, "forecast_raw") <- forecast_raw
+    }
   }
-  
   return(forecast_summary)
 }
 

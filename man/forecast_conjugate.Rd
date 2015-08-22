@@ -6,7 +6,7 @@
 \usage{
 forecast_conjugate(model, Y_in = NULL, Z_f = NULL, output = c("long",
   "wide"), h = 1, level = c(80, 95), type = c("prediction", "credible"),
-  out_of_sample = TRUE, include = c("mean", "median", "sd"),
+  out_of_sample = TRUE, include = c("mean", "median", "sd", "raw"),
   fast_forecast = FALSE, verbose = FALSE)
 }
 \arguments{
@@ -29,8 +29,10 @@ future shocks; "credible" deals only with parameter uncertainty.}
 \item{out_of_sample}{logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
 If forecasts are not out-of-sample, then parameter h is ignored}
 
-\item{include}{(default is c("mean", "median", "sd")) what type of summary to provide
-If include is NULL and level is NULL then the function will return raw mcmc predictions}
+\item{include}{(default is c("mean", "median", "sd", "raw")) what type of summary to provide
+If "raw" is present raw forecasts will be reported. If only "raw" is present
+then function will return coda mcmc object with raw forecasts.
+Otherwise raw forecasts will be attached as attribute.}
 
 \item{fast_forecast}{logical, FALSE by default. If TRUE then only mean forecast is calculated,
 posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median.
