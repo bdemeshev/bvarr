@@ -1102,8 +1102,8 @@ summary_conjugate <- function(model) {
 #'  
 #' Multivariate log-gamma-function. Wikipedia-style parametrisation (p,a)
 #' 
-#' @param p 
-#' @param a
+#' @param p dimension 
+#' @param a argument 
 #' @export
 #' @return log G_p(a), log of multivariate gamma-function
 #' @examples 
@@ -1150,10 +1150,12 @@ marginal_data_density <- function(model) {
   
   
   # what are exactly T, X, Y and v_post (it uses T). Shall we include dummy variables?!
-  T <- params$T # number of observations minus p
-  v_post <- post$v_post # v_prior + T
-  X <- rbind(data$X_dummy, data$X_wo_dummy)
-  Y <- rbind(data$Y_dummy, data$Y_wo_dummy)
+  X <- data$X_wo_dummy # here we may experiment :)
+  Y <- data$Y_wo_dummy
+  
+  T <- nrow(X)
+  v_post <- v_prior + T 
+  
  
   I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
   I_XoX_inv <- sym_inv(I_XoX)

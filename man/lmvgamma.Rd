@@ -7,9 +7,9 @@
 lmvgamma(p, a)
 }
 \arguments{
-\item{p}{}
+\item{p}{dimension}
 
-\item{a}{}
+\item{a}{argument}
 }
 \value{
 log G_p(a), log of multivariate gamma-function
