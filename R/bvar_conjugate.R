@@ -610,7 +610,7 @@ bvar_conjugate0 <-
     Y <- rbind(priors$Y_dummy, Y)
     X <- rbind(priors$X_dummy, X)
         
-    # get dimensions
+    # get dimensions, here T counts: T_in (supplied obs) - n_lag + T_dummy
     T <- nrow(Y)
     m <- ncol(Y)
     k <- m*p + d
@@ -1093,6 +1093,78 @@ summary_conjugate <- function(model) {
 
   }
     
+}
+
+
+#' Multivariate log-gamma-function
+#'
+#' Multivariate log-gamma-function
+#'  
+#' Multivariate log-gamma-function. Wikipedia-style parametrisation (p,a)
+#' 
+#' @param p 
+#' @param a
+#' @export
+#' @return log G_p(a), log of multivariate gamma-function
+#' @examples 
+#' lmvgamma(2,3)
+lmvgamma <- function(p,a) { # wikipedia parameters
+  res <- p*(p-1)/4*log(pi) + sum( lgamma(a+(1-(1:p))/2) )
+  return(res)
+}
+
+
+#' Calculate log marginal data density
+#'
+#' Calculate log marginal data density
+#'  
+#' Calculate log marginal data density. Formula from Carriero p. 55
+#' 
+#' @param model estimated conjugate N-IW model
+#' @export
+#' @return log of marginal data density
+#' @examples 
+#' data(Yraw)
+#' priors <- Carriero_priors(Yraw, p = 4)
+#' model <- bvar_conjugate0(priors = priors, fast_forecast = TRUE)
+#' marginal_data_density(model)
+marginal_data_density <- function(model) {
+
+  params <- attr(model,"params")
+  data <- attr(model,"data")
+  prior <- attr(model,"prior")
+  post <- attr(model,"post")
+  
+  p <- params$p
+  k <- params$k
+  m <- params$m
+  d <- params$d
+  keep <- params$keep
+  T_in <- params$T_in
+  T_dummy <- params$T_dummy
+  fast_forecast <- params$fast_forecast
+  Omega_prior <- prior$Omega_prior
+  Phi_prior <- prior$Phi_prior
+  S_prior <- prior$S_prior
+  v_prior <- prior$v_prior
+  
+  
+  # what are exactly T, X, Y and v_post (it uses T). Shall we include dummy variables?!
+  T <- params$T # number of observations minus p
+  v_post <- post$v_post # v_prior + T
+  X <- rbind(data$X_dummy, data$X_wo_dummy)
+  Y <- rbind(data$Y_dummy, data$Y_wo_dummy)
+ 
+  I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
+  I_XoX_inv <- sym_inv(I_XoX)
+  e_prior <- Y-X %*% Phi_prior    
+  
+  # just to avoid a very long line:
+  line_1 <- -T*m/2 * log(pi) - m/2 * log(det(I_XoX)) + v_prior/2 * log(det(S_prior)) 
+  line_2 <- -v_post/2 * log(det( t(e_prior) %*% I_XoX_inv %*% e_prior ))
+  res <- lmvgamma(m, v_post/2) - lmvgamma(m, v_prior/2) + line_1 + line_2
+  return(res)
+  
 }
 
 
