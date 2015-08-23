@@ -17,4 +17,5 @@ Imports:
     magrittr (>= 1.5)
 Description: The bvarr package allows estimation of 6 different bayesian VAR
     models.
+LazyData: true
 License: MIT

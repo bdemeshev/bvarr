@@ -4,20 +4,21 @@
 \name{Yraw}
 \alias{Yraw}
 \title{US inflation, employement and interest rate data.frame}
-\format{A data.frame with 215 rows and 3 variables}
+\format{A data.frame with 215 rows and 3 variables:
+\describe{
+  \item{inflation}{inflation}
+  \item{employment}{employment}
+  \item{interest_rate}{interest_rate}
+}}
+\source{
+\url{https://sites.google.com/site/dimitriskorobilis/matlab/code-for-vars}
+}
 \usage{
-data(Yraw)
+Yraw
 }
 \description{
 Quarterly US data on inflation, unemployment and interest rate,
-1953:Q1 - 2006:Q3 The variables are as follows:
-}
-\details{
-\itemize{
-\item inflation inflation
-\item employment employment
-\item interest_rate interest rate
-}
+1953:Q1 - 2006:Q3 from KK-code. The variables are as follows:
 }
 \keyword{datasets}
 
