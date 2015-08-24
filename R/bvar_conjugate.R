@@ -199,7 +199,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sqrt(sigmas_sq)) )/l_1, matrix(0, nrow=m*p, ncol=d))
   x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
-  x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, ncol(Z_in)) )
+  x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, d-constant) )
   X_dummy_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
     
     
