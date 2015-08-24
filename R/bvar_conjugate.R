@@ -144,11 +144,10 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # set Omega_prior
   # the diagonal of Omega_prior begins with endogeneous part:
-  endo_diagonal <- l_1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^(2*l_lag), each=m)
+  endo_diagonal <- l_1^2/rep(sigmas_sq, p)/rep((1:p)^(2*l_lag), each=m)
   
   # and ends with exogeneous part:
-  exo_diagonal <- rep(l_exo^2,d)
-  if (constant) exo_diagonal[1] <- l_const^2
+  exo_diagonal <- c( rep(l_const^2,constant), rep(l_exo^2,d-constant) )
   
   Omega_diagonal <- c(endo_diagonal, exo_diagonal)
   # and set zero prior covariances
@@ -238,7 +237,8 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                  sigmas_sq = sigmas_sq,
                  endo_varnames=endo_varnames,
                  exo_varnames=exo_varnames,
-                 Omega_prior_m05=Omega_prior_m05) # get more info from function
+                 Omega_prior_m05=Omega_prior_m05,
+                 lambdas=lambdas) # get more info from function
   
   return(priors)
 }
