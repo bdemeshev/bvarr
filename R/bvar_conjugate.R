@@ -13,11 +13,11 @@
 #'
 #' @param p number of lags
 #' @param Y_in multivariate time series
-#' @param lambdas vector = (l_1, l_power, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+#' @param lambdas vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
 #' conjugate N-IW prior. Short summary:
 #' sd(const in eq i) = l_const * sigma_i
 #' sd(exo in eq i)= l_exo * sigma_i
-#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_power
+#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
 #' lambdas may be Inf
 #' l_io or l_sc equal to NA means no corresponding dummy observations
 #' @param Z_in exogeneous variables
@@ -46,7 +46,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             y_0_bar_type = c("initial", "all") ) {
   l_1 <- lambdas[1]
   l_kron <- 1
-  l_power <- lambdas[2]
+  l_lag <- lambdas[2]
   l_sc <- lambdas[3]
   l_io <- lambdas[4]
   l_const <- lambdas[5]
@@ -144,7 +144,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   # set Omega_prior
   # the diagonal of Omega_prior begins with endogeneous part:
-  endo_diagonal <- l_1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^(2*l_power), each=m)
+  endo_diagonal <- l_1^2*rep(1/sigmas_sq, p)/rep(1/(1:p)^(2*l_lag), each=m)
   
   # and ends with exogeneous part:
   exo_diagonal <- rep(l_exo^2,d)
@@ -190,10 +190,24 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     X_dummy_io <- matrix(c(rep(delta * y_0_bar/l_io, p), z_bar/l_io), nrow=1)
   }
   
+  # dummy cNIW = conjugate Normal Inverse Wishart
+  y_cniw_block_1 <- diag(sqrt(sigmas_sq)*delta)/l_1
+  y_cniw_block_2 <- matrix(0, nrow=m*(p-1), ncol=m)
+  y_cniw_block_3 <- diag(sqrt(sigmas_sq))
+  y_cniw_block_4 <- matrix(0, nrow=1, ncol=m)
+  Y_dummy_cniw <- rbind(y_cniw_block_1, y_cniw_block_2, y_cniw_block_3, y_cniw_block_4) 
+  
+  x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sqrt(sigmas_sq)) )/l_1, matrix(0, nrow=m*p, ncol=d))
+  x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
+  x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, ncol(Z_in)) )
+  X_dummy_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
+    
+    
+    
   
   # robust calculation of (Omega_prior)^{-1/2}
   # the diagonal of Omega_prior begins with endogeneous part:
-  endo_diagonal_m05 <- 1/l_1*rep(sqrt(sigmas_sq), p)/rep((1:p)^(l_power), each=m)
+  endo_diagonal_m05 <- 1/l_1*rep(sqrt(sigmas_sq), p)/rep((1:p)^(l_lag), each=m)
   
   # and ends with exogeneous part:
   exo_diagonal_m05 <- rep(1/l_exo,d)
@@ -213,6 +227,12 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   priors <- list(v_prior=v_prior, S_prior=S_prior, 
                  Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
                  Y_dummy=Y_dummy, X_dummy=X_dummy,
+                 X_dummy_io=X_dummy_io, 
+                 Y_dummy_io=Y_dummy_io,
+                 X_dummy_sc=X_dummy_sc,
+                 Y_dummy_sc=Y_dummy_sc,
+                 X_dummy_cniw=X_dummy_cniw,
+                 Y_dummy_cniw=Y_dummy_cniw,
                  sc_io_numrows=sc_io_numrows,
                  Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
                  sigmas_sq = sigmas_sq,
