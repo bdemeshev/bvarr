@@ -2,6 +2,85 @@
 # variable names everywhere where possible
 # make parallel computations in estimate and forecast
 
+#' Build Y matrix from supplied data
+#' 
+#' Build Y matrix from supplied data
+#' 
+#' Build Y matrix from supplied data
+#'
+#' @param p number of lags
+#' @param Y_in multivariate time series [T_in x m]
+#' @return Y [T x m] matrix of left hand side endogeneous variables, T = T_in - p
+#' @export
+#' @examples 
+#' data(Yraw)
+#' Y <- bvar_build_Y(Yraw, p=4)
+bvar_build_Y <- function(Y_in, p=1) {
+  
+  # transform Y_in from data.frame to matrix
+  # so that cbind(NULL, Y_block) will work 
+  Y_in <- as.matrix(Y_in)
+  
+  # p first observations of Y_in are used only as regressors
+  Y <- tail(Y_in, -p)
+  
+  return(Y)
+}
+
+#' Build X matrix from supplied data
+#' 
+#' Build X matrix from supplied data
+#' 
+#' Build X matrix from supplied data
+#' 
+#' @param p number of lags
+#' @param Y_in endogeneous variables [T_in x m]
+#' @param Z_in optional exogeneous variables [T_in x ...]
+#' @param constant whether the constant should be included, default is TRUE
+#' @return X [T x k] matrix of right hand side regressors: endogeneous and exogeneous variables,
+#' T = T_in - p, k = m*p + d, d is the number of exogeneous variables including constant if present
+#' @export
+#' @examples 
+#' data(Yraw)
+#' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
+bvar_build_X <- function(Y_in, Z_in=NULL, constant=TRUE, p=1) {
+  
+  # if Z_in is provided it should have the same number of rows that Y_in
+  if (!is.null(Z_in)) 
+    if (!nrow(Y_in)==nrow(Z_in))
+      stop("Number of rows in Y_in and Z_in should be equal. 
+           The first p rows of Z_in are not used and may be filled with NA")
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) {
+    Z_in <- cbind(rep(1, nrow(Y_in)), Z_in)
+    colnames(Z_in)[1] <- "const"
+  }
+  
+  # transform Y_in from data.frame to matrix
+  # so that cbind(NULL, Y_block) will work 
+  Y_in <- as.matrix(Y_in)
+  
+  # p first observations of Y_in are used only as regressors
+  Y <- tail(Y_in, -p)
+  # p first observations of Z_in are not used only at all
+  Z <- tail(Z_in, -p)
+  
+  # number of observations supplied
+  T_in <- nrow(Y_in)
+  
+  # create X matrix
+  X <- NULL
+  for (j in 1:p) {
+    Y_block <- Y_in[(p+1-j):(T_in-j),]
+    colnames(Y_block) <- paste0(colnames(Y), ", l=", j)
+    X <- cbind(X, Y_block) 
+  }
+  X <- cbind(X,Z)
+  # X = [endo | const | other exo]
+  
+  return(X)
+}
 
 
 #' Set conjugate N-IW priors from lambdas as in Carriero
@@ -36,7 +115,7 @@
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2,1,1,1,100,100))
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 #' # if something goes wrong then we need info!
 #' model <- bvar_conjugate0(priors = priors, keep=10, verbose=TRUE)
 Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
@@ -263,7 +342,7 @@ Carriero_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' @examples 
 #' data(Yraw)
 #' priors <- KK_code_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 
   Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
@@ -341,7 +420,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' @examples 
 #' data(Yraw)
 #' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
                           lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
                             VAR_in=c("levels","growth rates")) {
@@ -545,7 +624,7 @@ is.diagonal <- function(A, epsilon=0) {
 #' @examples
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 bvar_conjugate0 <-
   function(Y_in=NULL, Z_in=NULL, constant=TRUE, p=NULL, keep=10000, verbose=FALSE,
            priors=list(), fast_forecast=FALSE,
@@ -583,7 +662,7 @@ bvar_conjugate0 <-
     if (!is.null(Z_in)) 
       if (!nrow(Y_in)==nrow(Z_in))
         stop("Number of rows in Y_in and Z_in should be equal. 
-           The p rows of Z_in are not used and may be filled with NA")
+           The first p rows of Z_in are not used and may be filled with NA")
     
     
     # number of observations supplied
@@ -843,7 +922,7 @@ bvar_conjugate0 <-
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 #' forecast_conjugate(model, h=2, output="wide")
 #' forecast_conjugate(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 forecast_conjugate <- function(model, 
@@ -1053,7 +1132,7 @@ forecast_conjugate <- function(model,
 #' @examples 
 #' data(Yraw)
 #' priors <- Carriero_priors(Yraw, p = 4)
-#' model <- bvar_conjugate0(priors = priors, keep=1000)
+#' model <- bvar_conjugate0(priors = priors, keep=100)
 #' summary_conjugate(model)
 summary_conjugate <- function(model) {
   T <- attr(model,"params")$T # number of observations minus p
