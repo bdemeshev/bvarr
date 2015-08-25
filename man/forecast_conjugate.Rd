@@ -52,7 +52,7 @@ predict with conjugate Normal-Inverse-Wishart bayesian VAR model
 \examples{
 data(Yraw)
 priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors, keep=1000)
+model <- bvar_conjugate0(priors = priors, keep=100)
 forecast_conjugate(model, h=2, output="wide")
 forecast_conjugate(model, out_of_sample = FALSE, include="mean", level=NULL, type = "credible")
 }

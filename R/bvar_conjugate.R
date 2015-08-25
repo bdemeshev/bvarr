@@ -83,6 +83,39 @@ bvar_build_X <- function(Y_in, Z_in=NULL, constant=TRUE, p=1) {
 }
 
 
+
+#' Calculate posterior hyperparameters from X_star and Y_star matrix 
+#' 
+#' Calculate posterior hyperparameters from X_star and Y_star matrix 
+#' 
+#' Calculate posterior hyperparameters from X_star and Y_star matrix. 
+#' Usually X_star and Y_star are equal to X and Y augmented with dummy observations.
+#' 
+#' @param X_star [T_star x k] matrix of right hand side regressors: endogeneous and exogeneous variables
+#' @param Y_star [T_star x m] matrix of left hand side endogeneous variables
+#' @export
+#' @examples 
+#' data(Yraw)
+#' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
+#' Y <- bvar_build_Y(Yraw, p=4)
+#' post <- bvar_conjugate_posterior(Y,X) # no dummy observation, just for demo
+bvar_conjugate_posterior <- function(Y_star, X_star) {
+  
+  X_star_svd <- svd(X_star) # risky operation
+  Omega_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
+  
+  # following operations are riskless (no inverse, no root, + and * only)
+  Omega <- Omega_root %*% Omega_root
+  
+  Phi_star <- Omega %*% crossprod(X_star, Y_star)
+  E_star <- Y_star - X_star %*% Phi_star
+  S <- crossprod(E_star)
+  
+  post <- list(Omega_root=Omega_root, Omega=Omega, Phi=Phi_star, S=S)
+  return(post)
+}
+
+
 #' Set conjugate N-IW priors from lambdas as in Carriero
 #' 
 #' Set conjugate N-IW priors from lambdas as in Carriero
