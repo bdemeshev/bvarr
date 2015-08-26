@@ -84,22 +84,24 @@ bvar_build_X <- function(Y_in, Z_in=NULL, constant=TRUE, p=1) {
 
 
 
-#' Calculate posterior hyperparameters from X_star and Y_star matrix 
+#' Calculate hyperparameters from artificial observations  
 #' 
-#' Calculate posterior hyperparameters from X_star and Y_star matrix 
+#' Calculate hyperparameters from artificial observations 
 #' 
-#' Calculate posterior hyperparameters from X_star and Y_star matrix. 
-#' Usually X_star and Y_star are equal to X and Y augmented with dummy observations.
+#' Calculate hyperparameters from artificial observations. Can be used both for prior and posterior
+#' hyperparameters. In the case of prior hyperparameters X_star usually consists of X_cniw, X_io and X_sc. 
+#' In the case of posterior hyperparameters X_star usually consists of X, X_cniw, X_io and X_sc. 
 #' 
 #' @param X_star [T_star x k] matrix of right hand side regressors: endogeneous and exogeneous variables
 #' @param Y_star [T_star x m] matrix of left hand side endogeneous variables
+#' @return list of hyperparameters: Omega, Omega_root, Phi, S
 #' @export
 #' @examples 
 #' data(Yraw)
 #' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
 #' Y <- bvar_build_Y(Yraw, p=4)
-#' post <- bvar_conjugate_posterior(Y,X) # no dummy observation, just for demo
-bvar_conjugate_posterior <- function(Y_star, X_star) {
+#' post <- bvar_dummy2hyper(Y,X) # no dummy observation, just for demo
+bvar_dummy2hyper <- function(Y_star, X_star) {
   
   X_star_svd <- svd(X_star) # risky operation
   Omega_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
@@ -111,8 +113,236 @@ bvar_conjugate_posterior <- function(Y_star, X_star) {
   E_star <- Y_star - X_star %*% Phi_star
   S <- crossprod(E_star)
   
-  post <- list(Omega_root=Omega_root, Omega=Omega, Phi=Phi_star, S=S)
-  return(post)
+  hyper <- list(Omega_root=Omega_root, Omega=Omega, Phi=Phi_star, S=S)
+  return(hyper)
+}
+
+
+#' Calculate artificial observations from hyperparameters
+#' 
+#' Calculate artificial observations from hyperparameters
+#' 
+#' Calculate artificial observations from hyperparameters. 
+#' Usually used to calculate artificial observations
+#' from prior hyperparameters. 
+#' 
+#' @param Omega [k x k] hyperparameter, scale matrix for covariance of coefficients
+#' @param S [m x m] hyperparameter, scale matrix for IW-distribution
+#' @param Phi [k x m] hyperparameter, expected values of coefficients
+#' @return list of artificial observations: X_plus, Y_plus
+#' @export
+#' @examples 
+#' data(Yraw)
+#' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
+#' Y <- bvar_build_Y(Yraw, p=4)
+#' hyper <- bvar_dummy2hyper(Y,X) # no dummy observation, just for demo
+#' dummy <- bvar_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
+bvar_hyper2dummy <- function(Omega, S, Phi) {
+  
+  # http://math.stackexchange.com/questions/712993/cholesky-decomposition-of-the-inverse-of-a-matrix
+  X_plus <- solve(chol(Omega)) # very risky operation: both chol and solve may fail 
+  Y_plus <- NULL
+  
+  dummy <- list(X_plus=X_plus,Y_plus=Y_plus)
+  return(dummy)
+}
+
+
+#' Create dummy observations from lambdas 
+#' 
+#' Create dummy observations from lambdas
+#' 
+#' Create dummy observations from lambdas. 
+#' Lambdas specification is based on Carriero p. 52-53
+#'
+#' @param p number of lags
+#' @param Y_in multivariate time series
+#' @param lambda vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+#' conjugate N-IW prior. Short summary valid for NO sc/io case:
+#' sd(const in eq i) = l_const * sigma_i
+#' sd(exo in eq i)= l_exo * sigma_i
+#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
+#' lambdas may be Inf
+#' l_io or l_sc equal to NA means no corresponding dummy observations
+#' @param Z_in exogeneous variables
+#' @param constant logical, default is TRUE, whether the constant should be included
+#' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
+#' Carriero uses 1 in his matlab code
+#' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
+#' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+#' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise.
+#' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
+#' "all": y_bar is mean of y for all observations, "initial": p initial observations
+#' Carriero: all, Sim-Zha: initial
+#' @return dummy list containing:
+#' X_cniw,  Y_cniw
+#' X_sc, Y_sc
+#' X_io, Y_io
+#' X_plus, Y_plus binding all corresponging Xs and Ys
+#' @export
+#' @examples 
+#' data(Yraw)
+#' dummy <- bvar_conj_lambda2dummy(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+                                   lambda=c(0.2,1,1,1,100,100), 
+                                   delta=1,
+                                   s2_lag=NULL, 
+                                   y_bar_type = c("initial", "all") ) {
+  
+  l_1 <- lambda[1]
+  # l_kron <- 1 # for the reader of this code. l_kron is always 1 for conjugate NIW
+  l_lag <- lambda[2]
+  l_sc <- lambda[3]
+  l_io <- lambda[4]
+  l_const <- lambda[5]
+  l_exo <- lambda[6]
+  
+  y_bar_type <- match.arg(y_bar_type)
+  
+  Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
+  m <- ncol(Y_in)
+  
+  # get variable names
+  endo_varnames <- bvar_get_endo_varnames(Y_in)
+  exo_varnames <- bvar_get_exo_varnames(Z_in, constant=constant)
+  
+  # calculate d, the number of exogeneous regressors
+  if (is.null(Z_in)) {
+    d <- 1*constant
+  } else {
+    d <- ncol(Z_in) + 1*constant
+  }
+  
+  # if requested add constant to exogeneous regressors
+  # constant to the left of other exo variables
+  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
+  
+  k <- m*p+d
+  
+  ##### create vector of delta
+  
+  if (delta=="AR1") { # set deltas as AR(1) coefficients but no more than 1
+    delta <- rep(1,m) # reserve space
+    for (j in 1:m) {
+      y_uni <- Y_in[,j] # univariate time series
+      # more robust version: fails only in the case of  severe multicollinearity
+      AR_1 <- ar.ols(y_uni, aic=FALSE, order.max = 1) # AR(1) model
+      delta[j] <- AR_1$ar
+      if (delta[j]>1) delta[j] <- 1
+    }
+  }
+  if (length(delta)==1) delta <- rep(delta, m) # copy scalar values
+  if (! length(delta)==m ) stop("Length of delta should be equal to 1 or m")
+  
+  ######  estimate sigma^2 from univariate AR(p) processes
+  # Carriero matlab code: always AR(1)! 
+  if (is.null(s2_lag)) s2_lag <- p
+  
+  sigmas_sq <- rep(NA, m)
+  for (j in 1:m) {
+    y_uni <- Y_in[,j] # univariate time series
+    # more robust version: fails only in the case of  severe multicollinearity
+    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
+    resid <- tail(AR_p$resid,-s2_lag) # omit first p NA in residuals
+    sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
+  }
+  
+  
+  
+  ###### calculate y_bar 
+  if (y_bar_type=="initial") sc_io_numrows <- p
+  if (y_bar_type=="all") sc_io_numrows <- nrow(Y_in)
+  
+  
+  y_bar <- apply(as.matrix(Y_in[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [m x 1] of mean values of each endo-series
+  if (is.null(Z)) z_bar <- NULL # special case of no constant and no exo vars
+  if (!is.null(Z)) z_bar <- 
+    apply(as.matrix(Z[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [d x 1] of mean values of each exo-series
+  # "as.matrix" above is needed to avoid errors for sc_io_numrows=1 or d=1
+  
+  
+  
+  # sc, sum of coefficients prior
+  Y_sc <- NULL
+  X_sc <- NULL
+  if (!is.na(l_sc)) {
+    Y_sc <- matrix(0, m, m) # zero matrix [m x m]
+    diag(Y_sc) <- delta * y_bar / l_sc
+    
+    exo_dummy <- matrix(0, m, d)
+    
+    X_sc <- cbind( kronecker(matrix(1, 1, p), Y_sc) , exo_dummy)  # zero matrix [m x k]
+  }
+  
+  # io, dummy initial observation
+  Y_io <- NULL
+  X_io <- NULL
+  if (!is.na(l_io)) {
+    Y_io <- matrix(delta * y_bar/l_io, nrow=1)
+    X_io <- matrix(c(rep(delta * y_bar/l_io, p), z_bar/l_io), nrow=1)
+  }
+  
+  # dummy cNIW = conjugate Normal Inverse Wishart
+  y_cniw_block_1 <- diag(sqrt(sigmas_sq)*delta)/l_1
+  y_cniw_block_2 <- matrix(0, nrow=m*(p-1), ncol=m)
+  y_cniw_block_3 <- diag(sqrt(sigmas_sq))
+  y_cniw_block_4 <- matrix(0, nrow=1, ncol=m)
+  Y_cniw <- rbind(y_cniw_block_1, y_cniw_block_2, y_cniw_block_3, y_cniw_block_4) 
+  
+  x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sqrt(sigmas_sq)) )/l_1, matrix(0, nrow=m*p, ncol=d))
+  x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
+  x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, d-constant) )
+  X_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
+  
+
+  
+  X_plus <- rbind(X_sc, X_io, X_cniw)
+  Y_plus <- rbind(Y_sc, Y_io, Y_cniw)
+  
+  dummy <- list(X_sc=X_sc, Y_sc=Y_sc,
+                X_io=X_io, Y_io=Y_io,
+                X_cniw=X_cniw, Y_cniw=Y_cniw,
+                X_plus=X_plus, Y_plus=Y_plus)
+  return(dummy)
+}
+
+#' Get endogeneous variable names from supplied data
+#' 
+#' Get endogeneous variable names from supplied data
+#' 
+#' Get endogeneous variable names from supplied data
+#' 
+#' @param Y_in [T_in x m] multivariate time series
+#' @export
+#' @return vector of variable names
+#' @examples 
+#' data(Yraw)
+#' bvar_get_endo_varnames(Yraw)
+bvar_get_endo_varnames <- function(Y_in) {
+  endo_varnames <- colnames(Y_in)
+  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
+  return(endo_varnames)
+}
+
+#' Get exogeneous variable names from supplied data
+#' 
+#' Get exogeneous variable names from supplied data
+#' 
+#' Get exogeneous variable names from supplied data
+#' 
+#' @param constant logical, default is TRUE, whether the constant should be included
+#' @param Z_in [T_in x m] multivariate time series
+#' @export
+#' @return vector of variable names
+#' @examples 
+#' data(Yraw)
+#' bvar_get_exo_varnames(Yraw)
+bvar_get_exo_varnames <- function(Z_in, constant=TRUE) {
+  exo_varnames <- colnames(Z_in)
+  if (is.null(exo_varnames) & !is.null(Z_in)) exo_varnames <- paste0("exo_",1:ncol(Z_in))
+  
+  exo_varnames <- c(rep("const",constant),exo_varnames)
+  return(exo_varnames)
 }
 
 
@@ -124,7 +354,7 @@ bvar_conjugate_posterior <- function(Y_star, X_star) {
 #' Based on Carriero p. 52-53
 #'
 #' @param p number of lags
-#' @param Y_in multivariate time series
+#' @param Y_in [T_in x m] multivariate time series
 #' @param lambdas vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
 #' conjugate N-IW prior. Short summary:
 #' sd(const in eq i) = l_const * sigma_i
@@ -132,7 +362,7 @@ bvar_conjugate_posterior <- function(Y_star, X_star) {
 #' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
 #' lambdas may be Inf
 #' l_io or l_sc equal to NA means no corresponding dummy observations
-#' @param Z_in exogeneous variables
+#' @param Z_in [T_in x ...] exogeneous variables
 #' @param constant logical, default is TRUE, whether the constant should be included
 #' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
 #' Carriero uses 1 in his matlab code

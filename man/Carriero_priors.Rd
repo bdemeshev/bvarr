@@ -9,9 +9,9 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   y_0_bar_type = c("initial", "all"))
 }
 \arguments{
-\item{Y_in}{multivariate time series}
+\item{Y_in}{[T_in x m] multivariate time series}
 
-\item{Z_in}{exogeneous variables}
+\item{Z_in}{[T_in x ...] exogeneous variables}
 
 \item{constant}{logical, default is TRUE, whether the constant should be included}
 
