@@ -279,11 +279,14 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   X_sc <- NULL
   if (!is.na(l_sc)) {
     Y_sc <- matrix(0, m, m) # zero matrix [m x m]
+    colnames(Y_sc) <- endo_varnames
+    
     diag(Y_sc) <- delta * y_bar / l_sc
     
     exo_dummy <- matrix(0, m, d)
     
     X_sc <- cbind( kronecker(matrix(1, 1, p), Y_sc) , exo_dummy)  # zero matrix [m x k]
+    colnames(X_sc) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   }
   
   # io, dummy initial observation
@@ -291,7 +294,10 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   X_io <- NULL
   if (!is.na(l_io)) {
     Y_io <- matrix(delta * y_bar/l_io, nrow=1)
+    colnames(Y_io) <- endo_varnames
+    
     X_io <- matrix(c(rep(delta * y_bar/l_io, p), z_bar/l_io), nrow=1)
+    colnames(X_sc) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   }
   
   # dummy cNIW = conjugate Normal Inverse Wishart
@@ -300,11 +306,14 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   y_cniw_block_3 <- diag(sqrt(sigmas_sq))
   y_cniw_block_4 <- matrix(0, nrow=1, ncol=m)
   Y_cniw <- rbind(y_cniw_block_1, y_cniw_block_2, y_cniw_block_3, y_cniw_block_4) 
+  colnames(Y_cniw) <- endo_varnames
+  
   
   x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sqrt(sigmas_sq)) )/l_1, matrix(0, nrow=m*p, ncol=d))
   x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
   x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, d-constant) )
   X_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
+  colnames(X_sc) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   
 
   
@@ -355,6 +364,28 @@ bvar_get_exo_varnames <- function(Z_in, constant=TRUE) {
   
   exo_varnames <- c(rep("const",constant),exo_varnames)
   return(exo_varnames)
+}
+
+#' Get X column names from exo_varnames and endo_varnames
+#' 
+#' Get X column names from exo_varnames and endo_varnames
+#' 
+#' Get X column names from exo_varnames and endo_varnames
+#' 
+#' @param p number of lags
+#' @param exo_varnames exogeneous variable names
+#' @param endo_varnames endogeneous variable names
+#' @export
+#' @return vector of variable names
+#' @examples 
+#' data(Yraw)
+#' exo_names <- bvar_get_exo_varnames(Yraw)
+#' endo_names <- bvar_get_endo_varnames(Yraw)
+#' bvar_create_X_colnames(endo_names, exo_names, p=2)
+bvar_create_X_colnames <- function(endo_varnames, exo_varnames, p) {
+  X_colnames <- paste0(rep(endo_varnames,p),", l=",rep(1:p,each=length(endo_varnames)))
+  X_colnames <- c(X_colnames, exo_varnames)
+  return(X_colnames)
 }
 
 
