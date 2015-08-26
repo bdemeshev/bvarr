@@ -454,6 +454,60 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   return(setup)
 }
 
+#' Estimate bvar conjugate model from setup
+#' 
+#' Estimate bvar conjugate model from setup
+#'  
+#' Estimate bvar conjugate model from setup
+#' 
+#' @param setup list containing:
+#' X [T x k]
+#' Y [T x m]
+#' X_plus [T_plus x k] 
+#' Y_plus [T_plus x m]
+#' v_prior 
+#' p number of lags
+#' @param keep the number of simulations
+#' If keep is zero only posteriors are calculated
+#' @param verbose TRUE will show some debugging messages, FALSE by default
+#' @return model list containing
+#' X, Y, X_plus, Y_plus,
+#' p, v_prior,
+#' sample (if keep>0)
+#' Omega_post, v_post, S_post, Phi_post
+#' @export
+#' @examples 
+#' data(Yraw)
+#' setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+#' model <- bvar_conj_estimate(setup, keep=10)
+bvar_conj_estimate <- function(setup, keep=2000, verbose=FALSE) {
+  
+  T <- nrow(setup$Y) # number of observations
+  
+  # calculate hyperpar of posterior
+  X_star <- rbind(setup$X_plus, setup$X)
+  Y_star <- rbind(setup$Y_plus, setup$Y)
+  
+  if (verbose) message("Calculating posterior hyperparameters...")
+  post <- bvar_dummy2hyper(Y_star, X_star)
+  v_post <- setup$v_prior + T
+  
+  # simulate
+  if (verbose) message("Simulating...")
+  if (keep>0) setup$sample <- 
+    bvar_conj_simulate(v_post = v_post, 
+                       Omega_post_root = post$Omega_root, 
+                       S_post = post$S, Phi_post = post$Phi, 
+                       verbose = verbose, keep = keep) 
+  
+  setup$v_post <- v_post
+  setup$S_post <- post$S
+  setup$Omega_post <- post$Omega
+  setup$Phi_post <- post$Phi
+                                       
+  return(setup)
+}
+
 
 #' Set conjugate N-IW priors from lambdas as in Carriero
 #' 
