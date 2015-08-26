@@ -82,6 +82,29 @@ bvar_build_X <- function(Y_in, Z_in=NULL, constant=TRUE, p=1) {
   return(X)
 }
 
+#' Recover original Y_in from Y, X and number of lags p
+#' 
+#' Recover original Y_in from Y, X and number of lags p
+#' 
+#' Recover original Y_in from Y, X and number of lags p
+#' 
+#' @param X [T x k] matrix of right hand side regressors: endogeneous and exogeneous variables
+#' @param Y [T x m] matrix of left hand side endogeneous variables
+#' @return original supplied Y_in
+#' @export
+#' @examples 
+#' data(Yraw)
+#' Y <- bvar_build_Y(Yraw, p=4)
+#' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
+#' Y_in <- bvar_get_Y_in(Y,X,p=4)
+bvar_get_Y_in <- function(Y,X,p) {
+  # Y contains all obs except the first p
+  m <- ncol(Y)
+  Y_in <- rbind(X[1:p, (m*(p-1)+1):(m*p)] , Y)
+  colnames(Y_in) <- colnames(Y)
+  rownames(Y_in) <- NULL
+  return(Y_in)
+}
 
 
 #' Calculate hyperparameters from artificial observations  
@@ -450,7 +473,8 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     
   if (is.null(v_prior)) v_prior <- m + 2
     
-  setup <- list(Y=Y, X=X, Y_plus=dummy$Y_plus, X_plus=dummy$X_plus, v_prior=v_prior, p=p )
+  setup <- list(Y=Y, X=X, Y_plus=dummy$Y_plus, X_plus=dummy$X_plus, v_prior=v_prior, p=p,
+                constant=constant)
   return(setup)
 }
 
@@ -914,6 +938,233 @@ is.diagonal <- function(A, epsilon=0) {
   non_diag_elements <- !diag(nrow(A))
   answer <- all( abs(A[non_diag_elements]) <= epsilon )
   return(answer)
+}
+
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#'
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#'  
+#' predict with conjugate Normal-Inverse-Wishart bayesian VAR model
+#' 
+#' @param model estimated conjugate N-IW model
+#' @param h number of periods for forecasting
+#' @param level confidence levels for prediction intervals
+#' @param Y_in (NULL by default) past values of endogeneous variables (shold have at least p observations).
+#' If NULL, then Y_in supplied for estimation will be used. For out-of-sample forecast only last p values of Y_in are used
+#' @param Z_f future values of exogeneous variables
+#' @param type ("prediction" by default) type of interval: "prediction" incorporates uncertainty about
+#' future shocks; "credible" deals only with parameter uncertainty.
+#' @param output (default "long") --- long or wide table for mean/quantiles of forecasts
+#' @param out_of_sample logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
+#' If forecasts are not out-of-sample, then parameter h is ignored
+#' @param include (default is c("mean", "median", "sd", "raw")) what type of summary to provide
+#' If "raw" is present raw forecasts will be reported. If only "raw" is present
+#' then function will return coda mcmc object with raw forecasts. 
+#' Otherwise raw forecasts will be attached as attribute.
+#' @param fast_forecast logical, FALSE by default. If TRUE then only mean forecast is calculated,
+#' posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median. 
+#' This mode is activated by default if there are no simulations in supplied model.
+#' @param verbose (default FALSE) if true some messages will be printed
+#' @export
+#' @return forecast results
+#' @examples 
+#' data(Yraw)
+#' setup <- bvar_conj_setup(Yraw, p = 4)
+#' model <- bvar_conj_estimate(setup, keep=100)
+#' bvar_conj_forecast(model, h=2, output="wide")
+#' bvar_conj_forecast(model, out_of_sample = FALSE, include="mean")
+bvar_conj_forecast <- function(model, 
+                               Y_in=NULL, Z_f=NULL,
+                               output=c("long","wide"),
+                               h=1, out_of_sample=TRUE,
+                               type=c("prediction","credible"), level=c(80,95),
+                               include=c("mean","median","sd","interval", "raw"),
+                               fast_forecast=FALSE,
+                               verbose=FALSE) {
+  
+  
+  # select type of prediction specified by user
+  type <- match.arg(type)
+  output <- match.arg(output)
+  
+  # simplify notation, extract params from attribute
+  T <- nrow(model$Y) # number of observations in regression
+  p <- model$p
+  k <- ncol(model$X)
+  m <- ncol(model$Y)
+  d <- k - m*p
+  T_dummy <- nrow(setup$X_plus)
+  
+  keep <- 0
+  if ("sample" %in% names(model)) keep <- nrow(model$sample) 
+  
+  constant <- model$constant 
+  
+  if (keep==0) & (!fast_forecast) ){
+    if (verbose) message("No simulations found in 'model', fast_forecast option is set to TRUE.")
+    fast_forecast <- TRUE
+  }
+  
+  if (fast_forecast) {
+    level <- NULL
+    include <- "mean"
+    keep <- 1
+    
+    # type of confidence interval does not make sense for fast mean forecast
+    # but setting type to 'credible' avoids simulations of future epsilon, so
+    type <- "credible"
+  }
+  
+  # if Y_in is not supplied take Y_in from estimation
+  if (is.null(Y_in)) Y_in <- bvar_get_Y_in(model$Y,model$X)
+  
+  
+  # in case of in-sample forecast h is set to T, or is is better set to NA?
+  if (!out_of_sample) h <- T
+  
+  
+  # sanity check
+  if (!is.null(Z_f))
+    if (!nrow(Z_f)==h) stop("I need exactly h = ",h," observations for exogeneous variables.")
+  
+  if (nrow(Y_in)<p) stop("Model has ",p," lags. To predict I need at least ",p," observations, but only ",nrow(Y_in)," are provided.")
+  
+  
+  # if requested add constant to exogeneous regressors
+  if (constant) Z_f <- cbind(rep(1, h), Z_f)
+  
+  
+  if (out_of_sample) {
+    # take last p observations of Y_in (out-of-sample forecast)
+    Y_in <- tail(Y_in, p)
+  } else {
+    # take first p observations of Y_in (in-sample forecast)
+    Y_in <- head(Y_in, p)
+  }
+  
+  e_t <- rep(0, m) # ok for bayesian credible intervals  
+  
+  # space to store all forecasted values
+  forecast_raw <- matrix(0, nrow = keep, ncol = m*h)
+  
+  
+  
+  x_t <- rep(0, k)
+  
+  for (i in 1:keep) {
+    # forecast h steps for given sampling of Phi
+    
+    if (fast_forecast) { # use posterior expected value of Phi
+      Phi <- model$Phi_post
+    } else { # use Phi^[s] and Sigma^[s]
+      Phi <- matrix(model$sample[i,1:(k*m)], nrow=k)
+      
+      
+      Sigma <- matrix(model$sample[i,(k*m+1):(m*k + m*m)],nrow=m) # Sigma [m x m]
+      # find square root of draw from Sigma (code is part of mvtnorm function)
+      ev <- eigen( Sigma, symmetric = TRUE)
+      if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
+        warning("Omega_post is numerically not positive definite")
+      }
+      # precalculate R to do less operations in case h>1
+      R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
+    }
+    
+    Phi_transp <- t(Phi) # precalculate to do less operations in case h>1
+    
+    for (j in 1:h) {
+      
+      
+      if (out_of_sample) { # out-of-sample forecast
+        # fill exogeneous values in x_t
+        x_t[(m * p + 1):(m * p + d)] <- Z_f[j,]
+        
+        # fill endogeneous values in x_t (first out-of-sample forecast)
+        if (j == 1)
+          x_t[1:(m * p)] <- as.vector(t(Y_in)[,p:1])
+        
+        # fill endogeneous values recursively (second+ out-of-sample forecast)
+        if (j > 1) {
+          if (p>1) x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
+          x_t[1:m] <- y_t
+        }
+      } else { # in-sample forecast
+        x_t <- model$X[j,]
+      }
+      
+      if (type=="prediction") e_t <- R %*% rnorm(m) 
+      # e_t is 0 for bayesian credible intervals
+      
+      y_t <- Phi_transp %*% x_t + e_t
+      forecast_raw[i, (m*(j-1)+1):(m*j)] <- y_t
+    } # end_for j in 1:h
+  } # end_for i in 1:keep
+  
+  # save as mcmc object for standartisation
+  forecast_raw <- coda::as.mcmc(forecast_raw)
+  
+  # we have m endogeneous variables and h forecasts for each
+  id_block <- data.frame(variable=rep( attr(model ,"data")$endo_varnames, h), h=rep(1:h, each=m))
+  
+  forecast_summary <- NULL
+  
+  # calculate mean
+  if ("mean" %in% include) {
+    what <- rep("mean", h*m)
+    value <- apply(forecast_raw, 2, mean)
+    block <- cbind(id_block, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
+  
+  # calculate median
+  if ("median" %in% include) {
+    what <- rep("median", h*m)
+    value <- apply(forecast_raw, 2, median)
+    block <- cbind(id_block, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
+  
+  # sd
+  if ("sd" %in% include) {
+    what <- rep("sd", h*m)
+    value <- apply(forecast_raw, 2, sd)
+    block <- cbind(id_block, what, value) # block of information
+    forecast_summary <- rbind(forecast_summary, block)
+  }
+  
+  # calculate quantiles
+  if ("interval" %in% include) {
+    for (lev in level) {
+      # lower
+      what <- rep(paste0("lower_",lev), h*m)
+      value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1-lev/100)/2))
+      block <- cbind(id_block, what, value) # block of information
+      forecast_summary <- rbind(forecast_summary, block)
+      
+      # upper
+      what <- rep(paste0("upper_",lev), h*m)
+      value <- apply(forecast_raw, 2, function(x) quantile(x, probs=(1+lev/100)/2))
+      block <- cbind(id_block, what, value) # block of information
+      forecast_summary <- rbind(forecast_summary, block)
+    }
+  }
+  
+  rownames(forecast_summary)  <- NULL
+  
+  
+  if ((output=="wide") & (!is.null(forecast_summary))) { # transform to wide format if requested
+    forecast_summary <- reshape2::dcast(forecast_summary, variable+h~what)
+  }
+  
+  
+  if ("raw" %in% include) {
+    if (length(include)==1) { # only raw forecasts are requested
+      forecast_summary <- forecast_raw
+    } else { # attach raw forecasts as attribute
+      attr(forecast_summary, "forecast_raw") <- forecast_raw
+    }
+  }
+  return(forecast_summary)
 }
 
 
