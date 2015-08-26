@@ -398,6 +398,62 @@ bvar_create_X_colnames <- function(endo_varnames, exo_varnames, p) {
   return(X_colnames)
 }
 
+#' Create model setup from lambdas 
+#' 
+#' Create model setup from lambdas 
+#' 
+#' Create model setup from lambdas 
+#' Lambdas specification is based on Carriero p. 52-53
+#'
+#' @param p number of lags
+#' @param Y_in multivariate time series
+#' @param lambda vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+#' conjugate N-IW prior. Short summary valid for NO sc/io case:
+#' sd(const in eq i) = l_const * sigma_i
+#' sd(exo in eq i)= l_exo * sigma_i
+#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
+#' lambdas may be Inf
+#' l_io or l_sc equal to NA means no corresponding dummy observations
+#' @param Z_in exogeneous variables
+#' @param constant logical, default is TRUE, whether the constant should be included
+#' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
+#' Carriero uses 1 in his matlab code
+#' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
+#' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+#' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise.
+#' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
+#' "all": y_bar is mean of y for all observations, "initial": p initial observations
+#' Carriero: all, Sim-Zha: initial
+#' @param v_prior prior value of hyperparameter nu, m+2 by default
+#' @return setup list containing
+#' X, Y, X_plus, Y_plus,
+#' p, v_prior
+#' @export
+#' @examples 
+#' data(Yraw)
+#' setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+                            lambda=c(0.2,1,1,1,100,100), 
+                            delta=1,
+                            s2_lag=NULL, 
+                            y_bar_type = c("initial", "all"),
+                            v_prior=NULL) {
+  
+  m <- ncol(Y_in)
+  
+  Y <- bvar_build_Y(Y_in=Y_in, p=p)
+  X <- bvar_build_X(Y_in=Y_in, Z_in=Z_in, constant=constant, p=p)
+  
+  dummy <- bvar_conj_lambda2dummy(Y_in=Y_in, Z_in=Z_in, constant=constant, p=p,
+                                  lambda=lambda, delta=delta, s2_lag=s2_lag,
+                                  y_bar_type=y_bar_type)
+    
+  if (is.null(v_prior)) v_prior <- m + 2
+    
+  setup <- list(Y=Y, X=X, Y_plus=dummy$Y_plus, X_plus=dummy$X_plus, v_prior=v_prior, p=p )
+  return(setup)
+}
+
 
 #' Set conjugate N-IW priors from lambdas as in Carriero
 #' 

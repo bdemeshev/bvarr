@@ -14,11 +14,11 @@ bvar_conj_simulate(v_post, Omega_post_root, S_post, Phi_post, verbose = FALSE,
 
 \item{S_post}{[m x m] posterior scale matrix for noise covariance}
 
+\item{Phi_post}{[k x m] posterior expected values for coefs}
+
 \item{verbose}{TRUE will show some debugging messages, FALSE by default}
 
 \item{keep}{number of simulations}
-
-\item{Phi_pose}{[k x m] posterior expected values for coefs}
 }
 \value{
 coda object with simulations
