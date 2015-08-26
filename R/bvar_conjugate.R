@@ -713,159 +713,55 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 }
 
 
-
-
-#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
+#' Simulate from conjugate N-IW posterior distribution
 #' 
-#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
+#' Simulate from conjugate N-IW posterior distribution
 #' 
-#' Set conjugate N-IW priors from lambdas and mus as in Sim Zha
-#' Should be compatible with szbvar function. Maybe error!!!! 
-#' MAYBE lambda should be in denominator!!!! Article vs MSBVAR???
-#'
-#' @param p number of lags
-#' @param Y_in multivariate time series
-#' @param constant logical, default is TRUE, whether the constant should be included
-#' @param lambdas vector = (l0, l1, l3, l4, l5), l2 is set to 1 for conjugate N-IW
-#' @param mu56 vector = (mu5, mu6)
-#' @param Z_in exogeneous variables
-#' @param VAR_in (either "levels" or "growth rates")
-#' @return priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
-#' where k = mp+d
+#' Simulate from conjugate N-IW posterior distribution
+#' 
+#' @param keep number of simulations
+#' @param verbose TRUE will show some debugging messages, FALSE by default
+#' @param Omega_post_root [k x k] "root" of Omega posterior matrix
+#' @param v_post posterior nu, scalar
+#' @param S_post [m x m] posterior scale matrix for noise covariance
+#' @param Phi_post [k x m] posterior expected values for coefs
 #' @export
+#' @return coda object with simulations
 #' @examples 
 #' data(Yraw)
-#' priors <- szbvar_priors(Yraw, p = 4, lambdas = c(1,0.2,1,1,1), mu56=c(1,1))
-#' model <- bvar_conjugate0(priors = priors, keep=100)
-szbvar_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
-                          lambdas=c(1,0.2,1,1,1,1), mu56=c(1,1),
-                            VAR_in=c("levels","growth rates")) {
-  l0 <- lambdas[1]
-  l1 <- lambdas[2]
-  l2 <- 1
-  l3 <- lambdas[3]
-  l4 <- lambdas[4]
-  l5 <- lambdas[5]
-  mu5 <- mu56[1]
-  mu6 <- mu56[2]
+#' dummy <- bvar_conj_lambda2dummy(Yraw,p=2)
+#' hyper <- bvar_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
+#' # these are priors but just for testing let's pretend that they are posteriors
+#' post_sample <- bvar_conj_simulate(v_post=10,
+#' hyper$Omega_root, hyper$S, hyper$Phi)
+bvar_conj_simulate <- function(v_post, Omega_post_root, S_post, Phi_post, 
+                               verbose=FALSE, keep=10) {
+  k <- nrow(Phi_post)
+  m <- ncol(Phi_post)
   
-  Y_in <- as.matrix(Y_in) # to clear tbl_df if present :)
+  answer <- matrix(0, nrow=keep, ncol = m*k + m*m)
   
-  m <- ncol(Y_in)
+  for (i in 1:keep) {
+    if ((verbose) & (i %% 10^3 == 0)) message("Iteration ",i," out of ",keep)
+    
+    Sigma <- MCMCpack::riwish(v_post,S_post) 
+    
+    
+    # fast way to generate matrix-variate normal
+    V <- matrix(rnorm(k*m), ncol = m) # [(mp+d) x m] matrix of standard normal
+    Phi <- Phi_post + Omega_post_root %*% V %*% chol(Sigma)
+    
+    Phi_vec <- as.vector(Phi)
+    Sigma_vec <- as.vector(Sigma) # length = m x m
+    
+    answer[i,] <- c(Phi_vec, Sigma_vec)
+  } # cycle from 1 to keep
 
-  
-  # get variable names
-  endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
-  
-  
-  exo_varnames <- NULL  
-  
-  # calculate d, the number of exogeneous regressors
-  if (is.null(Z_in)) {
-    d <- 1*constant
-    exo_varnames <- "const"
-  } else {
-    d <- ncol(Z_in) + 1*constant
-    
-    exo_varnames <- colnames(Z_in)
-    if (is.null(exo_varnames)) exo_varnames <- paste0("exo_",1:ncol(Z_in))
-    if (constant) exo_varnames <- c("const",exo_varnames)
-  }
-  
-  # if requested add constant to exogeneous regressors
-  # constant to the left of other exo variables
-  if (constant) Z <- cbind(rep(1, nrow(Y_in)), Z_in)
-  
-  k <- m*p+d
-  
-  VAR_in <- match.arg(VAR_in)
-  
-  
-  # create dummy observations
-  y_0_bar <- apply(as.matrix(Y_in[1:p,],nrow=p), 2, mean) # vector [m x 1] of mean values of each endo-series
-  
-  z_bar <- NULL
-  if (!is.null(Z)) z_bar <- # avoid error with null Z and no constant
-    apply(as.matrix(Z[1:p,],nrow=p), 2, mean) # vector [d x 1] of mean values of each exo-series
-  # "as.matrix" above is needed to avoid errors for p=1 or d=1
-  
-  
-  # sum of coefficients prior
-  Y_dummy_sc <- matrix(0, m, m) # zero matrix [m x m]
-  diag(Y_dummy_sc) <- y_0_bar * mu5
-  
-  X_dummy_sc <- matrix(0, m, k) # zero matrix [m x k]
-  # X_dummy_sc is not a square matrix, 
-  # but diag() will correctly fill "diagonal" elements, X_dummy[i,i]
-  diag(X_dummy_sc) <- y_0_bar * mu5
-  
-  # dummy initial observation
-  Y_dummy_io <- matrix(y_0_bar * mu6, nrow=1)
-  X_dummy_io <- matrix(c(rep(y_0_bar * mu6, p), z_bar * mu6), nrow=1)
-  
-  
-  # order of dummies??? does not matter??? # dummy_sc, dummy_io in MSBVAR::szbvar
-  X_dummy <- rbind(X_dummy_sc, X_dummy_io)
-  Y_dummy <- rbind(Y_dummy_sc, Y_dummy_io)
-  
-  
-  message("MAYBE a bug and lambdas should be inverted!!!")
-  
-  
-  if (!l2==1) warning("Conjugate N-IW is impossible for lambda_2 <> 1")
-  
-  # Litterman takes 6 lags in AR(p)
-  
-  # estimate sigma^2 from univariate AR(p) processes
-  sigmas_sq <- rep(NA, m)
-  
-  Y <- rbind(Y_dummy,tail(Y_in,-p))
-  
-  for (j in 1:m) {
-    # y_uni <- Y_in[,j] # univariate time series (original Y_in)
-    # VERY strange, but:
-    y_uni <- Y[,j] # univariate time series (Y instead of Y_in)
-    
-    # here MSBVAR::szbvar uses Y (= Y_in without first p obs and augmented with dummy obs)
-    
-    # AR_p <- forecast::Arima(y_uni, order = c(p,0,0)) # AR(p) model
-    # sigmas_sq[j] <- AR_p$sigma2
-    
-    # in MSBVAR:
-    sigmas_sq[j] <- ar.ols(y_uni, aic = FALSE, order.max = p, 
-           intercept = TRUE, demean = FALSE)$var.pred
-    
-  }
-  
-  # set Phi_prior
-  if (VAR_in=="levels") Phi_1 <- diag(m)
-  if (VAR_in=="growth rates") Phi_1 <- matrix(0, m,m)
-  Phi_prior <- t( cbind(Phi_1, matrix(0, nrow=m, ncol=k-m)) )
-  
-  # S_prior <- diag(m) # identity matrix [m x m]
-  S_prior <- diag(sigmas_sq)*l0^2 # as in MSBVAR::szbvar
-  
-  v_prior <- m+1
-  
-  lag_power <- 1/(1:p)^l3
-  
-  # set Omega_prior
-  Omega_diagonal <- c(kronecker(1/lag_power^2, 1/sigmas_sq), l0^2*l4^2, rep(l0^2*l5^2, d-1))
-  # and set zero prior covariances
-  Omega_prior <- diag(Omega_diagonal)
-  
-
-  priors <- list(v_prior=v_prior, S_prior=S_prior, 
-                 Phi_prior=Phi_prior, Omega_prior=Omega_prior, 
-                 Y_dummy=Y_dummy, X_dummy=X_dummy,
-                 Y_in=Y_in, Z_in=Z_in, p=p, # to avoid duplicating
-                 sigmas_sq=sigmas_sq, Y=Y,
-                 endo_varnames=endo_varnames,
-                 exo_varnames=exo_varnames) # get more info from function
-  
-  return(priors)
+  # save as mcmc object to make some good functions available
+  answer <- coda::as.mcmc(answer)
+  return(answer)
 }
+
 
 #' Compute inverse of symmetric positive definite matrix using Cholesky decomposition
 #'
