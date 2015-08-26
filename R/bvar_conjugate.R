@@ -108,10 +108,19 @@ bvar_dummy2hyper <- function(Y_star, X_star) {
   
   # following operations are riskless (no inverse, no root, + and * only)
   Omega <- Omega_root %*% Omega_root
-  
+
   Phi_star <- Omega %*% crossprod(X_star, Y_star)
   E_star <- Y_star - X_star %*% Phi_star
   S <- crossprod(E_star)
+
+  colnames(Omega) <- colnames(X_star)
+  rownames(Omega) <- colnames(X_star)
+  colnames(Omega_root) <- colnames(X_star)
+  rownames(Omega_root) <- colnames(X_star)
+  colnames(S) <- colnames(Y_star)
+  rownames(S) <- colnames(Y_star)
+  colnames(Phi_star) <- paste0("eq_",colnames(Y_star))
+  rownames(Phi_star) <- colnames(X_star)
   
   hyper <- list(Omega_root=Omega_root, Omega=Omega, Phi=Phi_star, S=S)
   return(hyper)
