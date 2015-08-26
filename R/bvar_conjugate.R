@@ -113,14 +113,17 @@ bvar_dummy2hyper <- function(Y_star, X_star) {
   E_star <- Y_star - X_star %*% Phi_star
   S <- crossprod(E_star)
 
-  colnames(Omega) <- colnames(X_star)
-  rownames(Omega) <- colnames(X_star)
-  colnames(Omega_root) <- colnames(X_star)
-  rownames(Omega_root) <- colnames(X_star)
-  colnames(S) <- colnames(Y_star)
-  rownames(S) <- colnames(Y_star)
-  colnames(Phi_star) <- paste0("eq_",colnames(Y_star))
-  rownames(Phi_star) <- colnames(X_star)
+  endo_varnames <- bvar_get_endo_varnames(Y_star)
+  X_varnames <- colnames(X_star)
+
+  colnames(Omega) <- X_varnames
+  rownames(Omega) <- X_varnames
+  colnames(Omega_root) <- X_varnames
+  rownames(Omega_root) <- X_varnames
+  colnames(S) <- endo_varnames
+  rownames(S) <- endo_varnames
+  colnames(Phi_star) <- paste0("eq_",endo_varnames)
+  rownames(Phi_star) <- X_varnames
   
   hyper <- list(Omega_root=Omega_root, Omega=Omega, Phi=Phi_star, S=S)
   return(hyper)
@@ -329,7 +332,7 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' bvar_get_endo_varnames(Yraw)
 bvar_get_endo_varnames <- function(Y_in) {
   endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:m)
+  if (is.null(endo_varnames)) endo_varnames <- paste0("endo_",1:ncol(Y_in))
   return(endo_varnames)
 }
 
