@@ -313,6 +313,7 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
   x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, d-constant) )
   X_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
+  rownames(X_cniw) <- NULL
   colnames(X_cniw) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   
 
