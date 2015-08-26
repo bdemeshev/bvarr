@@ -150,10 +150,19 @@ bvar_dummy2hyper <- function(Y_star, X_star) {
 #' hyper <- bvar_dummy2hyper(Y,X) # no dummy observation, just for demo
 #' dummy <- bvar_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
 bvar_hyper2dummy <- function(Omega, S, Phi) {
-  
   # http://math.stackexchange.com/questions/712993/cholesky-decomposition-of-the-inverse-of-a-matrix
-  X_plus <- solve(chol(Omega)) # very risky operation: both chol and solve may fail 
-  Y_plus <- NULL
+  X_block_1 <- solve(chol(Omega)) # very risky operation: both chol and solve may fail 
+  Y_block_1 <- solve(X_block_1, t(X_block_1) %*% X_block_1 %*% Phi)
+  
+  X_block_2 <- matrix(0, nrow=ncol(S), ncol=ncol(Omega))
+  Y_block_2 <- chol(S)
+  
+  X_plus <- rbind(X_block_1, X_block_2)
+  Y_plus <- rbind(Y_block_1, Y_block_2)
+  
+  rownames(X_plus) <- NULL
+  rownames(Y_plus) <- NULL
+  colnames(Y_plus) <- colnames(S)
   
   dummy <- list(X_plus=X_plus,Y_plus=Y_plus)
   return(dummy)
