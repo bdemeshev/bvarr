@@ -1000,7 +1000,7 @@ bvar_conj_forecast <- function(model,
   
   constant <- model$constant 
   
-  if (keep==0) & (!fast_forecast) ){
+  if ((keep==0) & (!fast_forecast)) {
     if (verbose) message("No simulations found in 'model', fast_forecast option is set to TRUE.")
     fast_forecast <- TRUE
   }

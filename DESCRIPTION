@@ -1,6 +1,6 @@
 Package: bvarr
 Type: Package
-Title: Bayesian VAR package with 6 models.
+Title: Package for Bayesian Vector Auto Regressions.
 Version: 0.2
 Date: 2015-07-25
 Author: Koop, Korobilis, Demeshev
@@ -16,7 +16,7 @@ Imports:
     tidyr (>= 0.2.0),
     coda (>= 0.17-1),
     magrittr (>= 1.5)
-Description: The bvarr package allows estimation of 6 different bayesian VAR
-    models.
+Description: The bvarr package allows estimation of some bayesian VAR
+    models. The goal is to provide flexible well documented interface.
 LazyData: true
 License: MIT
