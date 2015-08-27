@@ -10,6 +10,8 @@ bvar_get_Y_in(Y, X, p)
 \item{Y}{[T x m] matrix of left hand side endogeneous variables}
 
 \item{X}{[T x k] matrix of right hand side regressors: endogeneous and exogeneous variables}
+
+\item{p}{number of lags}
 }
 \value{
 original supplied Y_in

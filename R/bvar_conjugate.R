@@ -88,6 +88,7 @@ bvar_build_X <- function(Y_in, Z_in=NULL, constant=TRUE, p=1) {
 #' 
 #' Recover original Y_in from Y, X and number of lags p
 #' 
+#' @param p number of lags
 #' @param X [T x k] matrix of right hand side regressors: endogeneous and exogeneous variables
 #' @param Y [T x m] matrix of left hand side endogeneous variables
 #' @return original supplied Y_in
@@ -1104,7 +1105,7 @@ bvar_conj_forecast <- function(model,
   forecast_raw <- coda::as.mcmc(forecast_raw)
   
   # we have m endogeneous variables and h forecasts for each
-  id_block <- data.frame(variable=rep( attr(model ,"data")$endo_varnames, h), h=rep(1:h, each=m))
+  id_block <- data.frame(variable=rep( bvar_get_endo_varnames(Y_in), h), h=rep(1:h, each=m))
   
   forecast_summary <- NULL
   
