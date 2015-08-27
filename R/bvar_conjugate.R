@@ -1015,8 +1015,8 @@ bvar_conj_forecast <- function(model,
     type <- "credible"
   }
   
-  # if Y_in is not supplied take Y_in from estimation
-  if (is.null(Y_in)) Y_in <- bvar_get_Y_in(model$Y,model$X)
+  # if Y_in is not supplied take Y_in from estimation. Or is it better to save it in model list?
+  if (is.null(Y_in)) Y_in <- bvar_get_Y_in(model$Y, model$X, p=p)
   
   
   # in case of in-sample forecast h is set to T, or is is better set to NA?
