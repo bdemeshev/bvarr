@@ -32,7 +32,7 @@ Simulate from conjugate N-IW posterior distribution
 \examples{
 data(Yraw)
 dummy <- bvar_conj_lambda2dummy(Yraw,p=2)
-hyper <- bvar_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
+hyper <- bvar_conj_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
 # these are priors but just for testing let's pretend that they are posteriors
 post_sample <- bvar_conj_simulate(v_post=10,
 hyper$Omega_root, hyper$S, hyper$Phi)

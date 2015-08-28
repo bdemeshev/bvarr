@@ -1,6 +1,5 @@
 # todo: 
-# variable names everywhere where possible
-# make parallel computations in estimate and forecast
+# make parallel computations in estimate 
 
 #' Build Y matrix from supplied data
 #' 
@@ -124,8 +123,8 @@ bvar_get_Y_in <- function(Y,X,p) {
 #' data(Yraw)
 #' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
 #' Y <- bvar_build_Y(Yraw, p=4)
-#' post <- bvar_dummy2hyper(Y,X) # no dummy observation, just for demo
-bvar_dummy2hyper <- function(Y_star, X_star) {
+#' post <- bvar_conj_dummy2hyper(Y,X) # no dummy observation, just for demo
+bvar_conj_dummy2hyper <- function(Y_star, X_star) {
   
   X_star_svd <- svd(X_star) # risky operation
   Omega_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
@@ -171,9 +170,9 @@ bvar_dummy2hyper <- function(Y_star, X_star) {
 #' data(Yraw)
 #' X <- bvar_build_X(Yraw, constant=TRUE, p=4)
 #' Y <- bvar_build_Y(Yraw, p=4)
-#' hyper <- bvar_dummy2hyper(Y,X) # no dummy observation, just for demo
-#' dummy <- bvar_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
-bvar_hyper2dummy <- function(Omega, S, Phi) {
+#' hyper <- bvar_conj_dummy2hyper(Y,X) # no dummy observation, just for demo
+#' dummy <- bvar_conj_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
+bvar_conj_hyper2dummy <- function(Omega, S, Phi) {
   # http://math.stackexchange.com/questions/712993/cholesky-decomposition-of-the-inverse-of-a-matrix
   X_block_1 <- solve(chol(Omega)) # very risky operation: both chol and solve may fail 
   Y_block_1 <- solve(X_block_1, t(X_block_1) %*% X_block_1 %*% Phi)
@@ -514,7 +513,7 @@ bvar_conj_estimate <- function(setup, keep=2000, verbose=FALSE) {
   Y_star <- rbind(setup$Y_plus, setup$Y)
   
   if (verbose) message("Calculating posterior hyperparameters...")
-  post <- bvar_dummy2hyper(Y_star, X_star)
+  post <- bvar_conj_dummy2hyper(Y_star, X_star)
   v_post <- setup$v_prior + T
   
   # simulate
@@ -865,7 +864,7 @@ KK_code_priors <- function(Y_in, Z_in=NULL, constant=TRUE, p=4) {
 #' @examples 
 #' data(Yraw)
 #' dummy <- bvar_conj_lambda2dummy(Yraw,p=2)
-#' hyper <- bvar_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
+#' hyper <- bvar_conj_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
 #' # these are priors but just for testing let's pretend that they are posteriors
 #' post_sample <- bvar_conj_simulate(v_post=10,
 #' hyper$Omega_root, hyper$S, hyper$Phi)
@@ -1950,7 +1949,7 @@ bvar_conj_mdd <- function(model) {
   d <- k - m*p
   
   
-  prior <- bvar_dummy2hyper(model$Y_plus, model$X_plus)
+  prior <- bvar_conj_dummy2hyper(model$Y_plus, model$X_plus)
   Omega_prior <- prior$Omega
   Phi_prior <- prior$Phi
   S_prior <- prior$S
