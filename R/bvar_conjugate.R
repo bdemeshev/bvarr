@@ -1717,7 +1717,7 @@ bvar_conj_summary <- function(model) {
   d <- k - m*p
   
   keep <- 0 
-  if ("sample" %in% names(model)) sample <- nrow(model$sample)
+  if ("sample" %in% names(model)) keep <- nrow(model$sample)
   T_in <- T + p
   T_dummy <- nrow(model$X_plus)
 
@@ -1912,6 +1912,57 @@ marginal_data_density <- function(model) {
   v_post <- v_prior + T 
   
  
+  I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
+  I_XoX_inv <- sym_inv(I_XoX)
+  e_prior <- Y-X %*% Phi_prior    
+  
+  # just to avoid a very long line:
+  line_1 <- -T*m/2 * log(pi) - m/2 * log(det(I_XoX)) + v_prior/2 * log(det(S_prior)) 
+  line_2 <- -v_post/2 * log(det( t(e_prior) %*% I_XoX_inv %*% e_prior ))
+  res <- lmvgamma(m, v_post/2) - lmvgamma(m, v_prior/2) + line_1 + line_2
+  return(res)
+  
+}
+
+
+
+#' Calculate log marginal data density
+#'
+#' Calculate log marginal data density
+#'  
+#' Calculate log marginal data density. Formula from Carriero p. 55
+#' 
+#' @param model estimated conjugate N-IW model
+#' @export
+#' @return log of marginal data density
+#' @examples 
+#' data(Yraw)
+#' setup <- bvar_conj_setup(Yraw, p = 4)
+#' model <- bvar_conj_estimate(setup = setup, keep=100)
+#' bvar_conj_mdd(model)
+bvar_conj_mdd <- function(model) {
+  
+  T <- nrow(model$X) # number of observations minus p
+  p <- model$p
+  k <- ncol(model$X)
+  m <- ncol(model$Y)
+  constant <- model$constant
+  d <- k - m*p
+  
+  
+  prior <- bvar_dummy2hyper(model$Y_plus, model$X_plus)
+  Omega_prior <- prior$Omega
+  Phi_prior <- prior$Phi
+  S_prior <- prior$S
+  
+  v_prior <- model$v_prior
+  
+  X <- model$X 
+  Y <- model$Y
+
+  v_post <- model$v_post
+  
+  
   I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
   I_XoX_inv <- sym_inv(I_XoX)
   e_prior <- Y-X %*% Phi_prior    
