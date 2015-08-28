@@ -956,7 +956,7 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
   
   
   p <- ggplot2::ggplot(data=imp_resp_melt,ggplot2::aes(x=lag,y=impulse)) +
-    ggplot2::geom_line(ggplot2::aes(col=probability)) + ggplot2::facet_wrap(from~to,scales = "free")
+    ggplot2::geom_line(ggplot2::aes_string(col='probability')) + ggplot2::facet_wrap(from~to,scales = "free")
   # print(p)
   return(p)
 }
@@ -978,8 +978,11 @@ bvar.imp.plot <- function(bvar.model, qus = c(0.1, 0.5, 0.90)) {
 #' bvar.imp.plot_band(model)
 bvar.imp.plot_band <-
   function (bvar.model, lower = 0.1, upper = 0.9, middle = 0.5) {
-    imp_responses <- apply(bvar.model$all_responses, c(2, 3, 
-                                                       4), quantile, probs = c(lower, upper, middle))
+    probability <- NULL # a dirty hack to fool R CMD check
+    # http://stackoverflow.com/questions/9439256/how-can-i-handle-r-cmd-check-no-visible-binding-for-global-variable-notes-when
+    
+    imp_responses <- apply(bvar.model$all_responses, 
+                           c(2, 3, 4), quantile, probs = c(lower, upper, middle))
     imp_resp_melt <- reshape2::melt(imp_responses)
     colnames(imp_resp_melt) <- c("probability", "from", "to", 
                                  "lag", "impulse")
@@ -1022,7 +1025,7 @@ bvar.imp.plot_band <-
 #' model <- bvar(Yraw,nsave=1000, nburn=100)
 #' bvar.pred.plot(model)
 bvar.pred.plot <- function(bvar.model) {
-  p <- ggplot2::ggplot(data=bvar.model$Y_pred_melt,ggplot2::aes(x=value)) + ggplot2::geom_histogram() + 
+  p <- ggplot2::ggplot(data=bvar.model$Y_pred_melt, ggplot2::aes_string(x='value')) + ggplot2::geom_histogram() + 
     ggplot2::facet_wrap(~Var2)
   # print(p)
   return(p)

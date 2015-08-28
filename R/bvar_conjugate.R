@@ -994,7 +994,7 @@ bvar_conj_forecast <- function(model,
   k <- ncol(model$X)
   m <- ncol(model$Y)
   d <- k - m*p
-  T_dummy <- nrow(setup$X_plus)
+  T_dummy <- nrow(model$X_plus)
   
   keep <- 0
   if ("sample" %in% names(model)) keep <- nrow(model$sample) 
@@ -1693,6 +1693,88 @@ forecast_conjugate <- function(model,
   return(forecast_summary)
 }
 
+
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#'
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#'  
+#' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
+#' 
+#' @param model estimated conjugate N-IW model
+#' @export
+#' @return nothing
+#' @examples 
+#' data(Yraw)
+#' setup <- bvar_conj_setup(Yraw, p = 4)
+#' model <- bvar_conj_estimate(setup = setup, keep=100)
+#' bvar_conj_summary(model)
+bvar_conj_summary <- function(model) {
+  T <- nrow(model$X) # number of observations minus p
+  p <- model$p
+  k <- ncol(model$X)
+  m <- ncol(model$Y)
+  constant <- model$constant
+  d <- k - m*p
+  
+  keep <- 0 
+  if ("sample" %in% names(model)) sample <- nrow(model$sample)
+  T_in <- T + p
+  T_dummy <- nrow(model$X_plus)
+
+  message("Number of lags, p = ", p)
+  message("Number of endogeneos variables, m = ",m)
+  
+  const_message <- "(no constant is present)"
+  if (constant) const_message <- "(including constant)"
+  message("Number of exogeneos variables ", const_message ,", d = ",d)
+  
+  message("Number of parameters, k = mp + d = ",k)
+  message("Initial number of observations, T_in = ",T_in)
+  message("Number of dummy observations, T_dummy = ", T_dummy )
+  message("Number of observations available for classic VAR, T = T_in - p = ",T)
+  
+  message("Posterior mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+  print(model$Phi_post)
+  
+  message("Posterior nu = ",model$v_post)
+  
+  if (keep>0) {
+    message("Number of mcmc simulations, keep = ", keep) 
+    
+    post_mean <- apply(model$sample, 2, mean)
+    post_sd <- apply(model$sample, 2, sd)
+    
+    message("Posterior sample mean of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+    Phi_post_sample_mean <- matrix(head(post_mean, k*m), nrow=k)
+    colnames(Phi_post_sample_mean) <- colnames(model$Phi_post)
+    rownames(Phi_post_sample_mean) <- rownames(model$Phi_post)
+    print(Phi_post_sample_mean)
+    
+    message("Posterior sample mean of Sigma (noise covariance matrix) [m = ",m," x m = ",m,"]:")
+    Sigma_post_sample_mean <- matrix(tail(post_mean, m*m), nrow=m)
+    colnames(Sigma_post_sample_mean) <- bvar_get_endo_varnames(model$Y)
+    rownames(Sigma_post_sample_mean) <- bvar_get_endo_varnames(model$Y)
+    print(Sigma_post_sample_mean)
+    
+    
+    message("Posterior sample sd of Phi (VAR coefficients) [k = ",k," x m = ",m,"]:")
+    Phi_post_sample_sd <- matrix(head(post_sd, k*m), nrow=k)
+    colnames(Phi_post_sample_sd) <- colnames(model$Phi_post)
+    rownames(Phi_post_sample_sd) <- rownames(model$Phi_post)
+    print(Phi_post_sample_sd)
+    
+    message("Posterior sample sd of Sigma (noise covariance matrix) [m = ",m," x m = ",m,"]:")
+    Sigma_post_sample_sd <- matrix(tail(post_sd, m*m), nrow=m)
+    colnames(Sigma_post_sample_sd) <- bvar_get_endo_varnames(model$Y)
+    rownames(Sigma_post_sample_sd) <- bvar_get_endo_varnames(model$Y)
+    print(Sigma_post_sample_sd)
+    
+    
+    
+  } else {
+    message("No mcmc simulations were done, only posteriors were calculated.")
+  }
+}
 
 #' summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
 #'
