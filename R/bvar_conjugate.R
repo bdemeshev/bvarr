@@ -1968,7 +1968,7 @@ bvar_conj_mdd <- function(model) {
   
   # just to avoid a very long line:
   line_1 <- -T*m/2 * log(pi) - m/2 * log(det(I_XoX)) + v_prior/2 * log(det(S_prior)) 
-  line_2 <- -v_post/2 * log(det( t(e_prior) %*% I_XoX_inv %*% e_prior ))
+  line_2 <- -v_post/2 * log(det(S_prior + t(e_prior) %*% I_XoX_inv %*% e_prior )) 
   res <- lmvgamma(m, v_post/2) - lmvgamma(m, v_prior/2) + line_1 + line_2
   return(res)
   
