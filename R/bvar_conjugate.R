@@ -215,6 +215,7 @@ bvar_conj_hyper2dummy <- function(Omega, S, Phi) {
 #' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
 #' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
 #' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise.
+#' By default delta is equal to 1.
 #' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
 #' "all": y_bar is mean of y for all observations, "initial": p initial observations
 #' Carriero: all, Sim-Zha: initial
@@ -265,7 +266,7 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   ##### create vector of delta
   
-  if (delta=="AR1") { # set deltas as AR(1) coefficients but no more than 1
+  if (delta[1] == "AR1") { # set deltas as AR(1) coefficients but no more than 1
     delta <- rep(1,m) # reserve space
     for (j in 1:m) {
       y_uni <- Y_in[,j] # univariate time series
