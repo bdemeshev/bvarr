@@ -6,7 +6,7 @@
 \usage{
 bvar_conj_lambda2dummy(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambda = c(0.2, 1, 1, 1, 100, 100), delta = 1, s2_lag = NULL,
-  y_bar_type = c("initial", "all"))
+  y_bar_type = c("initial", "all"), carriero_hack = FALSE)
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -36,6 +36,10 @@ Carriero uses 1 in his matlab code}
 \item{y_bar_type}{(either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
 "all": y_bar is mean of y for all observations, "initial": p initial observations
 Carriero: all, Sim-Zha: initial}
+
+\item{carriero_hack}{logical, if TRUE sigma^2 will be estimated using biased estimator
+and supposed error with no square roots in dummy observations will be reproduced
+FALSE by default}
 }
 \value{
 dummy list containing:

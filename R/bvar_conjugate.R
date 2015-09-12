@@ -219,6 +219,9 @@ bvar_conj_hyper2dummy <- function(Omega, S, Phi) {
 #' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
 #' "all": y_bar is mean of y for all observations, "initial": p initial observations
 #' Carriero: all, Sim-Zha: initial
+#' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
+#' and supposed error with no square roots in dummy observations will be reproduced
+#' FALSE by default
 #' @return dummy list containing:
 #' X_cniw,  Y_cniw
 #' X_sc, Y_sc
@@ -232,7 +235,8 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                                    lambda=c(0.2,1,1,1,100,100), 
                                    delta=1,
                                    s2_lag=NULL, 
-                                   y_bar_type = c("initial", "all") ) {
+                                   y_bar_type = c("initial", "all"),
+                                   carriero_hack = FALSE) {
   
   l_1 <- lambda[1]
   # l_kron <- 1 # for the reader of this code. l_kron is always 1 for conjugate NIW
@@ -290,6 +294,9 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
     resid <- tail(AR_p$resid,-s2_lag) # omit first p NA in residuals
     sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
+    if (carriero_hack) { # Carriero uses biased sigma^2 estimator in his code
+      sigmas_sq[j] <- sum(resid^2)/length(resid)
+    }
   }
   
   
@@ -300,11 +307,13 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   
   y_bar <- apply(as.matrix(Y_in[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [m x 1] of mean values of each endo-series
-  if (is.null(Z)) z_bar <- NULL # special case of no constant and no exo vars
-  if (!is.null(Z)) z_bar <- 
-    apply(as.matrix(Z[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [d x 1] of mean values of each exo-series
-  # "as.matrix" above is needed to avoid errors for sc_io_numrows=1 or d=1
-  
+  if (is.null(Z)) { # special case of no constant and no exo vars
+    z_bar <- NULL 
+  }
+  if (!is.null(Z)) { # "as.matrix" is needed to avoid errors for sc_io_numrows=1 or d=1
+    z_bar <- 
+       apply(as.matrix(Z[1:sc_io_numrows,],nrow=sc_io_numrows), 2, mean) # vector [d x 1] of mean values of each exo-series
+  }
   
   
   # sc, sum of coefficients prior
@@ -338,6 +347,13 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   y_cniw_block_2 <- matrix(0, nrow=m*(p-1), ncol=m)
   y_cniw_block_3 <- diag(sqrt(sigmas_sq))
   y_cniw_block_4 <- matrix(0, nrow=1, ncol=m)
+  
+  if (carriero_hack) { # wrong formulas, but useful for comparison with carriero code
+    y_cniw_block_1 <- diag(sigmas_sq*delta)/l_1
+    y_cniw_block_3 <- diag(sigmas_sq)
+  }
+  
+  
   Y_cniw <- rbind(y_cniw_block_1, y_cniw_block_2, y_cniw_block_3, y_cniw_block_4) 
   colnames(Y_cniw) <- endo_varnames
   
@@ -345,14 +361,20 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sqrt(sigmas_sq)) )/l_1, matrix(0, nrow=m*p, ncol=d))
   x_cniw_block_2 <- matrix(0, nrow=m, ncol=k)
   x_cniw_block_3 <- c( rep(0, m*p), rep(1/l_const, constant), rep(1/l_exo, d-constant) )
+  
+  if (carriero_hack) { # wrong formulas, but useful for comparison with carriero code
+    x_cniw_block_1 <- cbind( kronecker(diag((1:p)^l_lag), diag(sigmas_sq) )/l_1, matrix(0, nrow=m*p, ncol=d))
+  }
+  
+  
   X_cniw <- rbind(x_cniw_block_1, x_cniw_block_2, x_cniw_block_3)
   rownames(X_cniw) <- NULL
   colnames(X_cniw) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   
-
   
-  X_plus <- rbind(X_sc, X_io, X_cniw)
-  Y_plus <- rbind(Y_sc, Y_io, Y_cniw)
+  
+  X_plus <- rbind(X_cniw, X_sc, X_io)
+  Y_plus <- rbind(Y_cniw, Y_sc, Y_io)
   
   dummy <- list(X_sc=X_sc, Y_sc=Y_sc,
                 X_io=X_io, Y_io=Y_io,
@@ -449,6 +471,9 @@ bvar_create_X_colnames <- function(endo_varnames, exo_varnames, p) {
 #' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
 #' "all": y_bar is mean of y for all observations, "initial": p initial observations
 #' Carriero: all, Sim-Zha: initial
+#' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
+#' and supposed error with no square roots in dummy observations will be reproduced
+#' FALSE by default
 #' @param v_prior prior value of hyperparameter nu, m+2 by default
 #' @return setup list containing
 #' X, Y, X_plus, Y_plus,
@@ -462,7 +487,8 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             delta=1,
                             s2_lag=NULL, 
                             y_bar_type = c("initial", "all"),
-                            v_prior=NULL) {
+                            v_prior=NULL,
+                            carriero_hack = carriero_hack) {
   
   m <- ncol(Y_in)
   

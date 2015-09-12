@@ -6,7 +6,8 @@
 \usage{
 bvar_conj_setup(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambda = c(0.2, 1, 1, 1, 100, 100), delta = 1, s2_lag = NULL,
-  y_bar_type = c("initial", "all"), v_prior = NULL)
+  y_bar_type = c("initial", "all"), v_prior = NULL,
+  carriero_hack = carriero_hack)
 }
 \arguments{
 \item{Y_in}{multivariate time series}
@@ -37,6 +38,10 @@ Carriero uses 1 in his matlab code}
 Carriero: all, Sim-Zha: initial}
 
 \item{v_prior}{prior value of hyperparameter nu, m+2 by default}
+
+\item{carriero_hack}{logical, if TRUE sigma^2 will be estimated using biased estimator
+and supposed error with no square roots in dummy observations will be reproduced
+FALSE by default}
 }
 \value{
 setup list containing
