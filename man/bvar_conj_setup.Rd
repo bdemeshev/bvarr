@@ -6,8 +6,7 @@
 \usage{
 bvar_conj_setup(Y_in, Z_in = NULL, constant = TRUE, p = 4,
   lambda = c(0.2, 1, 1, 1, 100, 100), delta = 1, s2_lag = NULL,
-  y_bar_type = c("initial", "all"), v_prior = NULL,
-  carriero_hack = carriero_hack)
+  y_bar_type = c("initial", "all"), v_prior = NULL, carriero_hack = FALSE)
 }
 \arguments{
 \item{Y_in}{multivariate time series}

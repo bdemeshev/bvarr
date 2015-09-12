@@ -488,7 +488,7 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             s2_lag=NULL, 
                             y_bar_type = c("initial", "all"),
                             v_prior=NULL,
-                            carriero_hack = carriero_hack) {
+                            carriero_hack = FALSE) {
   
   m <- ncol(Y_in)
   
@@ -497,7 +497,8 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   dummy <- bvar_conj_lambda2dummy(Y_in=Y_in, Z_in=Z_in, constant=constant, p=p,
                                   lambda=lambda, delta=delta, s2_lag=s2_lag,
-                                  y_bar_type=y_bar_type)
+                                  y_bar_type=y_bar_type,
+                                  carriero_hack = carriero_hack)
     
   if (is.null(v_prior)) v_prior <- m + 2
     
