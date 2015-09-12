@@ -501,6 +501,12 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                                   carriero_hack = carriero_hack)
     
   if (is.null(v_prior)) v_prior <- m + 2
+  
+  if (is.character(v_prior)) { # parse character formula for v_prior
+    k <- ncol(dummy$X_plus)
+    T_dummy <- nrow(dummy)
+    v_prior <- eval(parse(text=v_prior))
+  }
     
   setup <- list(Y=Y, X=X, Y_plus=dummy$Y_plus, X_plus=dummy$X_plus, v_prior=v_prior, p=p,
                 constant=constant)
