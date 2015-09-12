@@ -357,7 +357,8 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   dummy <- list(X_sc=X_sc, Y_sc=Y_sc,
                 X_io=X_io, Y_io=Y_io,
                 X_cniw=X_cniw, Y_cniw=Y_cniw,
-                X_plus=X_plus, Y_plus=Y_plus)
+                X_plus=X_plus, Y_plus=Y_plus,
+                sigma_sq=sigmas_sq)
   return(dummy)
 }
 
