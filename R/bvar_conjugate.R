@@ -474,7 +474,8 @@ bvar_create_X_colnames <- function(endo_varnames, exo_varnames, p) {
 #' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
 #' and supposed error with no square roots in dummy observations will be reproduced
 #' FALSE by default
-#' @param v_prior prior value of hyperparameter nu, m+2 by default
+#' @param v_prior prior value of hyperparameter nu, m+2 by default, 
+#' may use character formula involving m, k, p, T_dummy, constant, something like "T_dummy+2"
 #' @return setup list containing
 #' X, Y, X_plus, Y_plus,
 #' p, v_prior
