@@ -192,6 +192,121 @@ bvar_conj_hyper2dummy <- function(Omega, S, Phi) {
 }
 
 
+#' Create prior hyperparameters from lambdas 
+#' 
+#' Create prior hyperparameters from lambdas
+#' 
+#' Create prior hyperparameters from lambdas. 
+#' Lambdas specification is based on Carriero p. 52-53
+#'
+#' @param p number of lags
+#' @param Y_in multivariate time series
+#' @param lambda vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+#' conjugate N-IW prior. Short summary valid for NO sc/io case:
+#' sd(const in eq i) = l_const * sigma_i
+#' sd(exo in eq i)= l_exo * sigma_i
+#' sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
+#' lambdas may be Inf
+#' l_io or l_sc equal to NA means no corresponding dummy observations
+#' @param Z_in exogeneous variables
+#' @param constant logical, default is TRUE, whether the constant should be included
+#' @param s2_lag number of lags in AR() model used to estimate s2 (equal to p by default)
+#' Carriero uses 1 in his matlab code
+#' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
+#' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+#' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise.
+#' By default delta is equal to 1.
+#' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
+#' "all": y_bar is mean of y for all observations, "initial": p initial observations
+#' Carriero: all, Sim-Zha: initial
+#' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
+#' and supposed error with no square roots in dummy observations will be reproduced
+#' FALSE by default
+#' @return dummy list containing:
+#' Omega, Omega_root
+#' S, Phi
+#' @export
+#' @examples 
+#' data(Yraw)
+#' prior <- bvar_conj_lambda2hyper(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+bvar_conj_lambda2hyper <- function(Y_in, Z_in=NULL, constant=TRUE, p=4, 
+                                   lambda=c(0.2,1,1,1,100,100), 
+                                   delta=1,
+                                   s2_lag=NULL, 
+                                   y_bar_type = c("initial", "all"),
+                                   carriero_hack = FALSE) {
+ 
+  
+  prior <- list()
+  return(prior)
+}
+
+#' Create [m x 1] vector of deltas from delta description
+#' 
+#' Create [m x 1] vector of deltas from delta description
+#' 
+#' Create [m x 1] vector of deltas from delta description
+#' 
+#' @param Y_in multivariate time series
+#' @param delta description of delta. May be: one number, "AR1", or ready to go [m x 1] vector
+#' @export
+#' @return [m x 1] vector of deltas
+#' @examples 
+#' data(Yraw)
+#' dummy <- bvar_conj_delta(Yraw, delta="AR1") 
+bvar_conj_delta <- function(Y_in, delta) {
+  m <- ncol(Y_in)
+  if (delta[1] == "AR1") { # set deltas as AR(1) coefficients but no more than 1
+    delta <- rep(1,m) # reserve space
+    for (j in 1:m) {
+      y_uni <- Y_in[,j] # univariate time series
+      # more robust version: fails only in the case of  severe multicollinearity
+      AR_1 <- ar.ols(y_uni, aic=FALSE, order.max = 1) # AR(1) model
+      delta[j] <- AR_1$ar
+      if (delta[j]>1) delta[j] <- 1
+    }
+  }
+  if (length(delta)==1) delta <- rep(delta, m) # copy scalar values
+  if (! length(delta)==m ) stop("Length of delta should be equal to 1 or m")
+  return(delta)
+}
+
+
+
+#' Create [m x 1] vector of sigma^2 from supplied time series
+#' 
+#' Create [m x 1] vector of sigma^2 from supplied time series
+#' 
+#' Create [m x 1] vector of sigma^2 from supplied time series
+#' 
+#' @param Y_in multivariate time series
+#' @param s2_lag number of lags to estimate sigma^2
+#' @export
+#' @return [m x 1] vector of sigmas^2
+#' @examples 
+#' data(Yraw)
+#' sigma2 <- bvar_conj_sigma2(Yraw) 
+bvar_conj_sigma2 <- function(Y_in, s2_lag = 1) {
+  m <- ncol(Y_in)
+
+  sigmas_sq <- rep(NA, m)
+  for (j in 1:m) {
+    y_uni <- Y_in[,j] # univariate time series
+    # more robust version: fails only in the case of  severe multicollinearity
+    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
+    resid <- tail(AR_p$resid,-s2_lag) # omit first p NA in residuals
+    sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
+    if (carriero_hack) { # Carriero uses biased sigma^2 estimator in his code
+      sigmas_sq[j] <- sum(resid^2)/length(resid)
+    }
+  }
+  
+  return(sigmas_sq)
+}
+
+
+
+
 #' Create dummy observations from lambdas 
 #' 
 #' Create dummy observations from lambdas
@@ -268,38 +383,16 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   k <- m*p+d
   
-  ##### create vector of delta
+  ##### create vector of delta from Y_in and delta descriptions
+  delta <- bvar_conj_delta(Y_in, delta)
   
-  if (delta[1] == "AR1") { # set deltas as AR(1) coefficients but no more than 1
-    delta <- rep(1,m) # reserve space
-    for (j in 1:m) {
-      y_uni <- Y_in[,j] # univariate time series
-      # more robust version: fails only in the case of  severe multicollinearity
-      AR_1 <- ar.ols(y_uni, aic=FALSE, order.max = 1) # AR(1) model
-      delta[j] <- AR_1$ar
-      if (delta[j]>1) delta[j] <- 1
-    }
-  }
-  if (length(delta)==1) delta <- rep(delta, m) # copy scalar values
-  if (! length(delta)==m ) stop("Length of delta should be equal to 1 or m")
   
   ######  estimate sigma^2 from univariate AR(p) processes
   # Carriero matlab code: always AR(1)! 
   if (is.null(s2_lag)) s2_lag <- p
-  
-  sigmas_sq <- rep(NA, m)
-  for (j in 1:m) {
-    y_uni <- Y_in[,j] # univariate time series
-    # more robust version: fails only in the case of  severe multicollinearity
-    AR_p <- ar.ols(y_uni, aic=FALSE, order.max = s2_lag) # AR(p) model
-    resid <- tail(AR_p$resid,-s2_lag) # omit first p NA in residuals
-    sigmas_sq[j] <- sum(resid^2)/(length(resid)-s2_lag-1)
-    if (carriero_hack) { # Carriero uses biased sigma^2 estimator in his code
-      sigmas_sq[j] <- sum(resid^2)/length(resid)
-    }
-  }
-  
-  
+  sigmas_sq <- bvar_conj_sigma2(Y_in, s2_lag)
+    
+
   
   ###### calculate y_bar 
   if (y_bar_type=="initial") sc_io_numrows <- p
@@ -491,6 +584,8 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
                             v_prior=NULL,
                             carriero_hack = FALSE) {
   
+  # general philosophy: calculate everything but use bare minimum
+  
   m <- ncol(Y_in)
   
   Y <- bvar_build_Y(Y_in=Y_in, p=p)
@@ -508,9 +603,22 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
     T_dummy <- nrow(dummy)
     v_prior <- eval(parse(text=v_prior))
   }
-    
-  setup <- list(Y=Y, X=X, Y_plus=dummy$Y_plus, X_plus=dummy$X_plus, v_prior=v_prior, p=p,
-                constant=constant)
+  
+  # these are needed only for bvar_conj_mdd() and not for forecasting/estimation:
+  prior <- bvar_conj_lambda2hyper(Y_in=Y_in, Z_in=Z_in, constant=constant, p=p,
+                                   lambda=lambda, delta=delta, s2_lag=s2_lag,
+                                   y_bar_type=y_bar_type,
+                                   carriero_hack = carriero_hack)  
+  
+  setup <- list(Y = Y, X = X, Y_plus = dummy$Y_plus, X_plus = dummy$X_plus, v_prior = v_prior, p=p,
+                constant = constant, 
+                Omega_prior = prior$Omega, 
+                S_prior = prior$S,
+                Omega_prior_root = prior$Omega_root,
+                Phi_prior = prior$Phi,
+                S_prior = prior$S,
+                Y_in = Y_in,
+                Z_in = Z_in)
   return(setup)
 }
 
