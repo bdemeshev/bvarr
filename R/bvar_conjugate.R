@@ -281,12 +281,15 @@ bvar_conj_delta <- function(Y_in, delta) {
 #' 
 #' @param Y_in multivariate time series
 #' @param s2_lag number of lags to estimate sigma^2
+#' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
+#' and supposed error with no square roots in dummy observations will be reproduced
+#' FALSE by default
 #' @export
 #' @return [m x 1] vector of sigmas^2
 #' @examples 
 #' data(Yraw)
 #' sigma2 <- bvar_conj_sigma2(Yraw) 
-bvar_conj_sigma2 <- function(Y_in, s2_lag = 1) {
+bvar_conj_sigma2 <- function(Y_in, s2_lag = 1, carriero_hack = FALSE) {
   m <- ncol(Y_in)
 
   sigmas_sq <- rep(NA, m)
@@ -390,7 +393,7 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   ######  estimate sigma^2 from univariate AR(p) processes
   # Carriero matlab code: always AR(1)! 
   if (is.null(s2_lag)) s2_lag <- p
-  sigmas_sq <- bvar_conj_sigma2(Y_in, s2_lag)
+  sigmas_sq <- bvar_conj_sigma2(Y_in, s2_lag, carriero_hack = carriero_hack)
     
 
   
@@ -2093,10 +2096,13 @@ bvar_conj_mdd <- function(model) {
   d <- k - m*p
   
   
-  prior <- bvar_conj_dummy2hyper(model$Y_plus, model$X_plus)
-  Omega_prior <- prior$Omega
-  Phi_prior <- prior$Phi
-  S_prior <- prior$S
+  # old: # prior <- bvar_conj_dummy2hyper(model$Y_plus, model$X_plus)
+  # model was estimated using additional dummy observations
+  # but we use Omega_prior, Phi_prior and S_prior directly obtained from lambdas
+  # this is more robust, than obtaining them from calculated dummy observations
+  Omega_prior <- model$Omega_prior # prior$Omega
+  Phi_prior <- model$Phi_prior # prior$Phi
+  S_prior <- model$S_prior # prior$S
   
   v_prior <- model$v_prior
   

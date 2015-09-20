@@ -4,12 +4,16 @@
 \alias{bvar_conj_sigma2}
 \title{Create [m x 1] vector of sigma^2 from supplied time series}
 \usage{
-bvar_conj_sigma2(Y_in, s2_lag = 1)
+bvar_conj_sigma2(Y_in, s2_lag = 1, carriero_hack = FALSE)
 }
 \arguments{
 \item{Y_in}{multivariate time series}
 
 \item{s2_lag}{number of lags to estimate sigma^2}
+
+\item{carriero_hack}{logical, if TRUE sigma^2 will be estimated using biased estimator
+and supposed error with no square roots in dummy observations will be reproduced
+FALSE by default}
 }
 \value{
 [m x 1] vector of sigmas^2
