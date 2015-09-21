@@ -127,17 +127,27 @@ bvar_get_Y_in <- function(Y,X,p) {
 bvar_conj_dummy2hyper <- function(Y_star, X_star) {
   
   X_star_svd <- svd(X_star) # risky operation
-  Omega_root <- X_star_svd$v %*% diag(1/X_star_svd$d) %*% t(X_star_svd$v)
   
-  # following operations are riskless (no inverse, no root, + and * only)
-  Omega <- Omega_root %*% Omega_root
+  diag_inv <- diag(1/X_star_svd$d)
+  
+  if (all(is.finite(diag_inv))) {
+    Omega_root <- X_star_svd$v %*% diag_inv %*% t(X_star_svd$v)
+    
+    # following operations are riskless (no inverse, no root, + and * only)
+    Omega <- Omega_root %*% Omega_root
+    
+    Phi_star <- Omega %*% crossprod(X_star, Y_star)
+    E_star <- Y_star - X_star %*% Phi_star
+    S <- crossprod(E_star)
+    
+    endo_varnames <- bvar_get_endo_varnames(Y_star)
+    X_varnames <- colnames(X_star)
+  } else { # we'll do our best to deal with infinite values...
+    
+  }
+  
+  
 
-  Phi_star <- Omega %*% crossprod(X_star, Y_star)
-  E_star <- Y_star - X_star %*% Phi_star
-  S <- crossprod(E_star)
-
-  endo_varnames <- bvar_get_endo_varnames(Y_star)
-  X_varnames <- colnames(X_star)
 
   colnames(Omega) <- X_varnames
   rownames(Omega) <- X_varnames
