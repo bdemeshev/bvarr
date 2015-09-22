@@ -130,7 +130,7 @@ bvar_conj_dummy2hyper <- function(Y_star, X_star) {
   
   diag_inv <- diag(1/X_star_svd$d)
   
-  if (all(is.finite(diag_inv))) {
+  # if (all(is.finite(diag_inv))) {
     Omega_root <- X_star_svd$v %*% diag_inv %*% t(X_star_svd$v)
     
     # following operations are riskless (no inverse, no root, + and * only)
@@ -142,9 +142,8 @@ bvar_conj_dummy2hyper <- function(Y_star, X_star) {
     
     endo_varnames <- bvar_get_endo_varnames(Y_star)
     X_varnames <- colnames(X_star)
-  } else { # we'll do our best to deal with infinite values...
-    
-  }
+  #} else { # we'll do our best to deal with infinite values...
+  #}
   
   
 
@@ -625,11 +624,11 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
   
   setup <- list(Y = Y, X = X, Y_plus = dummy$Y_plus, X_plus = dummy$X_plus, v_prior = v_prior, p=p,
                 constant = constant, 
-                Omega_prior = prior$Omega, 
-                S_prior = prior$S,
-                Omega_prior_root = prior$Omega_root,
-                Phi_prior = prior$Phi,
-                S_prior = prior$S,
+                # Omega_prior = prior$Omega, 
+                # S_prior = prior$S,
+                # Omega_prior_root = prior$Omega_root,
+                # Phi_prior = prior$Phi,
+                # S_prior = prior$S,
                 Y_in = Y_in,
                 Z_in = Z_in)
   return(setup)
@@ -2106,13 +2105,14 @@ bvar_conj_mdd <- function(model) {
   d <- k - m*p
   
   
-  # old: # prior <- bvar_conj_dummy2hyper(model$Y_plus, model$X_plus)
+  # old: 
+  prior <- bvar_conj_dummy2hyper(model$Y_plus, model$X_plus)
   # model was estimated using additional dummy observations
   # but we use Omega_prior, Phi_prior and S_prior directly obtained from lambdas
   # this is more robust, than obtaining them from calculated dummy observations
-  Omega_prior <- model$Omega_prior # prior$Omega
-  Phi_prior <- model$Phi_prior # prior$Phi
-  S_prior <- model$S_prior # prior$S
+  Omega_prior <- prior$Omega # model$Omega_prior # 
+  Phi_prior <- prior$Phi # model$Phi_prior # 
+  S_prior <- prior$S # model$S_prior # 
   
   v_prior <- model$v_prior
   
@@ -2121,15 +2121,19 @@ bvar_conj_mdd <- function(model) {
 
   v_post <- model$v_post
   
-  
-  I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
-  I_XoX_inv <- sym_inv(I_XoX)
-  e_prior <- Y-X %*% Phi_prior    
-  
-  # just to avoid a very long line:
-  line_1 <- -T*m/2 * log(pi) - m/2 * log(det(I_XoX)) + v_prior/2 * log(det(S_prior)) 
-  line_2 <- -v_post/2 * log(det(S_prior + t(e_prior) %*% I_XoX_inv %*% e_prior )) 
-  res <- lmvgamma(m, v_post/2) - lmvgamma(m, v_prior/2) + line_1 + line_2
+  if (all(is.finite(Omega_prior))) {
+    I_XoX <- diag(T) + X %*% Omega_prior %*% t(X)  # diag() = Identity matrix
+    I_XoX_inv <- sym_inv(I_XoX)
+    e_prior <- Y-X %*% Phi_prior    
+    
+    # just to avoid a very long line:
+    line_1 <- -T*m/2 * log(pi) - m/2 * log(det(I_XoX)) + v_prior/2 * log(det(S_prior)) 
+    line_2 <- -v_post/2 * log(det(S_prior + t(e_prior) %*% I_XoX_inv %*% e_prior )) 
+    res <- lmvgamma(m, v_post/2) - lmvgamma(m, v_prior/2) + line_1 + line_2
+  } else {
+    res <- NaN
+    warning("Omega prior contains Inf, I could not calculate marginal data density. Sorry.")
+  }
   return(res)
   
 }
