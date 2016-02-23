@@ -13,7 +13,9 @@ notifications:
     on_success: change
     on_failure: change
 
-r_packages:
+bioc_packages:
   - graph
   - Rgraphviz
+
+r_packages:
   - MCMCpack
