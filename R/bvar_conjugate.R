@@ -341,7 +341,8 @@ bvar_conj_sigma2 <- function(Y_in, s2_lag = 1, carriero_hack = FALSE) {
 #' Carriero uses 1 in his matlab code
 #' @param delta vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
 #' Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
-#' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise.
+#' Diagonal of Phi_1 is equal to delta. y_bar is multiplied by delta componentwise. All observations in Y_in are
+#' used to estimate AR(1) coefficient.
 #' By default delta is equal to 1.
 #' @param y_bar_type (either "all" or "initial"). Determines how y_bar for sc and io dummy is calculated.
 #' "all": y_bar is mean of y for all observations, "initial": p initial observations
