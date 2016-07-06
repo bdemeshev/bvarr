@@ -648,8 +648,8 @@ bvar_conj_setup <- function(Y_in, Z_in=NULL, constant=TRUE, p=4,
 #' Y_plus [T_plus x m]
 #' v_prior 
 #' p number of lags
-#' @param keep the number of simulations
-#' If keep is zero only posteriors are calculated
+#' @param keep the number of simulations.
+#' If keep is zero only posterior hyperparameters are calculated
 #' @param verbose TRUE will show some debugging messages, FALSE by default
 #' @return model list containing
 #' X, Y, X_plus, Y_plus,

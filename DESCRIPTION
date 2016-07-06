@@ -5,7 +5,8 @@ Version: 0.2
 Date: 2015-07-25
 Author: Koop, Korobilis, Demeshev
 Maintainer: Boris Demeshev <boris.demeshev@gmail.com>
-Depends: R (>= 3.1.0)
+Depends:
+    R (>= 3.1.0)
 Imports:
     MCMCpack (>= 1.3.3),
     mvtnorm (>= 1.0.1),
@@ -20,3 +21,4 @@ Description: The bvarr package allows estimation of some bayesian VAR
     models. The goal is to provide flexible well documented interface.
 LazyData: true
 License: GPL-3
+RoxygenNote: 5.0.1
