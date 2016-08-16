@@ -26,6 +26,6 @@ Create [m x 1] vector of sigma^2 from supplied time series
 }
 \examples{
 data(Yraw)
-sigma2 <- bvar_conj_sigma2(Yraw) 
+sigma2 <- bvar_conj_sigma2(Yraw)
 }
 

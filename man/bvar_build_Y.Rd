@@ -22,6 +22,6 @@ Build Y matrix from supplied data
 }
 \examples{
 data(Yraw)
-Y <- bvar_build_Y(Yraw, p=4)
+Y <- bvar_build_Y(Yraw, p = 4)
 }
 

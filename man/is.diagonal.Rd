@@ -16,11 +16,12 @@ logical, TRUE/FALSE, TRUE for diagonal matrices
 }
 \description{
 check whether matrix is diagonal
- 
+}
+\details{
 check whether matrix is diagonal
 }
 \examples{
-A <- matrix(c(2,1,1,2),nrow=2)
+A <- matrix(c(2, 1, 1, 2), nrow = 2)
 sym_inv(A)
 }
 

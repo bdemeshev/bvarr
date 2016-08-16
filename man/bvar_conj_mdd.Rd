@@ -14,13 +14,15 @@ log of marginal data density
 }
 \description{
 Calculate log marginal data density
- 
-Calculate log marginal data density. Formula from Carriero p. 55
+}
+\details{
+Calculate log marginal data density. Formula (22) from Carriero
+"Bayesian VARs: Specification Choices and Forecast Accuracy" section 4.1.
 }
 \examples{
 data(Yraw)
 setup <- bvar_conj_setup(Yraw, p = 4)
-model <- bvar_conj_estimate(setup = setup, keep=100)
+model <- bvar_conj_estimate(setup = setup, keep = 100)
 bvar_conj_mdd(model)
 }
 

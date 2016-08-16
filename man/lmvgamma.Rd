@@ -16,7 +16,8 @@ log G_p(a), log of multivariate gamma-function
 }
 \description{
 Multivariate log-gamma-function
- 
+}
+\details{
 Multivariate log-gamma-function. Wikipedia-style parametrisation (p,a)
 }
 \examples{

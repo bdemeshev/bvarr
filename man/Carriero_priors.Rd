@@ -17,7 +17,7 @@ Carriero_priors(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
 \item{p}{number of lags}
 
-\item{lambdas}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+\item{lambdas}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for
 conjugate N-IW prior. Short summary:
 sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
@@ -25,15 +25,15 @@ sd(coef for var j lag l in eq i) = l_1*sigma_i/sigma_j/l^l_lag
 lambdas may be Inf
 l_io or l_sc equal to NA means no corresponding dummy observations}
 
-\item{delta}{vector [m x 1] or scalar or "AR1". Are used for prior Phi_1 and in sc/io dummy observations
-Scalar value is replicated m times. If set to "AR1" then deltas will be estimated as AR(1) coefficients (but not greater than one).
+\item{delta}{vector [m x 1] or scalar or 'AR1'. Are used for prior Phi_1 and in sc/io dummy observations
+Scalar value is replicated m times. If set to 'AR1' then deltas will be estimated as AR(1) coefficients (but not greater than one).
 Diagonal of Phi_1 is equal to delta. y_0_bar is multiplied by delta componentwise.}
 
 \item{s2_lag}{number of lags in AR() model used to estimate s2 (equal to p by default)
 Carriero uses 1 in his matlab code}
 
-\item{y_0_bar_type}{(either "all" or "initial"). Determines how y_bar0 for sc and io dummy is calculated.
-"all": y_bar0 is mean of y for all observations, "initial": p initial observations
+\item{y_0_bar_type}{(either 'all' or 'initial'). Determines how y_bar0 for sc and io dummy is calculated.
+'all': y_bar0 is mean of y for all observations, 'initial': p initial observations
 Carriero: all, Sim-Zha: initial}
 }
 \value{
@@ -45,13 +45,13 @@ Set conjugate N-IW priors from lambdas as in Carriero
 }
 \details{
 Set conjugate N-IW priors from lambdas as in Carriero
-Based on Carriero p. 52-53
+Based on Carriero "Bayesian VARs: Specification Choices and Forecast Accuracy" section 3.2
 }
 \examples{
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2,1,1,1,100,100))
-model <- bvar_conjugate0(priors = priors, keep=100)
+priors <- Carriero_priors(Yraw, p = 4, lambdas = c(0.2, 1, 1, 1, 100, 100))
+model <- bvar_conjugate0(priors = priors, keep = 100)
 # if something goes wrong then we need info!
-model <- bvar_conjugate0(priors = priors, keep=10, verbose=TRUE)
+model <- bvar_conjugate0(priors = priors, keep = 10, verbose = TRUE)
 }
 

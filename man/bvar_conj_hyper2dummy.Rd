@@ -20,15 +20,15 @@ list of artificial observations: X_plus, Y_plus
 Calculate artificial observations from hyperparameters
 }
 \details{
-Calculate artificial observations from hyperparameters. 
+Calculate artificial observations from hyperparameters.
 Usually used to calculate artificial observations
 from prior hyperparameters.
 }
 \examples{
 data(Yraw)
-X <- bvar_build_X(Yraw, constant=TRUE, p=4)
-Y <- bvar_build_Y(Yraw, p=4)
-hyper <- bvar_conj_dummy2hyper(Y,X) # no dummy observation, just for demo
+X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
+Y <- bvar_build_Y(Yraw, p = 4)
+hyper <- bvar_conj_dummy2hyper(Y, X) # no dummy observation, just for demo
 dummy <- bvar_conj_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
 }
 

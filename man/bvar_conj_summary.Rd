@@ -14,13 +14,14 @@ nothing
 }
 \description{
 summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
- 
+}
+\details{
 summary of a conjugate Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
 data(Yraw)
 setup <- bvar_conj_setup(Yraw, p = 4)
-model <- bvar_conj_estimate(setup = setup, keep=100)
+model <- bvar_conj_estimate(setup = setup, keep = 100)
 bvar_conj_summary(model)
 }
 

@@ -10,9 +10,9 @@ bvar_conj_estimate(setup, keep = 2000, verbose = FALSE)
 \item{setup}{list containing:
 X [T x k]
 Y [T x m]
-X_plus [T_plus x k] 
+X_plus [T_plus x k]
 Y_plus [T_plus x m]
-v_prior 
+v_prior
 p number of lags}
 
 \item{keep}{the number of simulations.
@@ -29,12 +29,13 @@ Omega_post, v_post, S_post, Phi_post
 }
 \description{
 Estimate bvar conjugate model from setup
- 
+}
+\details{
 Estimate bvar conjugate model from setup
 }
 \examples{
 data(Yraw)
-setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
-model <- bvar_conj_estimate(setup, keep=10)
+setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
+model <- bvar_conj_estimate(setup, keep = 10)
 }
 

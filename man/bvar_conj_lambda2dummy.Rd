@@ -17,7 +17,7 @@ bvar_conj_lambda2dummy(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
 \item{p}{number of lags}
 
-\item{lambda}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+\item{lambda}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for
 conjugate N-IW prior. Short summary valid for NO sc/io case:
 sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
@@ -53,11 +53,12 @@ X_plus, Y_plus binding all corresponging Xs and Ys
 Create dummy observations from lambdas
 }
 \details{
-Create dummy observations from lambdas. 
-Lambdas specification is based on Carriero p. 52-53
+Create dummy observations from lambdas.
+Lambdas specification is based on Carriero
+"Bayesian VARs: Specification Choices and Forecast Accuracy" section 3.2.
 }
 \examples{
 data(Yraw)
-dummy <- bvar_conj_lambda2dummy(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+dummy <- bvar_conj_lambda2dummy(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
 }
 

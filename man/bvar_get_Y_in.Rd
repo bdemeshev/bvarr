@@ -24,8 +24,8 @@ Recover original Y_in from Y, X and number of lags p
 }
 \examples{
 data(Yraw)
-Y <- bvar_build_Y(Yraw, p=4)
-X <- bvar_build_X(Yraw, constant=TRUE, p=4)
-Y_in <- bvar_get_Y_in(Y,X,p=4)
+Y <- bvar_build_Y(Yraw, p = 4)
+X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
+Y_in <- bvar_get_Y_in(Y, X, p = 4)
 }
 

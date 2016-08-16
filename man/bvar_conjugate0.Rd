@@ -22,7 +22,7 @@ Is ignored when the fast_forecast is TRUE.}
 
 \item{verbose}{(FALSE by default)}
 
-\item{priors}{the list containing at least Phi_prior [k x m], Omega_prior [k x k], 
+\item{priors}{the list containing at least Phi_prior [k x m], Omega_prior [k x k],
 S_prior [m x m], v_prior [1x1],
 it may also contain
 Y_dummy [T_dummy x m], X_dummy [T_dummy x k]
@@ -31,19 +31,20 @@ where k = mp+d}
 \item{fast_forecast}{logical, FALSE by default. If TRUE then no simulations are done,
 only posterior hyperparameters are calculated.}
 
-\item{way_omega_post_root}{the way for (Omega_post)^{1/2} calculation: "svd" or "cholesky"}
+\item{way_omega_post_root}{the way for (Omega_post)^{1/2} calculation: 'svd' or 'cholesky'}
 }
 \value{
 the list containing all results of bayesian VAR estimation
 }
 \description{
 Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
- 
+}
+\details{
 Estimate conjugate  Normal-Inverse-Wishart bayesian VAR model
 }
 \examples{
 data(Yraw)
 priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors, keep=100)
+model <- bvar_conjugate0(priors = priors, keep = 100)
 }
 

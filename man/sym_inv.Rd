@@ -14,11 +14,12 @@ inverse of A
 }
 \description{
 Compute inverse of symmetric positive definite matrix using Cholesky decomposition
- 
+}
+\details{
 Compute inverse of symmetric positive definite matrix using Cholesky decomposition
 }
 \examples{
-A <- matrix(c(2,1,1,2),nrow=2)
+A <- matrix(c(2, 1, 1, 2), nrow = 2)
 sym_inv(A)
 }
 

@@ -26,6 +26,6 @@ Get X column names from exo_varnames and endo_varnames
 data(Yraw)
 exo_names <- bvar_get_exo_varnames(Yraw)
 endo_names <- bvar_get_endo_varnames(Yraw)
-bvar_create_X_colnames(endo_names, exo_names, p=2)
+bvar_create_X_colnames(endo_names, exo_names, p = 2)
 }
 

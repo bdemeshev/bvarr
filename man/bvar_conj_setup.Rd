@@ -17,7 +17,7 @@ bvar_conj_setup(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
 \item{p}{number of lags}
 
-\item{lambda}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for 
+\item{lambda}{vector = (l_1, l_lag, l_sc, l_io, l_const, l_exo), the l_kron is set to 1 automatically for
 conjugate N-IW prior. Short summary valid for NO sc/io case:
 sd(const in eq i) = l_const * sigma_i
 sd(exo in eq i)= l_exo * sigma_i
@@ -36,7 +36,7 @@ Carriero uses 1 in his matlab code}
 "all": y_bar is mean of y for all observations, "initial": p initial observations
 Carriero: all, Sim-Zha: initial}
 
-\item{v_prior}{prior value of hyperparameter nu, m+2 by default, 
+\item{v_prior}{prior value of hyperparameter nu, m+2 by default,
 may use character formula involving m, k, p, T_dummy, constant, something like "T_dummy+2"}
 
 \item{carriero_hack}{logical, if TRUE sigma^2 will be estimated using biased estimator
@@ -52,11 +52,11 @@ p, v_prior
 Create model setup from lambdas
 }
 \details{
-Create model setup from lambdas 
+Create model setup from lambdas
 Lambdas specification is based on Carriero p. 52-53
 }
 \examples{
 data(Yraw)
-setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2,1,1,1,100,100))
+setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
 }
 

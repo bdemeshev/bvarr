@@ -19,13 +19,13 @@ Calculate hyperparameters from artificial observations
 }
 \details{
 Calculate hyperparameters from artificial observations. Can be used both for prior and posterior
-hyperparameters. In the case of prior hyperparameters X_star usually consists of X_cniw, X_io and X_sc. 
+hyperparameters. In the case of prior hyperparameters X_star usually consists of X_cniw, X_io and X_sc.
 In the case of posterior hyperparameters X_star usually consists of X, X_cniw, X_io and X_sc.
 }
 \examples{
 data(Yraw)
-X <- bvar_build_X(Yraw, constant=TRUE, p=4)
-Y <- bvar_build_Y(Yraw, p=4)
+X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
+Y <- bvar_build_Y(Yraw, p = 4)
 post <- bvar_conj_dummy2hyper(Y,X) # no dummy observation, just for demo
 }
 

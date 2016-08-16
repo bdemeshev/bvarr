@@ -10,7 +10,7 @@ bvar_conj_simulate(v_post, Omega_post_root, S_post, Phi_post, verbose = FALSE,
 \arguments{
 \item{v_post}{posterior nu, scalar}
 
-\item{Omega_post_root}{[k x k] "root" of Omega posterior matrix}
+\item{Omega_post_root}{[k x k] 'root' of Omega posterior matrix}
 
 \item{S_post}{[m x m] posterior scale matrix for noise covariance}
 
@@ -31,10 +31,10 @@ Simulate from conjugate N-IW posterior distribution
 }
 \examples{
 data(Yraw)
-dummy <- bvar_conj_lambda2dummy(Yraw,p=2)
+dummy <- bvar_conj_lambda2dummy(Yraw, p = 2)
 hyper <- bvar_conj_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
 # these are priors but just for testing let's pretend that they are posteriors
-post_sample <- bvar_conj_simulate(v_post=10,
+post_sample <- bvar_conj_simulate(v_post = 10,
 hyper$Omega_root, hyper$S, hyper$Phi)
 }
 

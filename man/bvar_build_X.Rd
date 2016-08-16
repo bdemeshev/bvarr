@@ -27,6 +27,6 @@ Build X matrix from supplied data
 }
 \examples{
 data(Yraw)
-X <- bvar_build_X(Yraw, constant=TRUE, p=4)
+X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
 }
 

@@ -22,6 +22,6 @@ Create [m x 1] vector of deltas from delta description
 }
 \examples{
 data(Yraw)
-dummy <- bvar_conj_delta(Yraw, delta="AR1") 
+dummy <- bvar_conj_delta(Yraw, delta = "AR1")
 }
 
