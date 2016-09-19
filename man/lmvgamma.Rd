@@ -21,6 +21,6 @@ Multivariate log-gamma-function
 Multivariate log-gamma-function. Wikipedia-style parametrisation (p,a)
 }
 \examples{
-lmvgamma(2,3)
+lmvgamma(2, 3)
 }
 

@@ -36,7 +36,7 @@ Carriero uses 1 in his matlab code}
 "all": y_bar is mean of y for all observations, "initial": p initial observations
 Carriero: all, Sim-Zha: initial}
 
-\item{v_prior}{prior value of hyperparameter nu, m+2 by default,
+\item{v_prior}{prior value of hyperparameter nu, m + 2 by default,
 may use character formula involving m, k, p, T_dummy, constant, something like "T_dummy+2"}
 
 \item{carriero_hack}{logical, if TRUE sigma^2 will be estimated using biased estimator

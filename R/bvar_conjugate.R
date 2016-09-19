@@ -1,6 +1,3 @@
-# todo:
-# make parallel computations in estimate
-
 #' Build Y matrix from supplied data
 #'
 #' Build Y matrix from supplied data
@@ -37,7 +34,8 @@ bvar_build_Y <- function(Y_in, p = 1) {
 #' @param Z_in optional exogeneous variables [T_in x ...]
 #' @param constant whether the constant should be included, default is TRUE
 #' @return X [T x k] matrix of right hand side regressors: endogeneous and exogeneous variables,
-#' T = T_in - p, k = m*p + d, d is the number of exogeneous variables including constant if present
+#' T = T_in - p, k = m * p + d, d is the number of exogeneous variables including constant if present
+#' X = [endo | const | other exo]
 #' @export
 #' @examples
 #' data(Yraw)
@@ -72,11 +70,11 @@ bvar_build_X <- function(Y_in, Z_in = NULL, constant = TRUE, p = 1) {
   X <- NULL
   for (j in 1:p) {
     Y_block <- Y_in[(p + 1 - j):(T_in - j),]
-    colnames(Y_block) <- paste0(colnames(Y), ", l=", j)
+    colnames(Y_block) <- paste0(colnames(Y), ", l = ", j)
     X <- cbind(X, Y_block)
   }
-  X <- cbind(X,Z)
-  # X = [endo | const | other exo]
+  X <- cbind(X, Z)
+
 
   return(X)
 }
@@ -269,9 +267,9 @@ bvar_conj_lambda2hyper <- function(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 bvar_conj_delta <- function(Y_in, delta) {
   m <- ncol(Y_in)
   if (delta[1] == "AR1") { # set deltas as AR(1) coefficients but no more than 1
-    delta <- rep(1,m) # reserve space
+    delta <- rep(1, m) # reserve space
     for (j in 1:m) {
-      y_uni <- Y_in[,j] # univariate time series
+      y_uni <- Y_in[, j] # univariate time series
       # more robust version: fails only in the case of  severe multicollinearity
       AR_1 <- stats::ar.ols(y_uni, aic = FALSE, order.max = 1) # AR(1) model
       delta[j] <- AR_1$ar
@@ -450,7 +448,7 @@ bvar_conj_lambda2dummy <- function(Y_in, Z_in = NULL, constant = TRUE, p = 4,
 
     exo_dummy <- matrix(0, m, d)
 
-    X_sc <- cbind( kronecker(matrix(1, 1, p), Y_sc) , exo_dummy)  # zero matrix [m x k]
+    X_sc <- cbind(kronecker(matrix(1, 1, p), Y_sc) , exo_dummy)  # zero matrix [m x k]
     colnames(X_sc) <- bvar_create_X_colnames(endo_varnames, exo_varnames, p)
   }
 
@@ -604,7 +602,7 @@ bvar_create_X_colnames <- function(endo_varnames, exo_varnames, p) {
 #' @param carriero_hack logical, if TRUE sigma^2 will be estimated using biased estimator
 #' and supposed error with no square roots in dummy observations will be reproduced
 #' FALSE by default
-#' @param v_prior prior value of hyperparameter nu, m+2 by default,
+#' @param v_prior prior value of hyperparameter nu, m + 2 by default,
 #' may use character formula involving m, k, p, T_dummy, constant, something like "T_dummy+2"
 #' @return setup list containing
 #' X, Y, X_plus, Y_plus,
@@ -637,7 +635,8 @@ bvar_conj_setup <- function(Y_in, Z_in = NULL, constant = TRUE, p = 4,
     v_prior <- m + 2
   }
 
-  if (is.character(v_prior)) { # parse character formula for v_prior
+  if (is.character(v_prior)) {
+    # parse character formula for v_prior
     k <- ncol(dummy$X_plus)
     T_dummy <- nrow(dummy)
     v_prior <- eval(parse(text = v_prior))
@@ -1015,8 +1014,9 @@ KK_code_priors <- function(Y_in, Z_in = NULL, constant = TRUE, p = 4) {
 
   # get variable names
   endo_varnames <- colnames(Y_in)
-  if (is.null(endo_varnames))
+  if (is.null(endo_varnames)) {
     endo_varnames <- paste0("endo_", 1:m)
+  }
 
 
   exo_varnames <- NULL
@@ -1210,8 +1210,9 @@ bvar_conj_forecast <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
   T_dummy <- nrow(model$X_plus)
 
   keep <- 0
-  if ("sample" %in% names(model))
+  if ("sample" %in% names(model)) {
     keep <- nrow(model$sample)
+  }
 
   constant <- model$constant
 
@@ -1234,29 +1235,34 @@ bvar_conj_forecast <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
 
   # if Y_in is not supplied take Y_in from estimation. Or is it better to
   # save it in model list?
-  if (is.null(Y_in))
+  if (is.null(Y_in)) {
     Y_in <- bvar_get_Y_in(model$Y, model$X, p = p)
+  }
 
 
   # in case of in-sample forecast h is set to T, or is is better set to
   # NA?
-  if (!out_of_sample)
+  if (!out_of_sample) {
     h <- T
+  }
 
 
   # sanity check
-  if (!is.null(Z_f))
-    if (!nrow(Z_f) == h)
+  if (!is.null(Z_f)) {
+    if (!nrow(Z_f) == h) {
       stop("I need exactly h = ", h, " observations for exogeneous variables.")
+    }
+  }
 
-  if (nrow(Y_in) < p)
+  if (nrow(Y_in) < p) {
     stop("Model has ", p, " lags. To predict I need at least ", p,
          " observations, but only ", nrow(Y_in), " are provided.")
-
+  }
 
   # if requested add constant to exogeneous regressors
-  if (constant)
+  if (constant) {
     Z_f <- cbind(rep(1, h), Z_f)
+  }
 
 
   if (out_of_sample) {
@@ -1293,7 +1299,7 @@ bvar_conj_forecast <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
       # function)
       ev <- eigen(Sigma, symmetric = TRUE)
       if (!all(ev$values >= -sqrt(.Machine$double.eps) * abs(ev$values[1]))) {
-        warning("Omega_post is numerically not positive definite")
+        warning("Omega_post is not positive definite numerically")
       }
       # precalculate R to do less operations in case h>1
       R <- t(ev$vectors %*% (t(ev$vectors) * sqrt(ev$values)))
@@ -1314,8 +1320,9 @@ bvar_conj_forecast <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
 
         # fill endogeneous values recursively (second+ out-of-sample forecast)
         if (j > 1) {
-          if (p > 1)
+          if (p > 1) {
             x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
+          }
           x_t[1:m] <- y_t
         }
       } else {
@@ -1476,18 +1483,21 @@ bvar_conjugate0 <- function(Y_in = NULL, Z_in = NULL, constant = TRUE,
 
 
   # if Z_in is provided it should have the same number of rows that Y_in
-  if (!is.null(Z_in))
-    if (!nrow(Y_in) == nrow(Z_in))
+  if (!is.null(Z_in)) {
+    if (!nrow(Y_in) == nrow(Z_in)) {
       stop("Number of rows in Y_in and Z_in should be equal.
            The first p rows of Z_in are not used and may be filled with NA")
+    }
+  }
 
 
   # number of observations supplied
   T_in <- nrow(Y_in)
 
   # if requested add constant to exogeneous regressors
-  if (constant)
+  if (constant) {
     Z_in <- cbind(rep(1, nrow(Y_in)), Z_in)
+  }
 
   # transform Y_in from data.frame to matrix so that cbind(NULL, Y_block)
   # will work
@@ -1519,8 +1529,9 @@ bvar_conjugate0 <- function(Y_in = NULL, Z_in = NULL, constant = TRUE,
   # here we add dummy observations
   T_dummy <- 0
   if (!is.null(priors$Y_dummy)) {
-    if (!nrow(priors$Y_dummy) == nrow(priors$X_dummy))
+    if (!nrow(priors$Y_dummy) == nrow(priors$X_dummy)) {
       stop("X_dummy and Y_dummy should have the same number of rows")
+    }
     T_dummy <- nrow(priors$Y_dummy)
   }
 
@@ -1622,7 +1633,7 @@ bvar_conjugate0 <- function(Y_in = NULL, Z_in = NULL, constant = TRUE,
   Omega_post <- sym_inv(Omega_prior_inv + XtX)
   if (!is.null(attr(Omega_post, "Moore-Penrose"))) {
     if (verbose) {
-      message("The (Omega_prior_inv+XtX) matrix is so ugly... kappa(Omega_prior_inv+XtX) = ",
+      message("The (Omega_prior_inv + XtX) matrix is so ugly... kappa(Omega_prior_inv+XtX) = ",
               kappa(Omega_prior_inv + XtX), ". I will use the Moore-Penrose inverse :)")
     }
   }
@@ -1645,8 +1656,10 @@ bvar_conjugate0 <- function(Y_in = NULL, Z_in = NULL, constant = TRUE,
   E_hat <- Y - X %*% Phi_hat
 
   # Karlsson, p 15
-  if (verbose)
+  if (verbose) {
     message("Calculating S_post...")
+  }
+
   S_post <- S_prior + t(E_hat) %*% E_hat + t(Phi_prior - Phi_hat) %*%
     sym_inv(Omega_prior + XtX_inv) %*% (Phi_prior - Phi_hat)
 
@@ -1791,8 +1804,9 @@ forecast_conjugate <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
   constant <- attr(model, "params")$constant
 
   if ((attr(model, "params")$fast_forecast) & (!fast_forecast)) {
-    if (verbose)
+    if (verbose) {
       message("No simulations found in 'model', fast_forecast option is set to TRUE.")
+    }
     fast_forecast <- TRUE
   }
 
@@ -1809,29 +1823,35 @@ forecast_conjugate <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
 
 
   # if Y_in is not supplied take Y_in from estimation
-  if (is.null(Y_in))
+  if (is.null(Y_in)) {
     Y_in <- attr(model, "data")$Y_in
+  }
 
 
   # in case of in-sample forecast h is set to T-T_dummy, or is is better
   # set to NA?
-  if (!out_of_sample)
+  if (!out_of_sample) {
     h <- T - T_dummy
+  }
 
 
   # sanity check
-  if (!is.null(Z_f))
-    if (!nrow(Z_f) == h)
+  if (!is.null(Z_f)) {
+    if (!nrow(Z_f) == h) {
       stop("I need exactly h = ", h, " observations for exogeneous variables.")
+    }
+  }
 
-  if (nrow(Y_in) < p)
+  if (nrow(Y_in) < p) {
     stop("Model has ", p, " lags. To predict I need at least ", p,
          " observations, but only ", nrow(Y_in), " are provided.")
+  }
 
 
   # if requested add constant to exogeneous regressors
-  if (constant)
+  if (constant) {
     Z_f <- cbind(rep(1, h), Z_f)
+  }
 
 
   if (out_of_sample) {
@@ -1888,8 +1908,9 @@ forecast_conjugate <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
 
         # fill endogeneous values recursively (second+ out-of-sample forecast)
         if (j > 1) {
-          if (p > 1)
+          if (p > 1) {
             x_t[(m + 1):(m * p)] <- x_t[1:(m * (p - 1))]
+          }
           x_t[1:m] <- y_t
         }
       } else {
@@ -1945,14 +1966,14 @@ forecast_conjugate <- function(model, Y_in = NULL, Z_f = NULL, output = c("long"
       # lower
       what <- rep(paste0("lower_", lev), h * m)
       value <- apply(forecast_raw, 2, function(x) stats::quantile(x, probs = (1 -
-                                                                         lev/100)/2))
+                                                                         lev / 100) / 2))
       block <- cbind(id_block, what, value)  # block of information
       forecast_summary <- rbind(forecast_summary, block)
 
       # upper
       what <- rep(paste0("upper_", lev), h * m)
       value <- apply(forecast_raw, 2, function(x) stats::quantile(x, probs = (1 +
-                                                                         lev/100)/2))
+                                                                         lev / 100) / 2))
       block <- cbind(id_block, what, value)  # block of information
       forecast_summary <- rbind(forecast_summary, block)
     }
@@ -2162,7 +2183,7 @@ summary_conjugate <- function(model) {
 #' @export
 #' @return log G_p(a), log of multivariate gamma-function
 #' @examples
-#' lmvgamma(2,3)
+#' lmvgamma(2, 3)
 lmvgamma <- function(p, a) {
   # wikipedia parameters
   res <- p * (p - 1) / 4 * log(pi) + sum(lgamma(a + (1 - (1:p)) / 2))

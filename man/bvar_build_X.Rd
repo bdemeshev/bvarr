@@ -17,7 +17,8 @@ bvar_build_X(Y_in, Z_in = NULL, constant = TRUE, p = 1)
 }
 \value{
 X [T x k] matrix of right hand side regressors: endogeneous and exogeneous variables,
-T = T_in - p, k = m*p + d, d is the number of exogeneous variables including constant if present
+T = T_in - p, k = m * p + d, d is the number of exogeneous variables including constant if present
+X = [endo | const | other exo]
 }
 \description{
 Build X matrix from supplied data
