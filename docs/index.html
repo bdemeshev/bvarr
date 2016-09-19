@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>Home. bvarr 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="index.html">bvarr 0.2</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reference.html">Reference</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <div class="row">
+  <div class="span8">
+    <h1>bvarr</h1>
+
+<p><a href="https://travis-ci.org/bdemeshev/bvarr"><img src="https://travis-ci.org/bdemeshev/bvarr.svg?branch=master" alt="Travis-CI Build Status"/></a></p>
+
+<p>Пакет <code>bvarr</code> может пригодится для оценки BVAR моделей с сопряжённым нормальным - обратным Уишарта априорным распределением.</p>
+
+<p>Пакет можно установить командами:</p>
+
+<pre><code class="R">install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;bdemeshev/bvarr&quot;)
+</code></pre>
+
+<p>Простой пример оценки BVAR с сопряжённым нормальным - обратным Уишарта априорным распределением</p>
+
+<pre><code class="R">library(&quot;bvarr&quot;)
+data(Yraw)
+priors &lt;- Carriero_priors(Yraw, p = 4)
+model &lt;- bvar_conjugate0(priors = priors)
+summary_conjugate(model) 
+forecast_conjugate(model, h = 2, output = &quot;wide&quot;)
+forecast_conjugate(model, out_of_sample = FALSE, include = &quot;mean&quot;, level = NULL, type = &quot;credible&quot;)
+</code></pre>
+
+<p><a href="https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf">Теория моделей BVAR</a></p>
+
+<p>Цели пакета:</p>
+
+<ol>
+<li><p>Хорошая документация</p></li>
+<li><p>Гибкость</p></li>
+<li><p>Разумные значения параметров по умолчанию</p></li>
+<li><p>Робастность к мерзким матрицам</p></li>
+</ol>
+
+<p>Модели BVAR также можно оценивать с помощью пакетов:</p>
+
+<ul>
+<li><p><a href="http://bayes.squarespace.com/bmr/">BMR</a></p></li>
+<li><p><a href="http://cran.r-project.org/web/packages/MSBVAR/">MSBVAR</a> </p></li>
+<li><p><a href="https://cran.r-project.org/web/packages/bvarsv/index.html">bvarsv</a> </p></li>
+</ul>
+
+<h2>English translation</h2>
+
+<p>The package <code>bvarr</code> may be useful for estimation BVARs with conjugate Normal-Inverse Wishart prior.</p>
+
+<p>You may install the package usinge the commands:</p>
+
+<pre><code class="R">install.packages(&quot;devtools&quot;)
+devtools::install_github(&quot;bdemeshev/bvarr&quot;)
+</code></pre>
+
+<p>Basic example of BVAR estimation with forecasting</p>
+
+<pre><code class="R">library(&quot;bvarr&quot;)
+data(Yraw)
+priors &lt;- Carriero_priors(Yraw, p = 4)
+model &lt;- bvar_conjugate0(priors = priors)
+summary_conjugate(model) 
+forecast_conjugate(model, h = 2, output = &quot;wide&quot;)
+forecast_conjugate(model, out_of_sample = FALSE, include = &quot;mean&quot;, level = NULL, type = &quot;credible&quot;)
+</code></pre>
+
+<p><a href="https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf">Theory behind package</a></p>
+
+<p>Goals of the package:</p>
+
+<ol>
+<li><p>Good documentation</p></li>
+<li><p>Versatile </p></li>
+<li><p>Reasonable default values</p></li>
+<li><p>Robustness for bad matrices</p></li>
+</ol>
+
+<p>You may also wish look at </p>
+
+<ul>
+<li><p><a href="http://bayes.squarespace.com/bmr/">BMR</a></p></li>
+<li><p><a href="http://cran.r-project.org/web/packages/MSBVAR/">MSBVAR</a> </p></li>
+<li><p><a href="https://cran.r-project.org/web/packages/bvarsv/index.html">bvarsv</a> </p></li>
+</ul>
+
+  </div>
+
+  <div class="span3 offset1 sidebar">
+        <h2>Authors</h2>
+    <ul>
+      <li><a href='mailto:boris.demeshev@gmail.com'>Boris Demeshev</a> [aut, cre]</li>
+      <li><a href='mailto:oxana.malakhovskaya@gmail.com'>Oxana Malakhovskaya</a> [aut]</li>
+    </ul>
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="https://getbootstrap.com/2.0.4/">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

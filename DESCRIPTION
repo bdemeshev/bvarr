@@ -3,8 +3,10 @@ Type: Package
 Title: Package for Bayesian Vector Auto Regressions
 Version: 0.2
 Date: 2015-07-25
-Author: Boris Demeshev <boris.demeshev@gmail.com>
-Maintainer: Boris Demeshev <boris.demeshev@gmail.com>
+Authors@R: c(person("Boris", "Demeshev", email = "boris.demeshev@gmail.com",
+    role = c("aut", "cre")),
+    person("Oxana", "Malakhovskaya", email = "oxana.malakhovskaya@gmail.com",
+    role = "aut"))
 Depends:
     R (>= 3.1.0)
 Imports:

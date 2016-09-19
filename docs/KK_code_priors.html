@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>KK_code_priors. bvarr 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="index.html">bvarr 0.2</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reference.html">Reference</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>Set conjugate N-IW priors as in matlab code of Koops-Korobilis</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><span class="functioncall"><a href='KK_code_priors.html'>KK_code_priors</a></span><span class="keyword">(</span><span class="symbol">Y_in</span><span class="keyword">,</span> <span class="argument">Z_in</span>&nbsp;<span class="argument">=</span>&nbsp;NULL<span class="keyword">,</span> <span class="argument">constant</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">TRUE</span><span class="keyword">,</span> <span class="argument">p</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">4</span><span class="keyword">)</span></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>Y_in</dt>
+      <dd>multivariate time series</dd>
+      <dt>Z_in</dt>
+      <dd>exogeneous variables</dd>
+      <dt>constant</dt>
+      <dd>logical, default is TRUE, whether the constant should be included</dd>
+      <dt>p</dt>
+      <dd>number of lags</dd>
+    </dl>
+    
+    <div class="Value">
+      <h2>Value</h2>
+
+      <p><dl>
+priors list containing Phi_prior [k x m], Omega_prior [k x k], S_prior [m x m], v_prior [1x1],
+where k = mp+d
+</dl></p>
+
+    </div>
+
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>Set conjugate N-IW priors as in matlab code of Koops-Korobilis</p>
+
+    </div>
+
+    <div class="Details">
+      <h2>Details</h2>
+
+      <p>Set conjugate N-IW priors as in matlab code of Koops-Korobilis. Mainly for testing.</p>
+
+    </div>
+    
+    <h2 id="examples">Examples</h2>
+    <pre class="examples"><div class='input'><span class="functioncall"><a href='http://www.rdocumentation.org/packages/utils/topics/data'>data</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">)</span>
+<span class="symbol">priors</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='KK_code_priors.html'>KK_code_priors</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">,</span> <span class="argument">p</span> <span class="argument">=</span> <span class="number">4</span><span class="keyword">)</span>
+<span class="symbol">model</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conjugate0.html'>bvar_conjugate0</a></span><span class="keyword">(</span><span class="argument">priors</span> <span class="argument">=</span> <span class="symbol">priors</span><span class="keyword">,</span> <span class="argument">keep</span> <span class="argument">=</span> <span class="number">100</span><span class="keyword">)</span></div></pre>
+  </div>
+  <div class="span4 sidebar">
+    <!-- <ul>
+      <li>KK_code_priors</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+
+
+
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="https://getbootstrap.com/2.0.4/">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

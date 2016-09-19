@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>bvar_conj_summary. bvarr 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="index.html">bvarr 0.2</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reference.html">Reference</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>summary of a conjugate Normal-Inverse-Wishart bayesian VAR model</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><span class="functioncall"><a href='bvar_conj_summary.html'>bvar_conj_summary</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">)</span></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>model</dt>
+      <dd>estimated conjugate N-IW model</dd>
+    </dl>
+    
+    <div class="Value">
+      <h2>Value</h2>
+
+      <p><dl>
+nothing
+</dl></p>
+
+    </div>
+
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>summary of a conjugate Normal-Inverse-Wishart bayesian VAR model</p>
+
+    </div>
+
+    <div class="Details">
+      <h2>Details</h2>
+
+      <p>summary of a conjugate Normal-Inverse-Wishart bayesian VAR model</p>
+
+    </div>
+    
+    <h2 id="examples">Examples</h2>
+    <pre class="examples"><div class='input'><span class="functioncall"><a href='http://www.rdocumentation.org/packages/utils/topics/data'>data</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">)</span>
+<span class="symbol">setup</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_setup.html'>bvar_conj_setup</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">,</span> <span class="argument">p</span> <span class="argument">=</span> <span class="number">4</span><span class="keyword">)</span></div>
+<strong class='message'>Not implemented yet</strong>
+<div class='input'><span class="symbol">model</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_estimate.html'>bvar_conj_estimate</a></span><span class="keyword">(</span><span class="argument">setup</span> <span class="argument">=</span> <span class="symbol">setup</span><span class="keyword">,</span> <span class="argument">keep</span> <span class="argument">=</span> <span class="number">100</span><span class="keyword">)</span>
+<span class="functioncall"><a href='bvar_conj_summary.html'>bvar_conj_summary</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">)</span></div>
+<strong class='message'>Number of lags, p = 4</strong>
+<strong class='message'>Number of endogeneos variables, m = 3</strong>
+<strong class='message'>Number of exogeneos variables (including constant), d = 1</strong>
+<strong class='message'>Number of parameters, k = mp + d = 13</strong>
+<strong class='message'>Initial number of observations, T_in = 215</strong>
+<strong class='message'>Number of dummy observations, T_dummy = 20</strong>
+<strong class='message'>Number of observations available for classic VAR, T = T_in - p = 211</strong>
+<strong class='message'>Posterior mean of Phi (VAR coefficients) [k = 13 x m = 3]:</strong>
+<div class='output'>                     eq_inflation eq_unemployment eq_interest_rate
+inflation, l = 1      1.324303477     0.026892371      0.326364798
+unemployment, l = 1  -0.192550805     1.171699260     -0.429377021
+interest_rate, l = 1 -0.026508511    -0.029864388      0.832926444
+inflation, l = 2     -0.221426553    -0.011118977     -0.178665196
+unemployment, l = 2   0.065438617    -0.199306705      0.303542308
+interest_rate, l = 2  0.019102471     0.016428946     -0.003814684
+inflation, l = 3     -0.085212104    -0.015393879      0.051025071
+unemployment, l = 3   0.041503852    -0.087072758      0.053237955
+interest_rate, l = 3  0.004068285     0.036506618      0.060082575
+inflation, l = 4     -0.020719579     0.030347152     -0.098299318
+unemployment, l = 4   0.038393564     0.003018880      0.092319262
+interest_rate, l = 4 -0.001007131     0.005102153      0.012306069
+const                 0.313102595     0.396227579      0.055204953
+</div>
+<strong class='message'>Posterior nu = 216</strong>
+<strong class='message'>Number of mcmc simulations, keep = 100</strong>
+<strong class='message'>Posterior sample mean of Phi (VAR coefficients) [k = 13 x m = 3]:</strong>
+<div class='output'>                     eq_inflation eq_unemployment eq_interest_rate
+inflation, l = 1      1.325249881     0.035847898      0.315937276
+unemployment, l = 1  -0.186128512     1.185347745     -0.451734641
+interest_rate, l = 1 -0.026340672    -0.030025586      0.827765355
+inflation, l = 2     -0.224780213    -0.026596304     -0.157063837
+unemployment, l = 2   0.059430562    -0.218134370      0.319779275
+interest_rate, l = 2  0.020767942     0.016620542     -0.008443557
+inflation, l = 3     -0.079560356    -0.013148946      0.051628900
+unemployment, l = 3   0.041095031    -0.081167773      0.053341139
+interest_rate, l = 3  0.003558498     0.035013170      0.075663368
+inflation, l = 4     -0.025323754     0.035340311     -0.107709407
+unemployment, l = 4   0.039481458     0.002805226      0.088423957
+interest_rate, l = 4 -0.001577590     0.005577362      0.007477583
+const                 0.308482905     0.396161448      0.099250522
+</div>
+<strong class='message'>Posterior sample mean of Sigma (noise covariance matrix) [m = 3 x m = 3]:</strong>
+<div class='output'>                 inflation unemployment interest_rate
+inflation      0.101074530 -0.005353771    0.03636750
+unemployment  -0.005353771  0.108798865   -0.09683692
+interest_rate  0.036367498 -0.096836920    0.59015487
+</div>
+<strong class='message'>Posterior sample sd of Phi (VAR coefficients) [k = 13 x m = 3]:</strong>
+<div class='output'>                     eq_inflation eq_unemployment eq_interest_rate
+inflation, l = 1       0.05535204      0.05692719       0.12629234
+unemployment, l = 1    0.05408410      0.05519552       0.13007327
+interest_rate, l = 1   0.02261849      0.02081705       0.06406205
+inflation, l = 2       0.06703651      0.07595641       0.14793185
+unemployment, l = 2    0.05643154      0.06447660       0.15547279
+interest_rate, l = 2   0.02251012      0.02256099       0.06182725
+inflation, l = 3       0.04807926      0.04818159       0.12096756
+unemployment, l = 3    0.04526679      0.04192627       0.09912910
+interest_rate, l = 3   0.01879111      0.02135144       0.04626154
+inflation, l = 4       0.03317886      0.03577585       0.07393354
+unemployment, l = 4    0.03153718      0.03473662       0.07507743
+interest_rate, l = 4   0.01423018      0.01615086       0.03912260
+const                  0.09352182      0.10263803       0.26048028
+</div>
+<strong class='message'>Posterior sample sd of Sigma (noise covariance matrix) [m = 3 x m = 3]:</strong>
+<div class='output'>                inflation unemployment interest_rate
+inflation     0.008734558  0.006507812    0.01855960
+unemployment  0.006507812  0.011456540    0.01867098
+interest_rate 0.018559603  0.018670975    0.06372792
+</div></pre>
+  </div>
+  <div class="span4 sidebar">
+    <!-- <ul>
+      <li>bvar_conj_summary</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+
+
+
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="https://getbootstrap.com/2.0.4/">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>
