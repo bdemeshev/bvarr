@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>forecast_conjugate. bvarr 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="index.html">bvarr 0.2</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reference.html">Reference</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>predict with conjugate Normal-Inverse-Wishart bayesian VAR model</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><span class="functioncall"><a href='forecast_conjugate.html'>forecast_conjugate</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">,</span> <span class="argument">Y_in</span>&nbsp;<span class="argument">=</span>&nbsp;NULL<span class="keyword">,</span> <span class="argument">Z_f</span>&nbsp;<span class="argument">=</span>&nbsp;NULL<span class="keyword">,</span> <span class="argument">output</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="functioncall"><a href='http://www.rdocumentation.org/packages/base/topics/c'>c</a></span><span class="keyword">(</span><span class="string">"long"</span><span class="keyword">,</span>
+  <span class="string">"wide"</span><span class="keyword">)</span><span class="keyword">,</span> <span class="argument">h</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">1</span><span class="keyword">,</span> <span class="argument">out_of_sample</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">TRUE</span><span class="keyword">,</span> <span class="argument">type</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="functioncall"><a href='http://www.rdocumentation.org/packages/base/topics/c'>c</a></span><span class="keyword">(</span><span class="string">"prediction"</span><span class="keyword">,</span>
+  <span class="string">"credible"</span><span class="keyword">)</span><span class="keyword">,</span> <span class="argument">level</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="functioncall"><a href='http://www.rdocumentation.org/packages/base/topics/c'>c</a></span><span class="keyword">(</span><span class="number">80</span><span class="keyword">,</span> <span class="number">95</span><span class="keyword">)</span><span class="keyword">,</span> <span class="argument">include</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="functioncall"><a href='http://www.rdocumentation.org/packages/base/topics/c'>c</a></span><span class="keyword">(</span><span class="string">"mean"</span><span class="keyword">,</span> <span class="string">"median"</span><span class="keyword">,</span> <span class="string">"sd"</span><span class="keyword">,</span>
+  <span class="string">"interval"</span><span class="keyword">,</span> <span class="string">"raw"</span><span class="keyword">)</span><span class="keyword">,</span> <span class="argument">fast_forecast</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">FALSE</span><span class="keyword">,</span> <span class="argument">verbose</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">FALSE</span><span class="keyword">)</span></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>model</dt>
+      <dd>estimated conjugate N-IW model</dd>
+      <dt>Y_in</dt>
+      <dd>(NULL by default) past values of endogeneous variables (shold have at least p observations).
+If NULL, then Y_in supplied for estimation will be used. For out-of-sample forecast only last p values of Y_in are used</dd>
+      <dt>Z_f</dt>
+      <dd>future values of exogeneous variables</dd>
+      <dt>output</dt>
+      <dd>(default &#39;long&#39;) --- long or wide table for mean/quantiles of forecasts</dd>
+      <dt>h</dt>
+      <dd>number of periods for forecasting</dd>
+      <dt>out_of_sample</dt>
+      <dd>logical, default is TRUE, whether forecasts are out-of-sample or in-sample.
+If forecasts are not out-of-sample, then parameter h is ignored</dd>
+      <dt>type</dt>
+      <dd>(&#39;prediction&#39; by default) type of interval: &#39;prediction&#39; incorporates uncertainty about
+future shocks; &#39;credible&#39; deals only with parameter uncertainty.</dd>
+      <dt>level</dt>
+      <dd>confidence levels for prediction intervals</dd>
+      <dt>include</dt>
+      <dd>(default is c(&#39;mean&#39;, &#39;median&#39;, &#39;sd&#39;, &#39;raw&#39;)) what type of summary to provide
+If &#39;raw&#39; is present raw forecasts will be reported. If only &#39;raw&#39; is present
+then function will return coda mcmc object with raw forecasts.
+Otherwise raw forecasts will be attached as attribute.</dd>
+      <dt>fast_forecast</dt>
+      <dd>logical, FALSE by default. If TRUE then only mean forecast is calculated,
+posterior expected values of hyperparameters are used. No confidence intervals, no sd, no median.
+This mode is activated by default if there are no simulations in supplied model.</dd>
+      <dt>verbose</dt>
+      <dd>(default FALSE) if true some messages will be printed</dd>
+    </dl>
+    
+    <div class="Value">
+      <h2>Value</h2>
+
+      <p><dl>
+forecast results
+</dl></p>
+
+    </div>
+
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>predict with conjugate Normal-Inverse-Wishart bayesian VAR model</p>
+
+    </div>
+
+    <div class="Details">
+      <h2>Details</h2>
+
+      <p>predict with conjugate Normal-Inverse-Wishart bayesian VAR model</p>
+
+    </div>
+    
+    <h2 id="examples">Examples</h2>
+    <pre class="examples"><div class='input'><span class="functioncall"><a href='http://www.rdocumentation.org/packages/utils/topics/data'>data</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">)</span>
+<span class="symbol">priors</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='Carriero_priors.html'>Carriero_priors</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">,</span> <span class="argument">p</span> <span class="argument">=</span> <span class="number">4</span><span class="keyword">)</span>
+<span class="symbol">model</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conjugate0.html'>bvar_conjugate0</a></span><span class="keyword">(</span><span class="argument">priors</span> <span class="argument">=</span> <span class="symbol">priors</span><span class="keyword">,</span> <span class="argument">keep</span> <span class="argument">=</span> <span class="number">100</span><span class="keyword">)</span>
+<span class="functioncall"><a href='forecast_conjugate.html'>forecast_conjugate</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">,</span> <span class="argument">h</span> <span class="argument">=</span> <span class="number">2</span><span class="keyword">,</span> <span class="argument">output</span> <span class="argument">=</span> <span class="string">'wide'</span><span class="keyword">)</span></div>
+<div class='output'>       variable h     mean   median        sd lower_80 upper_80 lower_95
+1     inflation 1 2.784789 2.764593 0.2848619 2.433737 3.166019 2.237943
+2     inflation 2 2.719156 2.735954 0.4655253 2.173356 3.360548 1.798172
+3 interest_rate 1 4.622494 4.616425 0.8088017 3.591344 5.733700 3.075596
+4 interest_rate 2 4.641837 4.695696 1.1389115 3.182334 6.022727 2.029033
+5  unemployment 1 4.888859 4.887834 0.3434221 4.455810 5.330606 4.295066
+6  unemployment 2 4.934553 4.946161 0.5334880 4.298933 5.640938 3.956308
+  upper_95
+1 3.289092
+2 3.588531
+3 6.008703
+4 6.522149
+5 5.518314
+6 5.942867
+</div>
+<div class='input'><span class="functioncall"><a href='forecast_conjugate.html'>forecast_conjugate</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">,</span> <span class="argument">out_of_sample</span> <span class="argument">=</span> <span class="number">FALSE</span><span class="keyword">,</span> <span class="argument">include</span> <span class="argument">=</span> <span class="string">'mean'</span><span class="keyword">,</span> <span class="argument">level</span> <span class="argument">=</span> NULL<span class="keyword">,</span> <span class="argument">type</span> <span class="argument">=</span> <span class="string">'credible'</span><span class="keyword">)</span></div>
+<div class='output'>         variable   h what      value
+1       inflation   1 mean  1.0397979
+2    unemployment   1 mean  3.4035148
+3   interest_rate   1 mean  1.2837951
+4       inflation   2 mean  1.2221003
+5    unemployment   2 mean  5.4240295
+6   interest_rate   2 mean  0.5855760
+7       inflation   3 mean  1.0495318
+8    unemployment   3 mean  6.1579723
+9   interest_rate   3 mean  0.4627746
+10      inflation   4 mean  0.6905512
+11   unemployment   4 mean  5.6689022
+12  interest_rate   4 mean  0.6058879
+13      inflation   5 mean  0.6202724
+14   unemployment   5 mean  5.4784290
+15  interest_rate   5 mean  1.0149538
+16      inflation   6 mean  0.8468367
+17   unemployment   6 mean  4.5635696
+18  interest_rate   6 mean  1.6261795
+19      inflation   7 mean  1.3501544
+20   unemployment   7 mean  4.5014647
+21  interest_rate   7 mean  1.9229014
+22      inflation   8 mean  2.3961885
+23   unemployment   8 mean  3.8161536
+24  interest_rate   8 mean  2.3555557
+25      inflation   9 mean  2.7591495
+26   unemployment   9 mean  4.3258343
+27  interest_rate   9 mean  2.5166598
+28      inflation  10 mean  3.4191559
+29   unemployment  10 mean  3.9844211
+30  interest_rate  10 mean  2.9487190
+31      inflation  11 mean  3.6867464
+32   unemployment  11 mean  4.0592058
+33  interest_rate  11 mean  2.9585698
+34      inflation  12 mean  4.0448304
+35   unemployment  12 mean  4.5839431
+36  interest_rate  12 mean  2.6368844
+37      inflation  13 mean  3.9064407
+38   unemployment  13 mean  3.9167604
+39  interest_rate  13 mean  3.3071830
+40      inflation  14 mean  4.0342795
+41   unemployment  14 mean  4.3307116
+42  interest_rate  14 mean  3.2495841
+43      inflation  15 mean  3.7507642
+44   unemployment  15 mean  3.9913899
+45  interest_rate  15 mean  3.3435836
+46      inflation  16 mean  3.1925427
+47   unemployment  16 mean  4.3718738
+48  interest_rate  16 mean  3.1041163
+49      inflation  17 mean  3.1367681
+50   unemployment  17 mean  4.6866925
+51  interest_rate  17 mean  3.4511570
+52      inflation  18 mean  2.6057419
+53   unemployment  18 mean  6.1526160
+54  interest_rate  18 mean  1.9497369
+55      inflation  19 mean  2.1554081
+56   unemployment  19 mean  7.7645311
+57  interest_rate  19 mean  0.6489684
+58      inflation  20 mean  1.7109578
+59   unemployment  20 mean  7.4017937
+60  interest_rate  20 mean  0.8123039
+61      inflation  21 mean  1.5837350
+62   unemployment  21 mean  6.2016587
+63  interest_rate  21 mean  2.6878938
+64      inflation  22 mean  1.3104169
+65   unemployment  22 mean  5.5203655
+66  interest_rate  22 mean  2.9675525
+67      inflation  23 mean  1.1472769
+68   unemployment  23 mean  4.8398702
+69  interest_rate  23 mean  3.3014577
+70      inflation  24 mean  1.1693077
+71   unemployment  24 mean  4.9534146
+72  interest_rate  24 mean  3.2943989
+73      inflation  25 mean  1.3168305
+74   unemployment  25 mean  5.7277208
+75  interest_rate  25 mean  3.7121000
+76      inflation  26 mean  1.0996902
+77   unemployment  26 mean  5.0281818
+78  interest_rate  26 mean  4.2056822
+79      inflation  27 mean  1.5369279
+80   unemployment  27 mean  5.1473500
+81  interest_rate  27 mean  3.3442068
+82      inflation  28 mean  1.6816339
+83   unemployment  28 mean  5.5846325
+84  interest_rate  28 mean  2.4973404
+85      inflation  29 mean  1.5415531
+86   unemployment  29 mean  6.1652153
+87  interest_rate  29 mean  2.2211106
+88      inflation  30 mean  1.2937499
+89   unemployment  30 mean  6.5649209
+90  interest_rate  30 mean  2.0128403
+91      inflation  31 mean  0.9601755
+92   unemployment  31 mean  6.8739719
+93  interest_rate  31 mean  2.0019902
+94      inflation  32 mean  0.8285982
+95   unemployment  32 mean  6.7523985
+96  interest_rate  32 mean  2.1339085
+97      inflation  33 mean  0.7839050
+98   unemployment  33 mean  6.1324873
+99  interest_rate  33 mean  2.4462040
+100     inflation  34 mean  1.5673834
+101  unemployment  34 mean  5.4114693
+102 interest_rate  34 mean  3.1806397
+103     inflation  35 mean  1.5634051
+104  unemployment  35 mean  5.3620481
+105 interest_rate  35 mean  2.9910051
+106     inflation  36 mean  1.4973493
+107  unemployment  36 mean  5.2213692
+108 interest_rate  36 mean  3.1460810
+109     inflation  37 mean  1.5577044
+110  unemployment  37 mean  5.3009470
+111 interest_rate  37 mean  2.8529435
+112     inflation  38 mean  1.0671862
+113  unemployment  38 mean  5.6637026
+114 interest_rate  38 mean  2.7252565
+115     inflation  39 mean  0.9279714
+116  unemployment  39 mean  5.5950566
+117 interest_rate  39 mean  2.7860240
+118     inflation  40 mean  0.8948821
+119  unemployment  40 mean  5.4591575
+120 interest_rate  40 mean  3.0593747
+121     inflation  41 mean  1.2826544
+122  unemployment  41 mean  5.3604994
+123 interest_rate  41 mean  3.4432515
+124     inflation  42 mean  1.3100114
+125  unemployment  42 mean  5.5154513
+126 interest_rate  42 mean  3.4290611
+127     inflation  43 mean  1.6395006
+128  unemployment  43 mean  5.1650022
+129 interest_rate  43 mean  3.6367706
+130     inflation  44 mean  2.0364755
+131  unemployment  44 mean  4.7658871
+132 interest_rate  44 mean  3.7495638
+133     inflation  45 mean  1.6940031
+134  unemployment  45 mean  5.0920770
+135 interest_rate  45 mean  3.5275887
+136     inflation  46 mean  1.8299816
+137  unemployment  46 mean  4.8476736
+138 interest_rate  46 mean  3.8748998
+139     inflation  47 mean  1.9667724
+140  unemployment  47 mean  4.7721846
+141 interest_rate  47 mean  3.9168323
+142     inflation  48 mean  1.9533257
+143  unemployment  48 mean  4.3467302
+144 interest_rate  48 mean  3.9942107
+145     inflation  49 mean  2.1557532
+146  unemployment  49 mean  4.2053713
+147 interest_rate  49 mean  4.1573368
+148     inflation  50 mean  2.3535713
+149  unemployment  50 mean  4.0374632
+150 interest_rate  50 mean  4.6308823
+151     inflation  51 mean  2.9780362
+152  unemployment  51 mean  3.8786609
+153 interest_rate  51 mean  4.7872004
+154     inflation  52 mean  3.5225168
+155  unemployment  52 mean  3.9664317
+156 interest_rate  52 mean  4.9596235
+157     inflation  53 mean  3.7102739
+158  unemployment  53 mean  3.8581894
+159 interest_rate  53 mean  5.4331278
+160     inflation  54 mean  3.3822907
+161  unemployment  54 mean  4.1380777
+162 interest_rate  54 mean  4.6712533
+163     inflation  55 mean  3.0047324
+164  unemployment  55 mean  4.0296185
+165 interest_rate  55 mean  3.9724138
+166     inflation  56 mean  2.9922362
+167  unemployment  56 mean  4.0059909
+168 interest_rate  56 mean  4.2225202
+169     inflation  57 mean  3.2951364
+170  unemployment  57 mean  4.2135139
+171 interest_rate  57 mean  4.4609379
+172     inflation  58 mean  4.1280831
+173  unemployment  58 mean  3.8306062
+174 interest_rate  58 mean  5.2044365
+175     inflation  59 mean  4.6678261
+176  unemployment  59 mean  3.6557355
+177 interest_rate  59 mean  5.6123716
+178     inflation  60 mean  4.5236450
+179  unemployment  60 mean  3.9712105
+180 interest_rate  60 mean  5.3780449
+181     inflation  61 mean  4.9126267
+182  unemployment  61 mean  3.6270097
+183 interest_rate  61 mean  5.6550031
+184     inflation  62 mean  4.6886848
+185  unemployment  62 mean  3.6613771
+186 interest_rate  62 mean  6.0734932
+187     inflation  63 mean  4.9996916
+188  unemployment  63 mean  3.6958146
+189 interest_rate  63 mean  6.1622080
+190     inflation  64 mean  5.5705561
+191  unemployment  64 mean  3.8438139
+192 interest_rate  64 mean  6.9656548
+193     inflation  65 mean  5.2338113
+194  unemployment  65 mean  4.0578317
+195 interest_rate  65 mean  6.7926070
+196     inflation  66 mean  5.7236138
+197  unemployment  66 mean  4.2622953
+198 interest_rate  66 mean  7.7093743
+199     inflation  67 mean  5.6853345
+200  unemployment  67 mean  5.0918678
+201 interest_rate  67 mean  6.2792377
+202     inflation  68 mean  4.6856204
+203  unemployment  68 mean  5.3950947
+204 interest_rate  68 mean  6.1401644
+205     inflation  69 mean  4.8224035
+206  unemployment  69 mean  5.8219848
+207 interest_rate  69 mean  5.6790839
+208     inflation  70 mean  5.0386716
+209  unemployment  70 mean  6.1985283
+210 interest_rate  70 mean  4.5116896
+211     inflation  71 mean  4.9550515
+212  unemployment  71 mean  6.0352317
+213 interest_rate  71 mean  4.1937405
+214     inflation  72 mean  5.2127880
+215  unemployment  72 mean  6.0191124
+216 interest_rate  72 mean  5.4762180
+217     inflation  73 mean  4.6110193
+218  unemployment  73 mean  5.7619199
+219 interest_rate  73 mean  4.5892924
+220     inflation  74 mean  4.9297065
+221  unemployment  74 mean  5.8655304
+222 interest_rate  74 mean  3.8976291
+223     inflation  75 mean  3.8861103
+224  unemployment  75 mean  5.7176544
+225 interest_rate  75 mean  3.8427760
+226     inflation  76 mean  3.9469290
+227  unemployment  76 mean  5.5509230
+228 interest_rate  76 mean  4.1467220
+229     inflation  77 mean  4.5186643
+230  unemployment  77 mean  5.5998359
+231 interest_rate  77 mean  4.8417300
+232     inflation  78 mean  4.1253300
+233  unemployment  78 mean  4.7619942
+234 interest_rate  78 mean  5.5812210
+235     inflation  79 mean  5.5771374
+236  unemployment  79 mean  5.0530182
+237 interest_rate  79 mean  6.5221520
+238     inflation  80 mean  6.7178086
+239  unemployment  80 mean  4.8939182
+240 interest_rate  80 mean  8.1930252
+241     inflation  81 mean  7.2207283
+242  unemployment  81 mean  4.7427763
+243 interest_rate  81 mean  7.6395395
+244     inflation  82 mean  7.8558153
+245  unemployment  82 mean  5.4624760
+246 interest_rate  82 mean  8.0290932
+247     inflation  83 mean  8.3950856
+248  unemployment  83 mean  5.3819146
+249 interest_rate  83 mean  8.5741863
+250     inflation  84 mean  9.8035379
+ [ reached getOption(&quot;max.print&quot;) -- omitted 383 rows ]
+</div></pre>
+  </div>
+  <div class="span4 sidebar">
+    <!-- <ul>
+      <li>forecast_conjugate</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+
+
+
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="https://getbootstrap.com/2.0.4/">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

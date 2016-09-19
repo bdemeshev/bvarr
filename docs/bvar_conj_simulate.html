@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>bvar_conj_simulate. bvarr 0.2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="index.html">bvarr 0.2</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="reference.html">Reference</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>Simulate from conjugate N-IW posterior distribution</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><span class="functioncall"><a href='bvar_conj_simulate.html'>bvar_conj_simulate</a></span><span class="keyword">(</span><span class="symbol">v_post</span><span class="keyword">,</span> <span class="symbol">Omega_post_root</span><span class="keyword">,</span> <span class="symbol">S_post</span><span class="keyword">,</span> <span class="symbol">Phi_post</span><span class="keyword">,</span> <span class="argument">verbose</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">FALSE</span><span class="keyword">,</span>
+  <span class="argument">keep</span>&nbsp;<span class="argument">=</span>&nbsp;<span class="number">10</span><span class="keyword">)</span></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>v_post</dt>
+      <dd>posterior nu, scalar</dd>
+      <dt>Omega_post_root</dt>
+      <dd>[k x k] &#39;root&#39; of Omega posterior matrix</dd>
+      <dt>S_post</dt>
+      <dd>[m x m] posterior scale matrix for noise covariance</dd>
+      <dt>Phi_post</dt>
+      <dd>[k x m] posterior expected values for coefs</dd>
+      <dt>verbose</dt>
+      <dd>TRUE will show some debugging messages, FALSE by default</dd>
+      <dt>keep</dt>
+      <dd>number of simulations</dd>
+    </dl>
+    
+    <div class="Value">
+      <h2>Value</h2>
+
+      <p><dl>
+coda object with simulations
+</dl></p>
+
+    </div>
+
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>Simulate from conjugate N-IW posterior distribution</p>
+
+    </div>
+
+    <div class="Details">
+      <h2>Details</h2>
+
+      <p>Simulate from conjugate N-IW posterior distribution</p>
+
+    </div>
+    
+    <h2 id="examples">Examples</h2>
+    <pre class="examples"><div class='input'><span class="functioncall"><a href='http://www.rdocumentation.org/packages/utils/topics/data'>data</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">)</span>
+<span class="symbol">dummy</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_lambda2dummy.html'>bvar_conj_lambda2dummy</a></span><span class="keyword">(</span><span class="symbol">Yraw</span><span class="keyword">,</span> <span class="argument">p</span> <span class="argument">=</span> <span class="number">2</span><span class="keyword">)</span>
+<span class="symbol">hyper</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_dummy2hyper.html'>bvar_conj_dummy2hyper</a></span><span class="keyword">(</span><span class="symbol">dummy</span><span class="keyword">$</span><span class="symbol">Y_cniw</span><span class="keyword">,</span> <span class="symbol">dummy</span><span class="keyword">$</span><span class="symbol">X_cniw</span><span class="keyword">)</span>
+<span class="comment"># these are priors but just for testing let's pretend that they are posteriors</span>
+<span class="symbol">post_sample</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_simulate.html'>bvar_conj_simulate</a></span><span class="keyword">(</span><span class="argument">v_post</span> <span class="argument">=</span> <span class="number">10</span><span class="keyword">,</span>
+<span class="symbol">hyper</span><span class="keyword">$</span><span class="symbol">Omega_root</span><span class="keyword">,</span> <span class="symbol">hyper</span><span class="keyword">$</span><span class="symbol">S</span><span class="keyword">,</span> <span class="symbol">hyper</span><span class="keyword">$</span><span class="symbol">Phi</span><span class="keyword">)</span></div></pre>
+  </div>
+  <div class="span4 sidebar">
+    <!-- <ul>
+      <li>bvar_conj_simulate</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+
+
+
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="https://getbootstrap.com/2.0.4/">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>
