@@ -16,9 +16,9 @@ devtools::install_github("bdemeshev/bvarr")
 ```R
 library("bvarr")
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup <- bvar_conj_setup(Yraw, p = 4)
+model <- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = "wide")
 forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
@@ -62,9 +62,9 @@ Basic example of BVAR estimation with forecasting
 ```R
 library("bvarr")
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup <- bvar_conj_setup(Yraw, p = 4)
+model <- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = "wide")
 forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
