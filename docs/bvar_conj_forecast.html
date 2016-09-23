@@ -122,20 +122,13 @@ forecast results
 <strong class='message'>Not implemented yet</strong>
 <div class='input'><span class="symbol">model</span> <span class="assignement">&lt;-</span> <span class="functioncall"><a href='bvar_conj_estimate.html'>bvar_conj_estimate</a></span><span class="keyword">(</span><span class="symbol">setup</span><span class="keyword">,</span> <span class="argument">keep</span> <span class="argument">=</span> <span class="number">100</span><span class="keyword">)</span>
 <span class="functioncall"><a href='bvar_conj_forecast.html'>bvar_conj_forecast</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">,</span> <span class="argument">h</span><span class="argument">=</span><span class="number">2</span><span class="keyword">,</span> <span class="argument">output</span> <span class="argument">=</span> <span class="string">'wide'</span><span class="keyword">)</span></div>
-<div class='output'>       variable h     mean   median        sd lower_80 upper_80 lower_95
-1     inflation 1 2.832796 2.814138 0.3403388 2.386363 3.310531 2.192906
-2     inflation 2 2.850935 2.834378 0.5268631 2.162197 3.592316 1.959676
-3 interest_rate 1 4.725440 4.769359 0.7426514 3.825763 5.632314 3.382020
-4 interest_rate 2 4.633839 4.671352 0.9760099 3.331887 5.837528 2.821528
-5  unemployment 1 4.875626 4.872675 0.3145944 4.494299 5.285674 4.302123
-6  unemployment 2 5.006729 4.997023 0.4861070 4.364303 5.581539 4.236558
-  upper_95
-1 3.531297
-2 3.890123
-3 6.231145
-4 6.198599
-5 5.476999
-6 6.019809
+<div class='output'>       variable h     mean   median        sd lower_80 upper_80 lower_95 upper_95
+1     inflation 1 2.832796 2.814138 0.3403388 2.386363 3.310531 2.192906 3.531297
+2     inflation 2 2.850935 2.834378 0.5268631 2.162197 3.592316 1.959676 3.890123
+3 interest_rate 1 4.725440 4.769359 0.7426514 3.825763 5.632314 3.382020 6.231145
+4 interest_rate 2 4.633839 4.671352 0.9760099 3.331887 5.837528 2.821528 6.198599
+5  unemployment 1 4.875626 4.872675 0.3145944 4.494299 5.285674 4.302123 5.476999
+6  unemployment 2 5.006729 4.997023 0.4861070 4.364303 5.581539 4.236558 6.019809
 </div>
 <div class='input'><span class="functioncall"><a href='bvar_conj_forecast.html'>bvar_conj_forecast</a></span><span class="keyword">(</span><span class="symbol">model</span><span class="keyword">,</span> <span class="argument">out_of_sample</span> <span class="argument">=</span> <span class="number">FALSE</span><span class="keyword">,</span> <span class="argument">include</span> <span class="argument">=</span> <span class="string">'mean'</span><span class="keyword">)</span></div>
 <div class='output'>         variable   h what      value
