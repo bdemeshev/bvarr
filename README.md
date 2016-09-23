@@ -25,7 +25,7 @@ forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL,
 
 [Теория моделей BVAR](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)
 
-Презентация [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html/) в Нижнем Новгороде 2016-09-22.
+Презентация [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html) в Нижнем Новгороде 2016-09-22.
 
 
 Цели пакета:
@@ -71,7 +71,7 @@ forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL,
 
 [Theory behind package](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)
 
-Presentation [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html/) in Nizhniy Novgorod 2016-09-22.
+Presentation [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html) in Nizhniy Novgorod 2016-09-22.
 
 Goals of the package:
 
