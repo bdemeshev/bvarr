@@ -67,14 +67,16 @@ devtools::install_github(&quot;bdemeshev/bvarr&quot;)
 
 <pre><code class="R">library(&quot;bvarr&quot;)
 data(Yraw)
-priors &lt;- Carriero_priors(Yraw, p = 4)
-model &lt;- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup &lt;- bvar_conj_setup(Yraw, p = 4)
+model &lt;- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = &quot;wide&quot;)
 forecast_conjugate(model, out_of_sample = FALSE, include = &quot;mean&quot;, level = NULL, type = &quot;credible&quot;)
 </code></pre>
 
 <p><a href="https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf">Теория моделей BVAR</a></p>
+
+<p>Презентация <a href="http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html">BVAR: Great Grimpen Mire</a> в Нижнем Новгороде 2016-09-22.</p>
 
 <p>Цели пакета:</p>
 
@@ -107,14 +109,16 @@ devtools::install_github(&quot;bdemeshev/bvarr&quot;)
 
 <pre><code class="R">library(&quot;bvarr&quot;)
 data(Yraw)
-priors &lt;- Carriero_priors(Yraw, p = 4)
-model &lt;- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup &lt;- bvar_conj_setup(Yraw, p = 4)
+model &lt;- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = &quot;wide&quot;)
 forecast_conjugate(model, out_of_sample = FALSE, include = &quot;mean&quot;, level = NULL, type = &quot;credible&quot;)
 </code></pre>
 
 <p><a href="https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf">Theory behind package</a></p>
+
+<p>Presentation <a href="http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html">BVAR: Great Grimpen Mire</a> in Nizhniy Novgorod 2016-09-22.</p>
 
 <p>Goals of the package:</p>
 

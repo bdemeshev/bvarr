@@ -16,15 +16,16 @@ devtools::install_github("bdemeshev/bvarr")
 ```R
 library("bvarr")
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup <- bvar_conj_setup(Yraw, p = 4)
+model <- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = "wide")
 forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
 
 [Теория моделей BVAR](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)
 
+Презентация [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html) в Нижнем Новгороде 2016-09-22.
 
 
 Цели пакета:
@@ -61,16 +62,16 @@ Basic example of BVAR estimation with forecasting
 ```R
 library("bvarr")
 data(Yraw)
-priors <- Carriero_priors(Yraw, p = 4)
-model <- bvar_conjugate0(priors = priors)
-summary_conjugate(model) 
+setup <- bvar_conj_setup(Yraw, p = 4)
+model <- bvar_conj_estimate(setup)
+bvar_conj_summary(model) 
 forecast_conjugate(model, h = 2, output = "wide")
 forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
 
 [Theory behind package](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)
 
-
+Presentation [BVAR: Great Grimpen Mire](http://bdemeshev.github.io/bvar_om/bvar_mire_pres.html) in Nizhniy Novgorod 2016-09-22.
 
 Goals of the package:
 
