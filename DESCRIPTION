@@ -10,11 +10,11 @@ Authors@R: c(person("Boris", "Demeshev", email = "boris.demeshev@gmail.com",
 Depends:
     R (>= 3.1.0)
 Imports:
-    MCMCpack (>= 1.3.3),
+    MCMCpack (>= 1.3),
     reshape2 (>= 1.4),
-    MASS (>= 7.3-40),
-    dplyr (>= 0.4.2),
-    coda (>= 0.17-1)
+    MASS (>= 7.3),
+    dplyr (>= 0.5),
+    coda (>= 0.17)
 Description: The bvarr package allows estimation of some bayesian VAR
     models. The goal is to provide flexible well documented interface.
 LazyData: true
