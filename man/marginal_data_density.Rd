@@ -25,4 +25,3 @@ priors <- Carriero_priors(Yraw, p = 4)
 model <- bvar_conjugate0(priors = priors, fast_forecast = TRUE)
 marginal_data_density(model)
 }
-

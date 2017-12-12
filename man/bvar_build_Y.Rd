@@ -24,4 +24,3 @@ Build Y matrix from supplied data
 data(Yraw)
 Y <- bvar_build_Y(Yraw, p = 4)
 }
-

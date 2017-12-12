@@ -19,4 +19,4 @@ Description: The bvarr package allows estimation of some bayesian VAR
     models. The goal is to provide flexible well documented interface.
 LazyData: true
 License: GPL-3
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

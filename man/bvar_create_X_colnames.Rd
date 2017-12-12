@@ -28,4 +28,3 @@ exo_names <- bvar_get_exo_varnames(Yraw)
 endo_names <- bvar_get_endo_varnames(Yraw)
 bvar_create_X_colnames(endo_names, exo_names, p = 2)
 }
-

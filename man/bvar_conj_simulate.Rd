@@ -37,4 +37,3 @@ hyper <- bvar_conj_dummy2hyper(dummy$Y_cniw, dummy$X_cniw)
 post_sample <- bvar_conj_simulate(v_post = 10,
 hyper$Omega_root, hyper$S, hyper$Phi)
 }
-

@@ -24,4 +24,3 @@ priors <- Carriero_priors(Yraw, p = 4)
 model <- bvar_conjugate0(priors = priors, keep = 100)
 summary_conjugate(model)
 }
-

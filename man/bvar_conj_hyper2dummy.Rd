@@ -31,4 +31,3 @@ Y <- bvar_build_Y(Yraw, p = 4)
 hyper <- bvar_conj_dummy2hyper(Y, X) # no dummy observation, just for demo
 dummy <- bvar_conj_hyper2dummy(hyper$Omega, hyper$S, hyper$Phi)
 }
-
