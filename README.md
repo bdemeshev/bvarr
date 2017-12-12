@@ -4,6 +4,8 @@ bvarr
 
 [![Travis-CI Build Status](https://travis-ci.org/bdemeshev/bvarr.svg?branch=master)](https://travis-ci.org/bdemeshev/bvarr)
 
+Пожелания/замечения/[приветы/ошибки в issue](https://github.com/bdemeshev/bvarr/issues) :)
+
 Пакет `bvarr` может пригодиться для оценки BVAR моделей с сопряжённым нормальным - обратным Уишарта априорным распределением.
 
 Пакет можно установить командами:
@@ -19,8 +21,8 @@ data(Yraw)
 setup <- bvar_conj_setup(Yraw, p = 4)
 model <- bvar_conj_estimate(setup)
 bvar_conj_summary(model) 
-forecast_conjugate(model, h = 2, output = "wide")
-forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
+bvar_conj_forecast(model, h = 2, output = "wide")
+bvar_conj_forecast(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
 
 [Теория моделей BVAR](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)
@@ -50,6 +52,10 @@ forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL,
 ## English translation
 
 
+Wishes/notes/[greetings/errors in issue](https://github.com/bdemeshev/bvarr/issues) :)
+
+
+
 The package `bvarr` may be useful for estimation BVARs with conjugate Normal-Inverse Wishart prior.
 
 You may install the package usinge the commands:
@@ -65,8 +71,8 @@ data(Yraw)
 setup <- bvar_conj_setup(Yraw, p = 4)
 model <- bvar_conj_estimate(setup)
 bvar_conj_summary(model) 
-forecast_conjugate(model, h = 2, output = "wide")
-forecast_conjugate(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
+bvar_conj_forecast(model, h = 2, output = "wide")
+bvar_conj_forecast(model, out_of_sample = FALSE, include = "mean", level = NULL, type = "credible")
 ```
 
 [Theory behind package](https://github.com/bdemeshev/bvar_om/raw/master/text/bvar_mapping/bvar_mapping.pdf)

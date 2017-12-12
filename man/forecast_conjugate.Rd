@@ -56,4 +56,3 @@ model <- bvar_conjugate0(priors = priors, keep = 100)
 forecast_conjugate(model, h = 2, output = 'wide')
 forecast_conjugate(model, out_of_sample = FALSE, include = 'mean', level = NULL, type = 'credible')
 }
-

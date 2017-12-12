@@ -59,4 +59,3 @@ Lambdas specification is based on Carriero p. 52-53
 data(Yraw)
 setup <- bvar_conj_setup(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
 }
-

@@ -24,4 +24,3 @@ Get exogeneous variable names from supplied data
 data(Yraw)
 bvar_get_exo_varnames(Yraw)
 }
-

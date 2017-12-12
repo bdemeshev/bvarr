@@ -22,4 +22,3 @@ Get endogeneous variable names from supplied data
 data(Yraw)
 bvar_get_endo_varnames(Yraw)
 }
-

@@ -245,7 +245,8 @@ bvar_conj_lambda2hyper <- function(Y_in, Z_in = NULL, constant = TRUE, p = 4,
                                    y_bar_type = c("initial", "all"),
                                    carriero_hack = FALSE) {
 
-  message("Not implemented yet")
+  message("Calculation of hyperparameters from lambdas is not implemented yet :(")
+  message("You may safely ignore the message if you supply lambdas :)")
 
   prior <- list()
   return(prior)

@@ -30,4 +30,3 @@ Build X matrix from supplied data
 data(Yraw)
 X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
 }
-

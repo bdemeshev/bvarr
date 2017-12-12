@@ -61,4 +61,3 @@ Lambdas specification is based on Carriero
 data(Yraw)
 dummy <- bvar_conj_lambda2dummy(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
 }
-

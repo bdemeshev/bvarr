@@ -59,4 +59,3 @@ Lambdas specification is based on Carriero
 data(Yraw)
 prior <- bvar_conj_lambda2hyper(Yraw, p = 4, lambda = c(0.2, 1, 1, 1, 100, 100))
 }
-

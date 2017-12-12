@@ -21,4 +21,3 @@ Quarterly US data on inflation, unemployment and interest rate,
 1953:Q1 - 2006:Q3 from KK-code. The variables are as follows:
 }
 \keyword{datasets}
-

@@ -42,4 +42,3 @@ Monthly russian data on various macroeconomic indicators.
 1995:M1 - 2015:M3. The variables are as follows:
 }
 \keyword{datasets}
-

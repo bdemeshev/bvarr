@@ -22,4 +22,3 @@ Compute inverse of symmetric positive definite matrix using Cholesky decompositi
 A <- matrix(c(2, 1, 1, 2), nrow = 2)
 sym_inv(A)
 }
-

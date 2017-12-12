@@ -28,4 +28,3 @@ X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
 Y <- bvar_build_Y(Yraw, p = 4)
 post <- bvar_conj_dummy2hyper(Y,X) # no dummy observation, just for demo
 }
-

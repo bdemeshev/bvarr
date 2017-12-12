@@ -28,4 +28,3 @@ Y <- bvar_build_Y(Yraw, p = 4)
 X <- bvar_build_X(Yraw, constant = TRUE, p = 4)
 Y_in <- bvar_get_Y_in(Y, X, p = 4)
 }
-

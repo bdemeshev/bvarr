@@ -56,4 +56,3 @@ model <- bvar_conj_estimate(setup, keep = 100)
 bvar_conj_forecast(model, h=2, output = 'wide')
 bvar_conj_forecast(model, out_of_sample = FALSE, include = 'mean')
 }
-

@@ -54,4 +54,3 @@ model <- bvar_conjugate0(priors = priors, keep = 100)
 # if something goes wrong then we need info!
 model <- bvar_conjugate0(priors = priors, keep = 10, verbose = TRUE)
 }
-
